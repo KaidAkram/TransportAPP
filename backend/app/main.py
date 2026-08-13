@@ -9,16 +9,16 @@ from app.api.v1.health import router as health_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup log
-    print(f"🚀 {settings.PROJECT_NAME} v{settings.VERSION} starting up...")
+    print(f"[STARTUP] {settings.PROJECT_NAME} v{settings.VERSION} starting up...")
     yield
     # Shutdown
-    print(f"🛑 {settings.PROJECT_NAME} shutting down...")
+    print(f"[SHUTDOWN] {settings.PROJECT_NAME} shutting down...")
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Backend API RESTful pour la gestion intégrée du parc, personnel, CRM, maintenance, stock et contrats.",
+    description="Backend API RESTful pour la gestion integree du parc, personnel, CRM, maintenance, stock et contrats.",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
