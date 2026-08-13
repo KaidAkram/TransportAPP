@@ -68,12 +68,14 @@ class Caution(Base, BaseModelMixin):
     reference_numero = Column(String(100), nullable=False)
     objet = Column(Text, nullable=False)
     date_emission = Column(Date, nullable=False)
+    date_echeance = Column(Date, nullable=True)
     date_retour = Column(Date, nullable=True)
     statut = Column(
         SQLEnum(StatutCaution, name="statut_caution"),
         default=StatutCaution.CREATION,
         nullable=False,
     )
+    banque_emetteur = Column(String(150), default="Banque Nationale d'Algérie (BNA)", nullable=True)
     url_caution_pdf = Column(String(500), nullable=True)
     url_main_levee_pdf = Column(String(500), nullable=True)
 

@@ -24,6 +24,7 @@ from app.models import (
     MouvementStock,
     Intervention,
     Document,
+    CRMNote,
     StatutVehicule,
     StatutEmploye,
     TypeEmploye,
@@ -41,8 +42,13 @@ from app.models import (
 def seed_database(db: Session):
     """
     Populates database with realistic Algerian enterprise transport data and professional corporate assets.
+    Idempotent: clears existing data first.
     """
     print("--- Starting Database Seeding ---")
+
+    # Clear existing tables for clean seed
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
     # 1. Seed Vehicles
     print("  -> Seeding Vehicles...")
@@ -140,6 +146,7 @@ def seed_database(db: Session):
     client1 = Client(
         id=uuid.uuid4(),
         nom_commercial="Agence Voyages Oran Étoile SARL",
+        logo="/assets/logos/client_default.jpg",
         nif="001631012345678",
         nis="001631012345678000",
         registre_commerce="31/00-1234567B16",
@@ -169,6 +176,7 @@ def seed_database(db: Session):
     fournisseur1 = Fournisseur(
         id=uuid.uuid4(),
         nom_commercial="Auto Pièces Maghreb Distribution EURL",
+        logo="/assets/logos/supplier_default.jpg",
         nif="001616098765432",
         nis="001616098765432000",
         registre_commerce="16/00-9876543B16",
@@ -224,7 +232,7 @@ def seed_database(db: Session):
         objet="Garantie de bonne exécution du contrat CTR-2026-001",
         date_emission=date(2026, 1, 5),
         statut=StatutCaution.CHEZ_CLIENT,
-        url_caution_pdf="/assets/documents/caution_CAU-2026-001.pdf",
+        url_caution_pdf="/assets/documents/cautions/caution_CAU-2026-001.pdf",
     )
     db.add_all([ctr1, av1, cau1])
     db.flush()
@@ -344,18 +352,22 @@ def seed_database(db: Session):
     )
     db.add(doc_assurance)
 
+    # 8. Seed CRM Note
+    crm1 = CRMNote(
+        id=uuid.uuid4(),
+        partenaire_id=client1.id,
+        type="Réunion",
+        auteur="Directeur Général",
+        date=date(2026, 8, 10),
+        contenu="Revue trimestrielle des prestations touristiques et préparation du plan de transport automne 2026.",
+    )
+    db.add(crm1)
+
     db.commit()
     print("[SUCCESS] Database successfully populated with professional ERP data & corporate assets!")
 
 
 if __name__ == "__main__":
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-
-    try:
-        Base.metadata.create_all(bind=engine)
-        session = SessionLocal()
-        seed_database(session)
-        session.close()
-    except Exception as e:
-        print(f"[ERROR] Seeding failed: {e}")
+    session = SessionLocal()
+    seed_database(session)
+    session.close()

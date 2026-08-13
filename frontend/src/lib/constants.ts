@@ -103,14 +103,14 @@ export const STATUS_COLOR_MAP: Record<string, { bg: string; text: string; label:
 
 // --- Navigation Items ---
 export const NAV_ITEMS = [
-  { label: "Tableau de bord", href: "/dashboard", icon: "LayoutDashboard" },
+  { label: "Tableau de bord", href: "/", icon: "LayoutDashboard" },
   { label: "Véhicules", href: "/vehicules", icon: "Bus" },
-  { label: "Chauffeurs", href: "/chauffeurs", icon: "Users" },
-  { label: "Clients", href: "/clients", icon: "Building2" },
-  { label: "Maintenance", href: "/maintenance/interventions", icon: "Wrench" },
-  { label: "Cautions", href: "/cautions", icon: "Shield" },
+  { label: "Employés", href: "/employes", icon: "Users" },
+  { label: "Partenaires CRM", href: "/partenaires", icon: "Building2" },
   { label: "Contrats", href: "/contrats", icon: "FileText" },
-  { label: "Stock", href: "/stock/pieces", icon: "Package" },
+  { label: "Cautions", href: "/cautions", icon: "Shield" },
+  { label: "Maintenance", href: "/maintenance", icon: "Wrench" },
+  { label: "Stock & Pièces", href: "/stock", icon: "Package" },
 ] as const;
 
 // --- API Base URL ---
