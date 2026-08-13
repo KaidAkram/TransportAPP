@@ -1,4 +1,22 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: etransport_db
+    restart: unless-stopped
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -11,13 +29,16 @@ services:
       - PROJECT_NAME=E-Transport ERP API
       - VERSION=1.0.0
       - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000"]
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
       - SUPABASE_URL=https://placeholder-project.supabase.co
       - SUPABASE_ANON_KEY=placeholder-anon-key
       - SUPABASE_KEY=placeholder-service-key
       - SUPABASE_JWT_SECRET=placeholder-jwt-secret
     volumes:
       - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -42,6 +63,9 @@ services:
       - /app/.next
     depends_on:
       - backend
+
+volumes:
+  postgres_data:
 
 networks:
   default:

@@ -1,3 +1,4 @@
+import os
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,10 +15,10 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
 
-    # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:54322/postgres"
+    # Database: Default to persistent local SQLite or PostgreSQL when configured
+    DATABASE_URL: str = "sqlite:///./etransport.db"
 
-    # Supabase
+    # Supabase Credentials
     SUPABASE_URL: str = "https://placeholder-project.supabase.co"
     SUPABASE_KEY: str = "placeholder-service-key"
     SUPABASE_ANON_KEY: str = "placeholder-anon-key"

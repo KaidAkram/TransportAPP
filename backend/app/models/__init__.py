@@ -3,8 +3,8 @@ from app.models.enums import (
     StatutVehicule,
     StatutEmploye,
     TypeEmploye,
-    TypePartenaire,
     RolePartenaire,
+    TypePartenaire,
     StatutContrat,
     TypeCaution,
     StatutCaution,
@@ -14,15 +14,11 @@ from app.models.enums import (
 )
 from app.models.document import Document
 from app.models.employe import Employe, Chauffeur, Mecanicien, Permis
-from app.models.partenaire import Partenaire, Client, Fournisseur, Contact
+from app.models.partenaire import Partenaire, Client, Fournisseur, Contact, CRMNote
 from app.models.contrat import Contrat, Avenant, Caution
 from app.models.stock import Piece, MouvementStock
 from app.models.vehicule import Vehicule, Constat
-from app.models.intervention import (
-    Intervention,
-    intervention_mecaniciens,
-    intervention_pieces,
-)
+from app.models.intervention import Intervention
 
 __all__ = [
     "Base",
@@ -31,8 +27,8 @@ __all__ = [
     "StatutVehicule",
     "StatutEmploye",
     "TypeEmploye",
-    "TypePartenaire",
     "RolePartenaire",
+    "TypePartenaire",
     "StatutContrat",
     "TypeCaution",
     "StatutCaution",
@@ -49,6 +45,7 @@ __all__ = [
     "Client",
     "Fournisseur",
     "Contact",
+    "CRMNote",
     "Contrat",
     "Avenant",
     "Caution",
@@ -57,6 +54,4 @@ __all__ = [
     "Vehicule",
     "Constat",
     "Intervention",
-    "intervention_mecaniciens",
-    "intervention_pieces",
 ]

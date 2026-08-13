@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, ForeignKey, Text, Date
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.models.base import Base, BaseModelMixin
@@ -13,6 +13,7 @@ class Partenaire(Base, BaseModelMixin):
     __tablename__ = "partenaires"
 
     nom_commercial = Column(String(200), nullable=False, index=True)
+    logo = Column(String(255), nullable=True)
     nif = Column(String(50), nullable=True)
     nis = Column(String(50), nullable=True)
     registre_commerce = Column(String(50), nullable=True)
@@ -48,6 +49,7 @@ class Partenaire(Base, BaseModelMixin):
 
     contacts = relationship("Contact", back_populates="partenaire", cascade="all, delete-orphan")
     contrats = relationship("Contrat", back_populates="partenaire")
+    crm_notes = relationship("CRMNote", back_populates="partenaire", cascade="all, delete-orphan")
 
 
 class Client(Partenaire):
@@ -79,3 +81,18 @@ class Contact(Base, BaseModelMixin):
     notes = Column(Text, nullable=True)
 
     partenaire = relationship("Partenaire", back_populates="contacts")
+
+
+class CRMNote(Base, BaseModelMixin):
+    """
+    CRM interaction logging (Appel, Email, Réunion, Note) per Partner.
+    """
+    __tablename__ = "crm_notes"
+
+    partenaire_id = Column(UUID(as_uuid=True), ForeignKey("partenaires.id", ondelete="CASCADE"), nullable=False)
+    type = Column(String(50), default="Note", nullable=False)  # Appel, Email, Réunion, Note
+    auteur = Column(String(100), default="Administrateur", nullable=False)
+    date = Column(Date, nullable=False)
+    contenu = Column(Text, nullable=False)
+
+    partenaire = relationship("Partenaire", back_populates="crm_notes")
