@@ -1,57 +1,42 @@
 import os
-import sys
-from datetime import date, datetime, timezone
 import uuid
-
-# Ensure backend root is on sys.path
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
+from datetime import date
 from sqlalchemy.orm import Session
-from app.core.database import engine, SessionLocal, Base
-from app.models import (
-    Vehicule,
-    Constat,
-    Chauffeur,
-    Mecanicien,
-    Permis,
-    Client,
-    Fournisseur,
-    Contact,
-    Contrat,
-    Avenant,
-    Caution,
-    Piece,
-    MouvementStock,
-    Intervention,
-    Document,
-    CRMNote,
+from sqlalchemy import insert
+
+# Ensure models are loaded
+import app.models
+from app.core.database import SessionLocal, engine, Base
+from app.models.enums import (
     StatutVehicule,
     StatutEmploye,
-    TypeEmploye,
     RolePartenaire,
     TypePartenaire,
-    StatutContrat,
-    TypeCaution,
     StatutCaution,
+    TypeCaution,
+    StatutContrat,
     CategorieIntervention,
     StatutIntervention,
     TypeMouvement,
 )
+from app.models.vehicule import Vehicule, Constat
+from app.models.employe import Chauffeur, Mecanicien, Permis
+from app.models.partenaire import Client, Fournisseur, Contact, CRMNote
+from app.models.contrat import Contrat, Avenant, Caution
+from app.models.stock import Piece, MouvementStock
+from app.models.intervention import Intervention, intervention_pieces
+from app.models.document import Document
 
 
 def seed_database(db: Session):
-    """
-    Populates database with realistic Algerian enterprise transport data and professional corporate assets.
-    Idempotent: clears existing data first.
-    """
-    print("--- Starting Database Seeding ---")
-
-    # Clear existing tables for clean seed
+    print("[INIT] Re-creating all tables cleanly from SQLAlchemy metadata...")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
+    print("[SEED] Starting database population with verified corporate assets...")
+
     # 1. Seed Vehicles
-    print("  -> Seeding Vehicles...")
+    print("  -> Seeding Fleet Vehicles...")
     v1 = Vehicule(
         id=uuid.uuid4(),
         immatriculation="16-123456-00",
@@ -63,138 +48,188 @@ def seed_database(db: Session):
         date_mise_circulation=date(2022, 3, 15),
         kilometrage_actuel=245820.0,
         statut=StatutVehicule.DISPONIBLE,
-        cout_total=1250000.0,
+        cout_total=185000.0,
     )
     v2 = Vehicule(
         id=uuid.uuid4(),
-        immatriculation="16-987654-00",
+        immatriculation="16-654321-00",
         marque="Iveco",
         modele="Crossway",
         type="Bus",
-        nombre_places=53,
-        annee=2023,
-        date_mise_circulation=date(2023, 6, 10),
-        kilometrage_actuel=189400.0,
+        nombre_places=55,
+        annee=2021,
+        date_mise_circulation=date(2021, 6, 20),
+        kilometrage_actuel=312000.0,
         statut=StatutVehicule.EN_MISSION,
-        cout_total=850000.0,
+        cout_total=320000.0,
     )
     v3 = Vehicule(
         id=uuid.uuid4(),
-        immatriculation="31-456789-00",
-        marque="Renault",
-        modele="Master",
+        immatriculation="16-789012-00",
+        marque="Hyundai",
+        modele="County",
         type="Minibus",
-        nombre_places=18,
-        annee=2021,
-        date_mise_circulation=date(2021, 11, 20),
-        kilometrage_actuel=94150.0,
+        nombre_places=28,
+        annee=2023,
+        date_mise_circulation=date(2023, 1, 10),
+        kilometrage_actuel=89400.0,
         statut=StatutVehicule.MAINTENANCE,
-        cout_total=420000.0,
+        cout_total=95000.0,
     )
     db.add_all([v1, v2, v3])
     db.flush()
 
-    # 2. Seed Employees with Professional Headshots
-    print("  -> Seeding Employees with Executive Headshot Avatars...")
+    # 2. Seed Employees with Single Table Inheritance
+    print("  -> Seeding Employees (STI Chauffeurs & Mécaniciens)...")
     c1 = Chauffeur(
         id=uuid.uuid4(),
-        matricule="CH-001",
-        nom="Benali",
-        prenom="Mohamed",
-        photo="/assets/avatars/driver_pro.jpg",
-        date_naissance=date(1980, 5, 12),
+        matricule="CHF-001",
+        nom="Mansouri",
+        prenom="Karim",
         telephone="0550 12 34 56",
-        adresse="Hai El Badr, Oran",
-        date_embauche=date(2018, 1, 15),
+        date_naissance=date(1985, 4, 12),
+        date_embauche=date(2018, 5, 2),
+        adresse="Kouba, Alger",
         statut=StatutEmploye.ACTIF,
-        type_employe=TypeEmploye.CHAUFFEUR,
-        fonction="Chauffeur Principal Longue Distance",
+        fonction="Chauffeur Principal Tourisme",
         assurance=True,
+        photo="/assets/avatars/driver_pro.jpg",
     )
-    p1 = Permis(
+    c2 = Chauffeur(
         id=uuid.uuid4(),
-        chauffeur_id=c1.id,
-        numero="DZ-31-987654",
-        categories="B, D, D1",
-        date_obtention=date(2005, 4, 1),
-        date_expiration=date(2028, 4, 1),
-        scan_permis="/assets/documents/permis_ch001.pdf",
+        matricule="CHF-002",
+        nom="Belkacem",
+        prenom="Omar",
+        telephone="0550 98 76 54",
+        date_naissance=date(1990, 8, 25),
+        date_embauche=date(2021, 2, 15),
+        adresse="Bab Ezzouar, Alger",
+        statut=StatutEmploye.ACTIF,
+        fonction="Chauffeur Longue Distance",
+        assurance=True,
+        photo="/assets/avatars/driver_pro.jpg",
     )
-
     m1 = Mecanicien(
         id=uuid.uuid4(),
         matricule="MEC-001",
         nom="Brahimi",
         prenom="Ahmed",
-        photo="/assets/avatars/mechanic_pro.jpg",
-        date_naissance=date(1978, 9, 23),
         telephone="0661 98 76 54",
-        adresse="Zone Industrielle Arzew, Oran",
+        date_naissance=date(1980, 11, 3),
         date_embauche=date(2015, 3, 1),
+        adresse="Rouiba, Alger",
         statut=StatutEmploye.ACTIF,
-        type_employe=TypeEmploye.MECANICIEN,
-        specialite="Moteur & Freinage Pneumatique",
-        type_mecanicien="Chef d'Atelier Maintenance",
-        experience="18 ans",
-        est_responsable=True,
+        specialite="Chef d'Atelier",
+        experience="15 ans",
+        type_mecanicien="Chef d'Atelier",
+        photo="/assets/avatars/mechanic_pro.jpg",
     )
-    db.add_all([c1, p1, m1])
+    m2 = Mecanicien(
+        id=uuid.uuid4(),
+        matricule="MEC-002",
+        nom="Larbi",
+        prenom="Youcef",
+        telephone="0662 11 22 33",
+        date_naissance=date(1988, 7, 19),
+        date_embauche=date(2019, 9, 10),
+        adresse="Baraki, Alger",
+        statut=StatutEmploye.ACTIF,
+        specialite="Électricien Poids Lourds & Diagnostic",
+        experience="8 ans",
+        type_mecanicien="Électricien",
+        photo="/assets/avatars/mechanic_pro.jpg",
+    )
+    db.add_all([c1, c2, m1, m2])
     db.flush()
 
-    # 3. Seed Partners & Contacts
-    print("  -> Seeding Partners (Clients & Suppliers)...")
+    # Seed Driver Licenses
+    p1 = Permis(
+        id=uuid.uuid4(),
+        chauffeur_id=c1.id,
+        numero="DZ-ALG-1985-004521",
+        date_obtention=date(2005, 6, 15),
+        date_expiration=date(2028, 6, 15),
+        categories="B, C1, D, ED",
+        scan_permis="/assets/documents/permis_mansouri.pdf",
+    )
+    p2 = Permis(
+        id=uuid.uuid4(),
+        chauffeur_id=c2.id,
+        numero="DZ-ALG-1990-008912",
+        date_obtention=date(2012, 9, 20),
+        date_expiration=date(2027, 9, 20),
+        categories="B, C1, D",
+        scan_permis="/assets/documents/permis_belkacem.pdf",
+    )
+    db.add_all([p1, p2])
+    db.flush()
+
+    # 3. Seed Partners with STI (Clients & Fournisseurs)
+    print("  -> Seeding CRM Partners (Clients & Fournisseurs)...")
     client1 = Client(
         id=uuid.uuid4(),
-        nom_commercial="Agence Voyages Oran Étoile SARL",
-        logo="/assets/logos/client_default.jpg",
-        nif="001631012345678",
-        nis="001631012345678000",
-        registre_commerce="31/00-1234567B16",
-        adresse="Boulevard de la Soummam",
-        wilaya="Oran",
-        commune="Oran",
-        code_postal="31000",
-        telephone_principal="041 40 50 60",
-        email="contact@oranetoile-voyages.dz",
-        site_web="https://oranetoile-voyages.dz",
+        nom_commercial="Air Algérie Tours & Prestations",
+        type_client=TypePartenaire.ENTREPRISE,
+        telephone_principal="+213 21 50 88 00",
+        email="contact@airalgerie-tours.dz",
+        adresse="1 Place Maurice Audin",
+        commune="Alger Centre",
+        wilaya="Alger",
+        code_postal="16000",
+        site_web="https://airalgerie.dz",
+        nif="000216001234567",
+        nis="000216001234567890",
+        registre_commerce="16/00-0123456B20",
+        article_imposition="16012345678",
+        logo="/assets/partners/client_logo.jpg",
         statut_crm="Actif",
-        role_partenaire=RolePartenaire.CLIENT,
-        type_client=TypePartenaire.AGENCE_VOYAGE,
     )
-    contact1 = Contact(
-        id=uuid.uuid4(),
-        partenaire_id=client1.id,
-        nom="Mansouri",
-        prenom="Farid",
-        fonction="Directeur d'Exploitation & Réservations",
-        telephone="0555 77 88 99",
-        email="f.mansouri@oranetoile-voyages.dz",
-        est_principal=True,
-        notes="Contact principal pour les conventions de transport touristique et corporate.",
-    )
-
     fournisseur1 = Fournisseur(
         id=uuid.uuid4(),
-        nom_commercial="Auto Pièces Maghreb Distribution EURL",
-        logo="/assets/logos/supplier_default.jpg",
-        nif="001616098765432",
-        nis="001616098765432000",
-        registre_commerce="16/00-9876543B16",
-        adresse="Zone Logistique Oued Smar",
-        wilaya="Alger",
+        nom_commercial="SARL Maghreb Pièces & Filtres",
+        telephone_principal="+213 21 82 11 00",
+        email="ventes@maghrebpieces.dz",
+        adresse="Zone Industrielle Oued Smar, Lot 45",
         commune="Oued Smar",
+        wilaya="Alger",
         code_postal="16200",
-        telephone_principal="023 85 90 00",
-        email="commandes@autopieces-maghreb.dz",
+        nif="000516009876543",
+        nis="000516009876543210",
+        registre_commerce="16/00-0987654A21",
+        article_imposition="16098765432",
+        logo="/assets/partners/supplier_logo.jpg",
+        specialite="Pièces de rechange Bus & Poids Lourds Mercedes / Iveco / MAN",
         statut_crm="Actif",
-        role_partenaire=RolePartenaire.FOURNISSEUR,
-        specialite="Pièces d'origine certifiées Mercedes, Iveco, MAN, Knorr-Bremse",
     )
-    db.add_all([client1, contact1, fournisseur1])
+    db.add_all([client1, fournisseur1])
     db.flush()
 
-    # 4. Seed Contracts, Amendments & Cautions
-    print("  -> Seeding Contracts & Financial Cautions...")
+    # Seed Multi-Contacts
+    cnt1 = Contact(
+        id=uuid.uuid4(),
+        partenaire_id=client1.id,
+        nom="Haddad",
+        prenom="Samir",
+        fonction="Directeur des Opérations Sol",
+        telephone="0550 11 22 33",
+        email="s.haddad@airalgerie.dz",
+        est_principal=True,
+    )
+    cnt2 = Contact(
+        id=uuid.uuid4(),
+        partenaire_id=fournisseur1.id,
+        nom="Benaissa",
+        prenom="Farid",
+        fonction="Responsable Commercial Grands Comptes",
+        telephone="0661 44 55 66",
+        email="f.benaissa@maghrebpieces.dz",
+        est_principal=True,
+    )
+    db.add_all([cnt1, cnt2])
+    db.flush()
+
+    # 4. Seed Contracts & Cautions
+    print("  -> Seeding Contracts, Amendments & Bank Guarantees...")
     ctr1 = Contrat(
         id=uuid.uuid4(),
         reference="CTR-2026-001",
@@ -231,6 +266,8 @@ def seed_database(db: Session):
         reference_numero="CTR-2026-001",
         objet="Garantie de bonne exécution du contrat CTR-2026-001",
         date_emission=date(2026, 1, 5),
+        date_echeance=date(2026, 12, 31),
+        banque_emetteur="Banque Nationale d'Algérie (BNA Agence 612)",
         statut=StatutCaution.CHEZ_CLIENT,
         url_caution_pdf="/assets/documents/cautions/caution_CAU-2026-001.pdf",
     )
@@ -318,6 +355,7 @@ def seed_database(db: Session):
         probleme_constate="Contrôle périodique système de freinage avant.",
         diagnostic="Plaquettes de frein avant à 85% d'usure. Remplacement requis.",
         travail_effectue="Remplacement jeu complet plaquettes de frein avant + contrôle d'étanchéité.",
+        cout_total=45000.0,
         prochaine_date_maintenance=date(2026, 11, 12),
         prochain_kilo_maintenance=260000.0,
         statut=StatutIntervention.TERMINEE,
@@ -336,6 +374,15 @@ def seed_database(db: Session):
         intervention_id=inter1.id,
     )
     db.add(mvt_sortie)
+
+    # Link junction table for piece consumption
+    db.execute(
+        insert(intervention_pieces).values(
+            intervention_id=inter1.id,
+            piece_id=p_freins.id,
+            quantite_utilisee=2,
+        )
+    )
 
     # 7. Seed Universal Documents
     print("  -> Seeding Universal Documents...")

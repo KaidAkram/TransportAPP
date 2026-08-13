@@ -6,10 +6,12 @@ from app.api.v1.employes import router as employes_router
 from app.api.v1.partenaires import router as partenaires_router
 from app.api.v1.contrats import router as contrats_router
 from app.api.v1.cautions import router as cautions_router
+from app.api.v1.stock import router as stock_router
+from app.api.v1.interventions import router as interventions_router
 
 api_v1_router = APIRouter()
 
-# Register core sub-routers
+# Register all ERP module sub-routers
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(vehicules_router)
@@ -17,3 +19,5 @@ api_v1_router.include_router(employes_router)
 api_v1_router.include_router(partenaires_router)
 api_v1_router.include_router(contrats_router)
 api_v1_router.include_router(cautions_router)
+api_v1_router.include_router(stock_router)
+api_v1_router.include_router(interventions_router)

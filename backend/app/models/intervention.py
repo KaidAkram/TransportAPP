@@ -49,6 +49,8 @@ class Intervention(Base, BaseModelMixin):
     prestataire_nom = Column(String(150), nullable=True)
     prestataire_telephone = Column(String(50), nullable=True)
 
+    cout_total = Column(Float, default=0.0, nullable=False)
+
     prochaine_date_maintenance = Column(Date, nullable=True)
     prochain_kilo_maintenance = Column(Float, nullable=True)
 

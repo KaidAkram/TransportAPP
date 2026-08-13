@@ -60,6 +60,21 @@ class ConstatSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class InterventionSummary(BaseModel):
+    id: UUID
+    numero: str
+    type: str
+    categorie: str
+    date: dt_date
+    kilometrage: float
+    travail_effectue: Optional[str] = None
+    cout_total: float
+    statut: str
+    mecanicien_nom: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class VehiculeRead(VehiculeBase):
     id: UUID
     created_at: datetime
@@ -72,7 +87,9 @@ class VehiculeRead(VehiculeBase):
 class VehiculeDetail(VehiculeRead):
     documents: List[DocumentSummary] = []
     constats: List[ConstatSummary] = []
+    interventions: List[InterventionSummary] = []
     total_constats: int = 0
+    total_interventions: int = 0
     documents_valides: int = 0
     documents_expires: int = 0
     documents_alertes: int = 0

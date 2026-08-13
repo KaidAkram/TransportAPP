@@ -18,12 +18,22 @@ import {
   CheckCircle2,
   AlertCircle,
   Wrench,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddDocumentModal } from "@/components/modules/vehicules/AddDocumentModal";
 import { AddConstatModal } from "@/components/modules/vehicules/AddConstatModal";
+import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
 import { api } from "@/lib/api";
 import { VehiculeDetail } from "@/types/vehicule";
 
@@ -32,9 +42,10 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
   const router = useRouter();
   const [vehicule, setVehicule] = useState<VehiculeDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"infos" | "documents" | "constats">("infos");
+  const [activeTab, setActiveTab] = useState<"infos" | "documents" | "constats" | "maintenance">("infos");
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [isConstatModalOpen, setIsConstatModalOpen] = useState(false);
+  const [isInterventionModalOpen, setIsInterventionModalOpen] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -112,6 +123,15 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Ajouter Document
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsInterventionModalOpen(true)}
+            className="text-xs border-border h-9 text-primary-base"
+          >
+            <Wrench className="h-3.5 w-3.5 mr-1.5" />
+            + Ordre de Travail
           </Button>
           <Button
             size="sm"
@@ -200,7 +220,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
           }`}
         >
           <Bus className="h-4 w-4" />
-          1. Fiche Technique & Informations
+          1. Fiche Technique
         </button>
         <button
           onClick={() => setActiveTab("documents")}
@@ -223,6 +243,17 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         >
           <AlertTriangle className="h-4 w-4" />
           3. Constats & Sinistres ({vehicule.constats.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("maintenance")}
+          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "maintenance"
+              ? "border-primary-base text-primary-base"
+              : "border-transparent text-text-secondary hover:text-text-primary"
+          }`}
+        >
+          <Wrench className="h-4 w-4" />
+          4. Maintenance & Pièces ({vehicule.interventions?.length || 0})
         </button>
       </div>
 
@@ -450,6 +481,90 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
+      {/* TAB 4: MAINTENANCE & GMAO */}
+      {activeTab === "maintenance" && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-text-secondary">
+              Historique complet des ordres de travail, réparations et pièces détachées consommées.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => setIsInterventionModalOpen(true)}
+              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" /> Nouvel Ordre de Travail
+            </Button>
+          </div>
+
+          {(!vehicule.interventions || vehicule.interventions.length === 0) ? (
+            <Card className="bg-surface border-border p-12 text-center">
+              <Wrench className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-semibold text-text-primary">Aucune intervention enregistrée</p>
+              <p className="text-xs text-text-secondary mt-1">
+                Les ordres de travail de vidange, freinage ou réparations apparaîtront ici.
+              </p>
+            </Card>
+          ) : (
+            <Card className="bg-surface border-border shadow-xs overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-table-header">
+                    <TableRow className="border-b border-border">
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">N° OT</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Catégorie</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Mécanicien</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Date & Kilométrage</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Travaux Réalisés</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Coût</TableHead>
+                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vehicule.interventions.map((it) => (
+                      <TableRow key={it.id} className="border-b border-border hover:bg-primary-light/10">
+                        <TableCell className="font-mono text-xs font-bold text-primary-base">
+                          {it.numero}
+                        </TableCell>
+                        <TableCell className="text-xs font-semibold text-text-primary">
+                          {it.categorie}
+                        </TableCell>
+                        <TableCell className="text-xs text-text-secondary">
+                          {it.mecanicien_nom || "Atelier"}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-text-secondary">
+                          <div>{new Date(it.date).toLocaleDateString("fr-FR")}</div>
+                          <div className="text-[10px] text-text-secondary font-bold">
+                            {it.kilometrage.toLocaleString("fr-DZ")} KM
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs text-text-primary max-w-[250px] truncate" title={it.travail_effectue || ""}>
+                          {it.travail_effectue || "Révision générale"}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs font-bold text-text-primary">
+                          {it.cout_total.toLocaleString("fr-DZ")} DZD
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              it.statut === "TERMINEE"
+                                ? "bg-success-bg text-success-text"
+                                : "bg-warning-bg text-warning-text"
+                            }`}
+                          >
+                            {it.statut === "TERMINEE" ? "Terminée" : it.statut}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* Modal Dialogs */}
       <AddDocumentModal
         vehiculeId={vehicule.id}
@@ -461,6 +576,12 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         vehiculeId={vehicule.id}
         isOpen={isConstatModalOpen}
         onClose={() => setIsConstatModalOpen(false)}
+        onSuccess={() => fetchDetail()}
+      />
+      <AddInterventionModal
+        defaultVehiculeId={vehicule.id}
+        isOpen={isInterventionModalOpen}
+        onClose={() => setIsInterventionModalOpen(false)}
         onSuccess={() => fetchDetail()}
       />
     </div>

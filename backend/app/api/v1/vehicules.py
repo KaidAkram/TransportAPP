@@ -1,16 +1,16 @@
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date as dt_date
 import math
-import os
 from typing import Optional, List
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models.vehicule import Vehicule, Constat
 from app.models.document import Document
+from app.models.intervention import Intervention
 from app.models.enums import StatutVehicule
 from app.schemas.vehicule import (
     VehiculeCreate,
@@ -20,6 +20,7 @@ from app.schemas.vehicule import (
     VehiculeListResponse,
     DocumentSummary,
     ConstatSummary,
+    InterventionSummary,
 )
 from app.schemas.document import DocumentCreate, DocumentRead
 from app.schemas.constat import ConstatCreate, ConstatRead
@@ -32,19 +33,17 @@ router = APIRouter(prefix="/vehicules", tags=["Module 1 — Gestion des Véhicul
 def list_vehicules(
     search: Optional[str] = Query(None, description="Search by immatriculation, marque, or modele"),
     statut: Optional[StatutVehicule] = Query(None, description="Filter by operational status"),
-    type: Optional[str] = Query(None, description="Filter by vehicle type (Bus, Minibus, etc.)"),
-    include_archived: bool = Query(False, description="Include soft-deleted vehicles"),
+    type: Optional[str] = Query(None, description="Filter by vehicle category/type"),
+    include_archived: bool = Query(False, description="Include archived / soft-deleted vehicles"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(10, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
 ):
     query = db.query(Vehicule)
 
-    # Soft delete filter
     if not include_archived:
         query = query.filter(Vehicule.archived_at.is_(None))
 
-    # Text search
     if search:
         search_pattern = f"%{search}%"
         query = query.filter(
@@ -55,18 +54,16 @@ def list_vehicules(
             )
         )
 
-    # Status filter
     if statut:
         query = query.filter(Vehicule.statut == statut)
 
-    # Type filter
     if type:
         query = query.filter(Vehicule.type.ilike(type))
 
     total = query.count()
     total_pages = math.ceil(total / per_page) if total > 0 else 1
 
-    items = (
+    vehicles = (
         query.order_by(desc(Vehicule.created_at))
         .offset((page - 1) * per_page)
         .limit(per_page)
@@ -74,7 +71,7 @@ def list_vehicules(
     )
 
     return VehiculeListResponse(
-        items=items,
+        items=vehicles,
         total=total,
         page=page,
         per_page=per_page,
@@ -110,6 +107,14 @@ def get_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
         .all()
     )
 
+    # Fetch maintenance interventions
+    interventions = (
+        db.query(Intervention)
+        .filter(Intervention.vehicule_id == vehicule_id)
+        .order_by(desc(Intervention.date))
+        .all()
+    )
+
     valides = sum(1 for d in docs if d.statut_validite == "Valide")
     expires = sum(1 for d in docs if d.statut_validite == "Expiré")
     alertes = sum(1 for d in docs if d.statut_validite == "Expire bientôt")
@@ -131,7 +136,27 @@ def get_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
         archived_at=vehicule.archived_at,
         documents=[DocumentSummary.model_validate(d) for d in docs],
         constats=[ConstatSummary.model_validate(c) for c in constats],
+        interventions=[
+            InterventionSummary(
+                id=it.id,
+                numero=it.numero,
+                type=it.type.value if hasattr(it.type, "value") else str(it.type),
+                categorie=it.categorie,
+                date=it.date,
+                kilometrage=it.kilometrage,
+                travail_effectue=it.travail_effectue,
+                cout_total=it.cout_total,
+                statut=it.statut.value if hasattr(it.statut, "value") else str(it.statut),
+                mecanicien_nom=(
+                    f"{it.mecanicien_responsable.nom} {it.mecanicien_responsable.prenom}"
+                    if it.mecanicien_responsable
+                    else "Atelier"
+                ),
+            )
+            for it in interventions
+        ],
         total_constats=len(constats),
+        total_interventions=len(interventions),
         documents_valides=valides,
         documents_expires=expires,
         documents_alertes=alertes,
