@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ============================================
+   E-TRANSPORT ERP — Design System Tokens
+   Based on Design_system_E_Transport.pdf
+   ============================================ */
+
+@theme inline {
+  /* --- Primary Palette --- */
+  --color-primary-base: #1E40AF;
+  --color-primary-light: #DBEAFE;
+  --color-accent: #3B82F6;
+
+  /* --- Semantic Status Colors --- */
+  --color-success: #10B981;
+  --color-success-bg: #D1FAE5;
+  --color-success-text: #065F46;
+
+  --color-warning: #F59E0B;
+  --color-warning-bg: #FEF3C7;
+  --color-warning-text: #92400E;
+
+  --color-danger: #EF4444;
+  --color-danger-bg: #FEE2E2;
+  --color-danger-text: #991B1B;
+
+  --color-neutral: #6B7280;
+  --color-neutral-bg: #F3F4F6;
+  --color-neutral-text: #374151;
+
+  /* --- Backgrounds & Surfaces --- */
+  --color-background: #F3F4F6;
+  --color-surface: #FFFFFF;
+  --color-sidebar: #111827;
+
+  /* --- Text --- */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-inverse: #FFFFFF;
+
+  /* --- Borders & Tables --- */
+  --color-border: #E5E7EB;
+  --color-table-header: #F9FAFB;
+
+  /* --- Typography --- */
+  --font-sans: 'Inter', 'Roboto', ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Spacing (8px grid enforced via Tailwind defaults) --- */
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Typography Scale
+   ============================================ */
+
+h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* ============================================
+   Scrollbar Styling (Modern, Subtle)
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral);
+}
