@@ -40,7 +40,7 @@ from app.models import (
 
 def seed_database(db: Session):
     """
-    Populates database with realistic Algerian enterprise transport data.
+    Populates database with realistic Algerian enterprise transport data and professional corporate assets.
     """
     print("--- Starting Database Seeding ---")
 
@@ -88,21 +88,21 @@ def seed_database(db: Session):
     db.add_all([v1, v2, v3])
     db.flush()
 
-    # 2. Seed Employees with Banana Pro Kawai Hackerbot Avatars
-    print("  -> Seeding Employees & Avatars...")
+    # 2. Seed Employees with Professional Headshots
+    print("  -> Seeding Employees with Executive Headshot Avatars...")
     c1 = Chauffeur(
         id=uuid.uuid4(),
         matricule="CH-001",
         nom="Benali",
         prenom="Mohamed",
-        photo="/assets/avatars/driver_hackerbot.jpg",
-        date_naissance=date(1988, 5, 12),
+        photo="/assets/avatars/driver_pro.jpg",
+        date_naissance=date(1980, 5, 12),
         telephone="0550 12 34 56",
         adresse="Hai El Badr, Oran",
-        date_embauche=date(2020, 1, 15),
+        date_embauche=date(2018, 1, 15),
         statut=StatutEmploye.ACTIF,
         type_employe=TypeEmploye.CHAUFFEUR,
-        fonction="Chauffeur Principal",
+        fonction="Chauffeur Principal Longue Distance",
         assurance=True,
     )
     p1 = Permis(
@@ -110,7 +110,7 @@ def seed_database(db: Session):
         chauffeur_id=c1.id,
         numero="DZ-31-987654",
         categories="B, D, D1",
-        date_obtention=date(2010, 4, 1),
+        date_obtention=date(2005, 4, 1),
         date_expiration=date(2028, 4, 1),
         scan_permis="/assets/documents/permis_ch001.pdf",
     )
@@ -120,16 +120,16 @@ def seed_database(db: Session):
         matricule="MEC-001",
         nom="Brahimi",
         prenom="Ahmed",
-        photo="/assets/avatars/mechanic_hackerbot.jpg",
-        date_naissance=date(1985, 9, 23),
+        photo="/assets/avatars/mechanic_pro.jpg",
+        date_naissance=date(1978, 9, 23),
         telephone="0661 98 76 54",
         adresse="Zone Industrielle Arzew, Oran",
-        date_embauche=date(2019, 3, 1),
+        date_embauche=date(2015, 3, 1),
         statut=StatutEmploye.ACTIF,
         type_employe=TypeEmploye.MECANICIEN,
         specialite="Moteur & Freinage Pneumatique",
-        type_mecanicien="Chef d'atelier",
-        experience="12 ans",
+        type_mecanicien="Chef d'Atelier Maintenance",
+        experience="18 ans",
         est_responsable=True,
     )
     db.add_all([c1, p1, m1])
@@ -159,11 +159,11 @@ def seed_database(db: Session):
         partenaire_id=client1.id,
         nom="Mansouri",
         prenom="Farid",
-        fonction="Responsable Commercial & Réservations",
+        fonction="Directeur d'Exploitation & Réservations",
         telephone="0555 77 88 99",
         email="f.mansouri@oranetoile-voyages.dz",
         est_principal=True,
-        notes="Contact privilégié pour renouvellements des conventions annuelles.",
+        notes="Contact principal pour les conventions de transport touristique et corporate.",
     )
 
     fournisseur1 = Fournisseur(
@@ -180,7 +180,7 @@ def seed_database(db: Session):
         email="commandes@autopieces-maghreb.dz",
         statut_crm="Actif",
         role_partenaire=RolePartenaire.FOURNISSEUR,
-        specialite="Pièces d'origine Mercedes, Iveco, MAN",
+        specialite="Pièces d'origine certifiées Mercedes, Iveco, MAN, Knorr-Bremse",
     )
     db.add_all([client1, contact1, fournisseur1])
     db.flush()
@@ -191,14 +191,14 @@ def seed_database(db: Session):
         id=uuid.uuid4(),
         reference="CTR-2026-001",
         partenaire_id=client1.id,
-        objet="Transport régulier des délégations et circuits touristiques - Saison 2026",
+        objet="Convention de transport régulier de passagers et circuits touristiques 2026",
         type_contrat="Transport",
         date_debut=date(2026, 1, 1),
         date_fin=date(2026, 12, 31),
         montant=15000000.0,
         devise="DZD",
         mode_facturation="Mensuel",
-        conditions_paiement="Virement à 30 jours fin de mois",
+        conditions_paiement="Virement bancaire à 30 jours",
         statut=StatutContrat.ACTIF,
     )
     av1 = Avenant(
@@ -207,7 +207,7 @@ def seed_database(db: Session):
         numero="Avenant N°01",
         date=date(2026, 4, 15),
         objet="Extension de ligne vers Mostaganem et Tlemcen",
-        description="Ajout de deux trajets hebdomadaires supplémentaires.",
+        description="Ajout de rotations régulières le week-end.",
         modif_montant=2500000.0,
         nouvelle_date_fin=date(2026, 12, 31),
     )
@@ -221,7 +221,7 @@ def seed_database(db: Session):
         devise="DZD",
         reference_type="Contrat",
         reference_numero="CTR-2026-001",
-        objet="Garantie de bonne exécution du contrat de transport touristique 2026",
+        objet="Garantie de bonne exécution du contrat CTR-2026-001",
         date_emission=date(2026, 1, 5),
         statut=StatutCaution.CHEZ_CLIENT,
         url_caution_pdf="/assets/documents/caution_CAU-2026-001.pdf",
@@ -255,7 +255,7 @@ def seed_database(db: Session):
         stock_actuel=4,
         stock_minimum=10,
         emplacement="B-01-04",
-        description="Plaquettes de frein renforcées pour essieu avant.",
+        description="Plaquettes de frein haute endurance essieu avant.",
     )
     p_batterie = Piece(
         id=uuid.uuid4(),
@@ -263,7 +263,7 @@ def seed_database(db: Session):
         designation="Batterie Heavy Duty 12V 225Ah",
         categorie="Électricité",
         marque="Varta",
-        modele_compatibilite="Universel Bus / Poids Lourds",
+        modele_compatibilite="Universel Bus & Autocars",
         unite="Pièce",
         stock_actuel=8,
         stock_minimum=5,
@@ -279,7 +279,7 @@ def seed_database(db: Session):
         type=TypeMouvement.ENTREE,
         quantite=25,
         date=date(2026, 8, 1),
-        motif="Achat initial fournisseur",
+        motif="Achat initial stock magasin",
         fournisseur_id=fournisseur1.id,
         reference_document="BL-2026-089",
     )
@@ -289,7 +289,7 @@ def seed_database(db: Session):
         type=TypeMouvement.ENTREE,
         quantite=6,
         date=date(2026, 8, 5),
-        motif="Achat réapprovisionnement",
+        motif="Réapprovisionnement atelier freinage",
         fournisseur_id=fournisseur1.id,
         reference_document="BL-2026-094",
     )
@@ -307,9 +307,9 @@ def seed_database(db: Session):
         categorie="Freinage & Révision",
         date=date(2026, 8, 12),
         kilometrage=245820.0,
-        probleme_constate="Usure constatée sur le train avant lors du contrôle visuel.",
-        diagnostic="Plaquettes de frein avant à 85% d'usure. Remplacement nécessaire.",
-        travail_effectue="Remplacement jeu plaquettes avant + purge du circuit de freinage.",
+        probleme_constate="Contrôle périodique système de freinage avant.",
+        diagnostic="Plaquettes de frein avant à 85% d'usure. Remplacement requis.",
+        travail_effectue="Remplacement jeu complet plaquettes de frein avant + contrôle d'étanchéité.",
         prochaine_date_maintenance=date(2026, 11, 12),
         prochain_kilo_maintenance=260000.0,
         statut=StatutIntervention.TERMINEE,
@@ -345,14 +345,13 @@ def seed_database(db: Session):
     db.add(doc_assurance)
 
     db.commit()
-    print("[SUCCESS] Database successfully populated with initial ERP lore & Banana Pro assets!")
+    print("[SUCCESS] Database successfully populated with professional ERP data & corporate assets!")
 
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    # Create SQLite or PostgreSQL tables if running standalone
     try:
         Base.metadata.create_all(bind=engine)
         session = SessionLocal()
@@ -360,16 +359,3 @@ if __name__ == "__main__":
         session.close()
     except Exception as e:
         print(f"[ERROR] Seeding failed: {e}")
-        # In fallback mode, run with an in-memory SQLite engine to verify seed logic integrity
-        print("Testing seed logic against in-memory SQLite engine...")
-        from sqlalchemy import create_engine
-        from sqlalchemy.pool import StaticPool
-        
-        sqlite_engine = create_engine(
-            "sqlite:///:memory:",
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
-        # For SQLite in-memory test, create tables with SQLite compatible UUID types if needed
-        # or verify session transactions.
-        print("Done.")
