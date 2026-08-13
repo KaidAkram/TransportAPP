@@ -17,6 +17,18 @@ class DocumentCreate(DocumentBase):
     entity_id: UUID = Field(..., description="ID de l'entité rattachée")
 
 
+class DocumentSummary(BaseModel):
+    id: UUID
+    nom: str
+    type: str
+    url_fichier: str
+    date_emission: Optional[dt_date] = None
+    date_expiration: Optional[dt_date] = None
+    statut_validite: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DocumentRead(DocumentBase):
     id: UUID
     statut_validite: Optional[str] = None
