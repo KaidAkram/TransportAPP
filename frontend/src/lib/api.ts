@@ -51,7 +51,13 @@ class ApiClient {
       throw error;
     }
 
-    return response.json();
+    // Wrap raw backend JSON response in ApiResponse structure { data: T }
+    const json = await response.json();
+    return {
+      data: json as T,
+      message: response.statusText,
+      status: response.status,
+    };
   }
 
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
