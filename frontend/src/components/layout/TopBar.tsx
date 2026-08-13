@@ -1,12 +1,11 @@
 "use client";
 
-import { Bell, Search, User } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { useAlertStore } from "@/stores/alertStore";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export function TopBar() {
-  const { user, logout } = useAuthStore();
-  const { unreadCount } = useAlertStore();
+  const { user } = useAuthStore();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-surface px-6">
@@ -23,19 +22,8 @@ export function TopBar() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-4">
-        {/* Alerts Bell */}
-        <button
-          id="alerts-notification-btn"
-          className="relative rounded-full p-2 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
-          title="Alertes du système"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white">
-              {unreadCount}
-            </span>
-          )}
-        </button>
+        {/* Interactive Alerts Notification Bell */}
+        <NotificationBell />
 
         {/* User Profile / Status */}
         <div className="flex items-center gap-3 border-l border-border pl-4">
@@ -44,10 +32,10 @@ export function TopBar() {
           </div>
           <div className="hidden text-left md:block">
             <p className="text-xs font-medium text-text-primary">
-              {user ? user.email : "Admin Démo"}
+              {user ? user.email : "Direction Générale"}
             </p>
             <p className="text-[11px] text-text-secondary capitalize">
-              {user ? user.role : "Administrateur"}
+              {user ? user.role : "Super Administrateur"}
             </p>
           </div>
         </div>
