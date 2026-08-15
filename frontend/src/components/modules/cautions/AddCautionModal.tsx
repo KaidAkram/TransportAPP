@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { createPortal } from "react-dom";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ShieldCheck, X, AlertCircle, FileText, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ShieldCheck, X, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Caution } from "@/types/caution";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
 import { Contrat, ContratListResponse } from "@/types/contrat";
+import { GlassSelect } from "@/components/ui/GlassSelect";
+import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 
 const cautionSchema = z.object({
   numero: z.string().min(2, "Le numéro de caution est requis (ex: CAU-2026-002)"),
@@ -44,14 +46,18 @@ export function AddCautionModal({
   defaultContratId,
   defaultClientId,
 }: AddCautionModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [clients, setClients] = useState<Partenaire[]>([]);
   const [contracts, setContracts] = useState<Contrat[]>([]);
   const [generatePdfNow, setGeneratePdfNow] = useState(true);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [formData, setFormData] = useState<CautionFormValues | null>(null);
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     reset,
@@ -72,7 +78,12 @@ export function AddCautionModal({
   });
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = "hidden";
       api
         .get<PartenaireListResponse>("/partenaires", { role_partenaire: "CLIENT", per_page: "100" })
         .then((res) => setClients(res.data.items))
@@ -85,21 +96,34 @@ export function AddCautionModal({
 
       if (defaultClientId) setValue("client_id", defaultClientId);
       if (defaultContratId) setValue("contrat_id", defaultContratId);
+    } else {
+      document.body.style.overflow = "unset";
+      setIsConfirming(false);
+      setServerError(null);
     }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen, defaultClientId, defaultContratId, setValue]);
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
-  const onSubmit = async (data: CautionFormValues) => {
+  const onSubmit = (data: CautionFormValues) => {
+    setFormData(data);
+    setIsConfirming(true);
+  };
+
+  const handleFinalSubmit = async () => {
+    if (!formData) return;
     try {
       setIsSubmitting(true);
       setServerError(null);
 
       const payload = {
-        ...data,
-        montant: Number(data.montant),
-        contrat_id: data.contrat_id || null,
-        date_echeance: data.date_echeance || null,
+        ...formData,
+        montant: Number(formData.montant),
+        contrat_id: formData.contrat_id || null,
+        date_echeance: formData.date_echeance || null,
       };
 
       const res = await api.post<Caution>("/cautions", payload);
@@ -116,239 +140,321 @@ export function AddCautionModal({
       }
 
       reset();
+      setIsConfirming(false);
       onSuccess(finalCaution);
       onClose();
     } catch (err: any) {
       setServerError(err.detail || "Erreur lors de la création de la caution bancaire.");
+      setIsConfirming(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-xl bg-surface border border-border shadow-xl overflow-hidden">
+  const selectedClient = formData ? clients.find(c => c.id === formData.client_id) : null;
+  const selectedContract = formData && formData.contrat_id ? contracts.find(c => c.id === formData.contrat_id) : null;
+
+  const inputClass = "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-white/30 focus:border-[var(--color-electric-violet)] focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:outline-none transition-all";
+  const labelClass = "block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold";
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-2xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative max-h-[90vh] flex flex-col">
+        {/* Subtle Background Glow inside Modal */}
+        <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full transition-colors duration-500 ${isConfirming ? 'bg-[var(--color-turbo)]/15' : 'bg-[#eab308]/10'}`} />
+        
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-table-header">
+        <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning-bg text-warning">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
+              isConfirming ? 'bg-[var(--color-turbo)]/10 border-[var(--color-turbo)]/20 text-[var(--color-turbo)]' : 'bg-[#eab308]/10 border-[#eab308]/20 text-[#eab308]'
+            }`}>
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text-primary">Nouvelle Caution Bancaire</h2>
-              <p className="text-xs text-text-secondary">Garantie de Soumission ou de Bonne Exécution</p>
+              <h2 className="text-lg font-heading font-extrabold text-white">
+                {isConfirming ? "Confirmation de la Caution" : "Nouvelle Caution Bancaire"}
+              </h2>
+              <p className="text-xs text-white/50 mt-0.5">
+                {isConfirming 
+                  ? "Veuillez vérifier les informations avant validation définitive" 
+                  : "Saisie d'un nouvel acte de garantie (Soumission ou Bonne Exécution)"}
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+            className="rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-          {serverError && (
-            <div className="flex items-center gap-2 rounded-lg bg-danger-bg p-3 text-xs text-danger-text border border-danger/20">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{serverError}</span>
+        {/* Form Body */}
+        <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
+          {!isConfirming ? (
+            <form id="add-caution-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Type et Client */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Type de Caution</label>
+                  <Controller
+                    name="type"
+                    control={control}
+                    render={({ field }) => (
+                      <GlassSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        options={[
+                          { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+                          { value: "SOUMISSION", label: "Soumission (Appel d'Offres)" },
+                        ]}
+                      />
+                    )}
+                  />
+                  {errors.type && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.type.message}</p>}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Client Bénéficiaire</label>
+                  <Controller
+                    name="client_id"
+                    control={control}
+                    render={({ field }) => (
+                      <GlassSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        options={[
+                          { value: "", label: "Sélectionner un client..." },
+                          ...clients.map(c => ({ value: c.id, label: c.nom_commercial || c.id }))
+                        ]}
+                      />
+                    )}
+                  />
+                  {errors.client_id && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.client_id.message}</p>}
+                </div>
+              </div>
+
+              {/* Réf & Contrat */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Référence Contrat / AO</label>
+                  <input
+                    {...register("reference_numero")}
+                    placeholder="Ex: CTR-2026-004 ou AO 05/2026"
+                    className={inputClass}
+                  />
+                  {errors.reference_numero && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.reference_numero.message}</p>}
+                </div>
+                
+                <div>
+                  <label className={labelClass}>Contrat Associé (Optionnel)</label>
+                  <Controller
+                    name="contrat_id"
+                    control={control}
+                    render={({ field }) => (
+                      <GlassSelect
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        options={[
+                          { value: "", label: "Aucun contrat lié" },
+                          ...contracts.map(c => ({ value: c.id, label: c.reference }))
+                        ]}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Montant & Banque */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                <div className="sm:col-span-4">
+                  <label className={labelClass}>Montant Garanti</label>
+                  <Controller
+                    name="montant"
+                    control={control}
+                    render={({ field }) => (
+                      <GlassNumberInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        min={0}
+                        placeholder="Ex: 500000"
+                        suffix="DZD"
+                      />
+                    )}
+                  />
+                  {errors.montant && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.montant.message}</p>}
+                </div>
+
+                <div className="sm:col-span-8">
+                  <label className={labelClass}>Banque Émettrice</label>
+                  <input
+                    {...register("banque_emetteur")}
+                    placeholder="Banque..."
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Dates & N° Caution */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>N° Caution</label>
+                  <input
+                    {...register("numero")}
+                    placeholder="N° Acte"
+                    className={inputClass}
+                  />
+                  {errors.numero && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.numero.message}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>Date d'émission</label>
+                  <input
+                    type="date"
+                    {...register("date_emission")}
+                    className={inputClass}
+                  />
+                  {errors.date_emission && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.date_emission.message}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>Date d'échéance (Optionnel)</label>
+                  <input
+                    type="date"
+                    {...register("date_echeance")}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Objet */}
+              <div>
+                <label className={labelClass}>Objet de la garantie</label>
+                <textarea
+                  {...register("objet")}
+                  placeholder="Garantie bancaire de soumission pour le projet..."
+                  rows={2}
+                  className={`${inputClass} resize-none`}
+                />
+                {errors.objet && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.objet.message}</p>}
+              </div>
+            </form>
+          ) : (
+            /* Confirm Screen */
+            <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+              <div className="rounded-xl border border-[var(--color-turbo)]/20 bg-[var(--color-turbo)]/5 p-4 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-[var(--color-turbo)] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    Création de la caution : <span className="font-mono text-[var(--color-turbo)]">{formData?.numero}</span>
+                  </p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Les actes de garantie engagent financièrement l'entreprise. Veuillez revérifier les informations.
+                  </p>
+                </div>
+              </div>
+
+              {serverError && (
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {serverError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-1">Type de Garantie</p>
+                  <p className="text-sm font-semibold text-white">
+                    {formData?.type === "BONNE_EXECUTION" ? "🛡️ Bonne Exécution" : "📑 Soumission"}
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-1">Client Bénéficiaire</p>
+                  <p className="text-sm font-semibold text-white truncate">
+                    {selectedClient?.nom_commercial || formData?.client_id}
+                  </p>
+                </div>
+                <div className="bg-[var(--color-electric-violet)]/10 rounded-xl p-4 border border-[var(--color-electric-violet)]/20">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--color-electric-violet)]/70 mb-1">Montant Cautionné</p>
+                  <p className="text-lg font-bold font-mono text-[var(--color-electric-violet)]">
+                    {Number(formData?.montant).toLocaleString("fr-DZ")} {formData?.devise}
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-1">Contrat / Référence</p>
+                  <p className="text-sm font-semibold text-white font-mono">
+                    {selectedContract ? selectedContract.reference : formData?.reference_numero}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-1">Banque & Dates</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-white/80">{formData?.banque_emetteur}</p>
+                  <p className="text-xs font-mono text-white/60">
+                    Du {new Date(formData?.date_emission || "").toLocaleDateString("fr-FR")}
+                    {formData?.date_echeance && ` au ${new Date(formData.date_echeance).toLocaleDateString("fr-FR")}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Generate PDF Checkbox */}
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-turbo)]/20 bg-[var(--color-turbo)]/5 cursor-pointer hover:bg-[var(--color-turbo)]/10 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={generatePdfNow}
+                  onChange={(e) => setGeneratePdfNow(e.target.checked)}
+                  className="rounded border-white/20 bg-white/10 text-[var(--color-turbo)] focus:ring-[var(--color-turbo)]/50 focus:ring-offset-0"
+                />
+                <div>
+                  <p className="text-xs font-bold text-[var(--color-turbo)] flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5" /> Générer l'attestation PDF immédiatement
+                  </p>
+                  <p className="text-[10px] text-[var(--color-turbo)]/70">Un document officiel sera créé et rattaché à la caution.</p>
+                </div>
+              </label>
             </div>
           )}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Numéro de Caution *
-              </label>
-              <input
-                {...register("numero")}
-                placeholder="ex: CAU-2026-001"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono font-bold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-              {errors.numero && <p className="text-[11px] text-danger mt-1">{errors.numero.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Type de Caution *
-              </label>
-              <select
-                {...register("type")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="BONNE_EXECUTION">🛡️ Caution de Bonne Exécution (Marché)</option>
-                <option value="SOUMISSION">📑 Caution de Soumission (Appel d&apos;Offres)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Client Bénéficiaire *
-              </label>
-              <select
-                {...register("client_id")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Sélectionner le client...</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom_commercial}
-                  </option>
-                ))}
-              </select>
-              {errors.client_id && (
-                <p className="text-[11px] text-danger mt-1">{errors.client_id.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Contrat Rattaché (Optionnel)
-              </label>
-              <select
-                {...register("contrat_id")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Aucun contrat rattaché</option>
-                {contracts.map((ctr) => (
-                  <option key={ctr.id} value={ctr.id}>
-                    {ctr.reference} — {ctr.objet.slice(0, 35)}...
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Réf. Marché / Appel d&apos;Offres *
-              </label>
-              <input
-                {...register("reference_numero")}
-                placeholder="ex: AO N°12/2026 ou CTR-2026-001"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-              {errors.reference_numero && (
-                <p className="text-[11px] text-danger mt-1">{errors.reference_numero.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Montant Cautionné (DZD) *
-              </label>
-              <input
-                type="number"
-                step="1000"
-                {...register("montant", { valueAsNumber: true })}
-                placeholder="750000"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono font-bold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-              {errors.montant && (
-                <p className="text-[11px] text-danger mt-1">{errors.montant.message}</p>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Objet & Motif de l&apos;Engagement *
-              </label>
-              <input
-                {...register("objet")}
-                placeholder="ex: Garantie de bonne exécution du marché de transport régulier de passagers"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-              {errors.objet && <p className="text-[11px] text-danger mt-1">{errors.objet.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Date d&apos;Émission *
-              </label>
-              <input
-                type="date"
-                {...register("date_emission")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-              {errors.date_emission && (
-                <p className="text-[11px] text-danger mt-1">{errors.date_emission.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Date d&apos;Échéance / Validité
-              </label>
-              <input
-                type="date"
-                {...register("date_echeance")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Banque Garante Émettrice
-              </label>
-              <input
-                {...register("banque_emetteur")}
-                placeholder="ex: Banque Nationale d'Algérie (BNA)"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Statut de la Caution
-              </label>
-              <select
-                {...register("statut")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="CHEZ_CLIENT">🟠 Chez le Client (En cours)</option>
-                <option value="CREATION">🟡 En Création / Signature</option>
-                <option value="RETOURNEE">🟢 Retournée par le client</option>
-                <option value="MAIN_LEVEE">⚪ Mainlevée Définitive Accordée</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Direct PDF Generation Checkbox */}
-          <div className="rounded-lg border border-primary-base/20 bg-primary-light/10 p-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={generatePdfNow}
-                onChange={(e) => setGeneratePdfNow(e.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary-base focus:ring-primary-base"
-              />
-              <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                <FileText className="h-4 w-4 text-primary-base" /> Générer automatiquement l&apos;Acte de Caution Bancaire officiel (PDF ReportLab)
-              </span>
-            </label>
-          </div>
-
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <Button
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-end gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={isConfirming ? () => setIsConfirming(false) : onClose}
+            className="px-4 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+          >
+            {isConfirming ? "Retour à l'édition" : "Annuler"}
+          </button>
+          
+          {!isConfirming ? (
+            <button
               type="button"
-              variant="outline"
-              onClick={onClose}
-              className="text-xs border-border"
-              disabled={isSubmitting}
+              onClick={() => handleSubmit(onSubmit)()}
+              className="px-6 py-2 rounded-xl text-xs font-bold bg-[#eab308] text-[var(--color-haiti)] hover:bg-[#ca9a04] hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all flex items-center gap-2"
             >
-              Annuler
-            </Button>
-            <Button
-              type="submit"
+              Continuer <ShieldCheck className="h-3.5 w-3.5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleFinalSubmit}
               disabled={isSubmitting}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
+              className={`px-6 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#6A3DE8] hover:shadow-[0_0_20px_rgba(131,77,251,0.4)] transition-all flex items-center gap-2 ${
+                isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              {isSubmitting ? "Création..." : "Enregistrer la caution"}
-            </Button>
-          </div>
-        </form>
+              {isSubmitting ? (
+                "Validation..."
+              ) : (
+                <>Confirmer la création <CheckCircle2 className="h-3.5 w-3.5" /></>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

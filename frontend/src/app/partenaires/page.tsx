@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -14,14 +15,7 @@ import {
   Factory,
   CheckCircle2,
   Clock,
-  Ban,
-  Phone,
-  Mail,
-  MapPin,
-  FileText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -34,11 +28,18 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddPartnerModal } from "@/components/modules/partenaires/AddPartnerModal";
 import { api } from "@/lib/api";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
+import { GlassPagination } from "@/components/ui/GlassPagination";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { TableSkeleton } from "@/components/shared/Skeleton";
+import { Portal } from "@/components/shared/Portal";
 
 export default function PartenairesPage() {
   const [partners, setPartners] = useState<Partenaire[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,16 +49,24 @@ export default function PartenairesPage() {
       setLoading(true);
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      params.page = page.toString();
       if (roleFilter) params.role_partenaire = roleFilter;
       if (statusFilter) params.statut_crm = statusFilter;
 
       const res = await api.get<PartenaireListResponse>("/partenaires", params);
       setPartners(res.data.items);
+      setTotalPages(res.data.total_pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
       console.error("Error fetching partners:", err);
     } finally {
       setLoading(false);
     }
+  }, [search, roleFilter, statusFilter, page]);
+
+  
+  useEffect(() => {
+    setPage(1);
   }, [search, roleFilter, statusFilter]);
 
   useEffect(() => {
@@ -82,229 +91,215 @@ export default function PartenairesPage() {
   const fournisseurs = partners.filter((p) => p.role_partenaire === "FOURNISSEUR").length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-10 max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-16 contain-layout">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+            <Users className="w-3 h-3" />
+            Annuaire & Relations B2B
+          </p>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
             Gestion des Partenaires & CRM
           </h1>
-          <p className="text-xs text-text-secondary mt-0.5">
+          <p className="text-sm text-white/50 mt-1 font-sans max-w-xl">
             Répertoire centralisé des clients conventions, agences de voyages et fournisseurs de pièces
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={fetchPartners}
-            className="text-xs border-border h-9"
+            className="inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 px-4 py-2.5 text-sm font-bold text-white border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all group"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
-            size="sm"
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--color-electric-violet)] hover:bg-[#6c3ce0] px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(131,77,251,0.4)] border border-[var(--color-electric-violet)]/50 hover:shadow-[0_0_25px_rgba(131,77,251,0.6)] transition-all"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Plus className="h-5 w-5 mr-2" />
             Nouveau Partenaire
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Total Entreprises</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <Building2 className="h-4 w-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Entreprises</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-text-primary font-mono">{totalCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Comptes partenaires créés</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Clients Actifs</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-success-bg text-success-text">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-success font-mono">{clientsActifs}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Conventions & circuits</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Prospects CRM</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-warning-bg text-warning-text">
-              <Clock className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-warning font-mono">{prospects}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">En cours de négociation</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Fournisseurs</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <Factory className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-primary-base font-mono">{fournisseurs}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Pièces & prestataires</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Role Switcher Tabs */}
-      <div className="flex border-b border-border bg-surface rounded-t-lg px-4 pt-2 gap-2">
-        <button
-          onClick={() => setRoleFilter("")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === ""
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Building2 className="h-4 w-4" />
-          Tous les comptes CRM
-        </button>
-        <button
-          onClick={() => setRoleFilter("CLIENT")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === "CLIENT"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          Clients & Agences B2B
-        </button>
-        <button
-          onClick={() => setRoleFilter("FOURNISSEUR")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === "FOURNISSEUR"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Factory className="h-4 w-4" />
-          Fournisseurs & Pièces
-        </button>
-      </div>
-
-      {/* Search & Status Filters */}
-      <Card className="bg-surface border-border shadow-xs">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par raison sociale, NIF, email, téléphone ou RC..."
-                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-4 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les statuts CRM</option>
-                <option value="Actif">🟢 Actif</option>
-                <option value="Prospect">🟡 Prospect</option>
-                <option value="Inactif">⚫ Inactif</option>
-                <option value="Bloqué">🔴 Bloqué</option>
-              </select>
-            </div>
+            <p className="text-[10px] text-white/40 mt-1">Comptes partenaires créés</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
+            <Building2 className="h-5 w-5 text-white/80 group-hover:text-white" />
+          </div>
+        </div>
+
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Clients Actifs</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{clientsActifs}</span>
+            </div>
+            <p className="text-[10px] text-white/40 mt-1">Conventions & circuits</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          </div>
+        </div>
+
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Prospects CRM</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{prospects}</span>
+            </div>
+            <p className="text-[10px] text-white/40 mt-1">En cours de négociation</p>
+          </div>
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
+          </div>
+        </div>
+
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Fournisseurs</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)]">{fournisseurs}</span>
+            </div>
+            <p className="text-[10px] text-white/40 mt-1">Pièces & prestataires</p>
+          </div>
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <Factory className="h-5 w-5 text-[var(--color-electric-violet)]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filters Area */}
+      <div className="opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards] space-y-4 relative z-50" style={{ animationDelay: '0.2s' }}>
+        
+        {/* Role Switcher Tabs */}
+        <div className="flex p-1.5 bg-white/5 rounded-xl w-fit border border-white/5 min-w-0 max-w-full overflow-x-auto custom-scrollbar">
+          <button
+            onClick={() => setRoleFilter("")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              roleFilter === ""
+                ? "bg-[var(--color-electric-violet)]/20 text-white border border-[var(--color-electric-violet)]/30 shadow-[0_0_10px_rgba(131,77,251,0.2)]"
+                : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            <Building2 className="h-4 w-4" />
+            Tous les comptes CRM
+          </button>
+          <button
+            onClick={() => setRoleFilter("CLIENT")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              roleFilter === "CLIENT"
+                ? "bg-[var(--color-electric-violet)]/20 text-white border border-[var(--color-electric-violet)]/30 shadow-[0_0_10px_rgba(131,77,251,0.2)]"
+                : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Clients & Agences B2B
+          </button>
+          <button
+            onClick={() => setRoleFilter("FOURNISSEUR")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              roleFilter === "FOURNISSEUR"
+                ? "bg-[var(--color-electric-violet)]/20 text-white border border-[var(--color-electric-violet)]/30 shadow-[0_0_10px_rgba(131,77,251,0.2)]"
+                : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            <Factory className="h-4 w-4" />
+            Fournisseurs & Pièces
+          </button>
+        </div>
+
+        {/* Search & Status Filters */}
+        <div className="flex flex-col md:flex-row gap-3 relative z-50 w-full">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher par raison sociale, NIF, email, téléphone ou RC..."
+              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:bg-[var(--color-haiti)] focus:border-[var(--color-electric-violet)] focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+            />
+          </div>
+          <div className="w-full md:w-56 shrink-0">
+            <GlassSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: "", label: "Tous les statuts CRM" },
+                { value: "Actif", label: "Actif" },
+                { value: "Prospect", label: "Prospect" },
+                { value: "Inactif", label: "Inactif" },
+                { value: "Bloqué", label: "Bloqué" },
+              ]}
+              placeholder="Filtrer par statut"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* CRM Partner Table */}
-      <Card className="bg-surface border-border shadow-xs overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-table-header">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Entreprise / Raison Sociale</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Rôle</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Catégorie / Spécialité</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Interlocuteur Principal</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Ville / Wilaya</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut CRM</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+        <div className="glass-panel overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+          <div className="min-w-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-white/10 bg-black/20">
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Entreprise / Raison Sociale</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Rôle</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Catégorie / Spécialité</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Interlocuteur Principal</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Ville / Wilaya</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut CRM</TableHead>
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-xs text-text-secondary">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary-base" />
-                    Chargement du portefeuille CRM...
+                  <TableCell colSpan={7} className="p-0 border-0">
+                    <TableSkeleton rows={6} />
                   </TableCell>
                 </TableRow>
               ) : partners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <Building2 className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-semibold text-text-primary">Aucun partenaire trouvé</p>
-                    <p className="text-xs text-text-secondary mt-1">
-                      Ajustez vos filtres ou ajoutez un nouveau compte client ou fournisseur.
-                    </p>
+                  <TableCell colSpan={7} className="p-0 border-0">
+                    <EmptyState 
+                      title="Aucun partenaire" 
+                      message="Aucun partenaire ne correspond à vos filtres de recherche." 
+                      icon={Building2} 
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
                 partners.map((p) => {
                   const isClient = p.role_partenaire === "CLIENT";
-                  const logoSrc =
-                    p.logo ||
-                    (isClient
-                      ? "/assets/logos/client_default.jpg"
-                      : "/assets/logos/supplier_default.jpg");
 
                   return (
                     <TableRow
                       key={p.id}
-                      className="border-b border-border hover:bg-primary-light/20 transition-colors"
+                      className="border-none hover:bg-white/[0.02] transition-colors"
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="relative h-9 w-9 overflow-hidden rounded-lg border border-border bg-white p-1 shrink-0">
-                            <Image
-                              src={logoSrc}
-                              alt={p.nom_commercial}
-                              fill
-                              className="object-contain p-0.5"
-                              unoptimized
-                            />
-                          </div>
                           <div>
                             <Link
                               href={`/partenaires/${p.id}`}
-                              className="text-xs font-bold text-text-primary hover:text-primary-base transition-colors block"
+                              className="text-xs font-bold text-white hover:text-[var(--color-electric-violet)] transition-colors block"
                             >
                               {p.nom_commercial}
                             </Link>
                             {p.nif && (
-                              <span className="font-mono text-[10px] text-text-secondary">
+                              <span className="font-mono text-[10px] text-white/40">
                                 NIF : {p.nif}
                               </span>
                             )}
@@ -313,75 +308,59 @@ export default function PartenairesPage() {
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
                             isClient
-                              ? "bg-primary-light text-primary-base"
-                              : "bg-warning-bg text-warning-text"
+                              ? "bg-[var(--color-electric-violet)] text-white"
+                              : "bg-[var(--color-turbo)] text-black"
                           }`}
                         >
                           {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
                           {isClient ? "Client" : "Fournisseur"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs text-text-secondary">
+                      <TableCell className="text-white/70">
                         {isClient
                           ? p.type_client || "Entreprise"
                           : p.specialite || "Catalogue Fournisseur"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="glass-td">
                         {p.contact_principal ? (
                           <div>
-                            <p className="text-xs font-semibold text-text-primary">
+                            <p className="text-xs font-bold text-white">
                               {p.contact_principal.nom} {p.contact_principal.prenom}
                             </p>
-                            <p className="text-[11px] text-text-secondary font-mono">
+                            <p className="text-[10px] text-white/50 font-mono mt-0.5">
                               {p.contact_principal.telephone || p.telephone_principal || "—"}
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs text-text-secondary">
+                          <span className="text-xs text-white/40 italic">
                             {p.telephone_principal || "Aucun contact"}
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs text-text-secondary">
+                      <TableCell className="border-none text-white/70">
                         {p.wilaya || "—"}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                            p.statut_crm === "Actif"
-                              ? "bg-success-bg text-success-text"
-                              : p.statut_crm === "Prospect"
-                              ? "bg-warning-bg text-warning-text"
-                              : p.statut_crm === "Bloqué"
-                              ? "bg-danger-bg text-danger-text"
-                              : "bg-neutral text-text-secondary"
-                          }`}
-                        >
-                          {p.statut_crm || "Actif"}
-                        </span>
+                        <StatusBadge status={p.statut_crm || "Actif"} />
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-primary-base hover:bg-primary-light/50 h-7 px-2.5"
-                        >
-                          <Link href={`/partenaires/${p.id}`}>
-                            <Eye className="h-3.5 w-3.5 mr-1" /> Dossier CRM
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleArchive(p.id, p.nom_commercial)}
-                          className="text-xs text-danger hover:bg-danger-bg h-7 px-2"
-                          title="Archiver le partenaire"
-                        >
-                          <Archive className="h-3.5 w-3.5" />
-                        </Button>
+                      <TableCell className="border-none text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => window.location.href = `/partenaires/${p.id}`}
+                            className="inline-flex items-center px-3 py-1.5 text-[11px] font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                          >
+                            <Eye className="h-3.5 w-3.5 mr-1.5 text-white/50" /> Dossier
+                          </button>
+                          <button
+                            onClick={() => handleArchive(p.id, p.nom_commercial)}
+                            className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Archiver le partenaire"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -389,15 +368,25 @@ export default function PartenairesPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+        <GlassPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
+      </div>
 
-      {/* Add Partner Modal */}
+            {/* Modals */}
+      <Portal>
+{/* Add Partner Modal */}
       <AddPartnerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchPartners()}
       />
+      </Portal>
     </div>
   );
 }
+

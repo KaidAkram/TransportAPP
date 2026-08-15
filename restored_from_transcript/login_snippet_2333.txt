@@ -1,0 +1,181 @@
+Created At: 2026-08-15T01:38:57+01:00
+Completed At: 2026-08-15T01:38:57+01:00
+File Path: `file:///c:/Users/Akram%20KAID/Desktop/Entreprise_transport/frontend/src/app/login/page.tsx`
+Total Lines: 173
+Total Bytes: 7987
+Showing lines 1 to 173
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1:  "use client";
+2: 
+3: import { useState } from "react";
+4: import { useRouter } from "next/navigation";
+5: import { Bus, ShieldCheck, UserCheck, Lock, User, ArrowRight, CheckCircle2 } from "lucide-react";
+6: import { api } from "@/lib/api";
+7: import { useAuthStore, AuthUser } from "@/stores/authStore";
+8: 
+9: export default function LoginPage() {
+10:  const router = useRouter();
+11:  const { login } = useAuthStore();
+12: 
+13:  const [username, setUsername] = useState("");
+14:  const [password, setPassword] = useState("");
+15:  const [loading, setLoading] = useState(false);
+16:  const [error, setError] = useState<string | null>(null);
+17: 
+18:  const handleSubmit = async (e: React.FormEvent) => {
+19:   e.preventDefault();
+20:   if (!username || !password) {
+21:    setError("Veuillez saisir votre identifiant et mot de passe.");
+22:    return;
+23:   }
+24: 
+25:   setLoading(true);
+26:   setError(null);
+27: 
+28:   try {
+29:    const res = await api.post<{
+30:     access_token: string;
+31:     token_type: string;
+32:     user: AuthUser;
+33:    }>("/auth/login", {
+34:     username: username.trim(),
+35:     password: password.trim(),
+36:    });
+37: 
+38:    if (res.data && res.data.access_token) {
+39:     await login(res.data.access_token, res.data.user);
+40:     router.push("/");
+41:    }
+42:   } catch (err: any) {
+43:    setError(
+44:     err.detail ||
+45:      err.message ||
+46:      "Identifiants invalides. Veuillez vérifier votre nom d'utilisateur et mot de passe."
+47:    );
+48:   } finally {
+49:    setLoading(false);
+50:   }
+51:  };
+52: 
+53:  const handleQuickLogin = (userType: "admin" | "gestionnaire") => {
+54:   setUsername(userType);
+55:   setPassword("123");
+56:  };
+57: 
+58:  return (
+59:   <div className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-hidden bg-background">
+60:    {/* Subtle Tech Grid Pattern (Light Version) */}
+61:    <div className="absolute inset-0 bg-[radial-gradient(#6E4E5612_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+62:    <div className="absolute inset-0 bg-background [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] pointer-events-none" />
+63: 
+64:    <div className="w-full max-w-md space-y-8 relative z-10">
+65:     {/* Brand Header */}
+66:     <div className="text-center space-y-4 animate-fade-in-up">
+67:      <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-surface shadow-[0_8px_32px_rgba(110,78,86,0.08)] border border-border mb-2 relative group">
+68:       <div className="absolute inset-0 bg-primary-base opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-3xl" />
+69:       <Bus className="h-10 w-10 relative z-10 text-primary-base drop-shadow-sm" />
+70:      </div>
+71:      <h1 className="text-4xl font-extrabold text-text-primary tracking-tight">E-Transport</h1>
+72:      <p className="text-sm text-text-secondary font-medium tracking-wide">
+73:       Portail d&apos;Accès Sécurisé — Gestion de Flotte
+74:      </p>
+75:     </div>
+76: 
+77:     {/* Login Card */}
+78:     <div className="bg-surface border border-border rounded-3xl p-8 shadow-[0_20px_40px_-15px_rgba(110,78,86,0.1)] space-y-8 animate-fade-in-up animate-stagger-2 relative overflow-hidden">
+79:      {/* Subtle internal gradient top */}
+80:      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-base/50 to-transparent opacity-50" />
+81: 
+82:      {error && (
+83:       <div className="rounded-2xl bg-danger-bg border border-danger/20 p-4 text-sm text-danger flex items-start gap-3 animate-shake">
+84:        <span className="font-bold shrink-0 mt-0.5">⚠️</span>
+85:        <span>{error}</span>
+86:       </div>
+87:      )}
+88: 
+89:      <form onSubmit={handleSubmit} className="space-y-6">
+90:       <div className="space-y-2 group">
+91:        <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-widest transition-colors group-focus-within:text-text-primary">
+92:         Identifiant
+93:        </label>
+94:        <div className="relative flex items-center">
+95:         <User strokeWidth={2} className="absolute left-4 h-5 w-5 text-text-muted transition-colors group-focus-within:text-text-primary z-10"/>
+96:         <input
+97:          type="text"
+98:          value={username}
+99:          onChange={(e) => setUsername(e.target.value)}
+100:          placeholder="admin ou gestionnaire"
+101:          required
+102:          className="w-full !pl-12 pr-4 py-3.5 rounded-2xl border border-border bg-background text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary-base/50 focus:border-primary-base focus:bg-surface transition-all duration-300"
+103:         />
+104:        </div>
+105:       </div>
+106: 
+107:       <div className="space-y-2 group">
+108:        <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-widest transition-colors group-focus-within:text-text-primary">
+109:         Mot de passe
+110:        </label>
+111:        <div className="relative flex items-center">
+112:         <Lock strokeWidth={2} className="absolute left-4 h-5 w-5 text-text-muted transition-colors group-focus-within:text-text-primary z-10"/>
+113:         <input
+114:          type="password"
+115:          value={password}
+116:          onChange={(e) => setPassword(e.target.value)}
+117:          placeholder="••••••••"
+118:          required
+119:          className="w-full !pl-12 pr-4 py-3.5 rounded-2xl border border-border bg-background text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary-base/50 focus:border-primary-base focus:bg-surface transition-all duration-300"
+120:         />
+121:        </div>
+122:       </div>
+123: 
+124:       <button
+125:        type="submit"
+126:        disabled={loading}
+127:        className="w-full mt-4 py-4 px-4 rounded-2xl text-text-primary font-bold text-sm shadow-[0_4px_12px_rgba(110,78,86,0.1)] transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-[0_6px_20px_rgba(110,78,86,0.15)] hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none bg-primary-base hover:bg-primary-dark"
+128:       >
+129:        {loading ? "Vérification..." : "Se connecter"}
+130:        <ArrowRight strokeWidth={2.5} className="h-4 w-4"/>
+131:       </button>
+132:      </form>
+133: 
+134:      {/* Quick Fill Demo Badges */}
+135:      <div className="pt-6 border-t border-border space-y-4">
+136:       <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest text-center">
+137:        Comptes Démonstration
+138:       </p>
+139:       <div className="grid grid-cols-2 gap-3">
+140:        <button
+141:         type="button"
+142:         onClick={() => handleQuickLogin("admin")}
+143:         className="p-3.5 rounded-2xl border border-border bg-background hover:bg-surface hover:border-text-primary/20 text-left transition-all duration-300 group hover:-translate-y-1"
+144:        >
+145:         <div className="flex items-center gap-2 text-sm font-bold text-text-primary group-hover:text-text-primary transition-colors">
+146:          <ShieldCheck strokeWidth={2} className="h-4 w-4 text-text-primary"/>Admin
+147:         </div>
+148:         <div className="text-[11px] text-text-muted mt-1 font-mono group-hover:text-text-secondary transition-colors">admin / 123</div>
+149:        </button>
+150: 
+151:        <button
+152:         type="button"
+153:         onClick={() => handleQuickLogin("gestionnaire")}
+154:         className="p-3.5 rounded-2xl border border-border bg-background hover:bg-surface hover:border-primary-dark/20 text-left transition-all duration-300 group hover:-translate-y-1"
+155:        >
+156:         <div className="flex items-center gap-2 text-sm font-bold text-text-primary transition-colors">
+157:          <UserCheck strokeWidth={2} className="h-4 w-4 text-primary-base"/>Gestion.
+158:         </div>
+159:         <div className="text-[11px] text-text-muted mt-1 font-mono group-hover:text-text-secondary transition-colors">gestionnaire / 123</div>
+160:        </button>
+161:       </div>
+162:      </div>
+163:     </div>
+164: 
+165:     {/* Footer info */}
+166:     <div className="text-center text-[11px] font-medium text-text-muted animate-fade-in-up animate-stagger-4 tracking-wide">
+167:      Système Sécurisé ERP Transport<br />République Algérienne Démocratique et Populaire
+168:     </div>
+169:    </div>
+170:   </div>
+171:  );
+172: }
+173: 
+The above content shows the entire, complete file contents of the requested file.

@@ -18,25 +18,20 @@ import {
   Users,
   Factory,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddContractModal } from "@/components/modules/contrats/AddContractModal";
 import { api } from "@/lib/api";
 import { Contrat, ContratListResponse } from "@/types/contrat";
+import { GlassPagination } from "@/components/ui/GlassPagination";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { TableSkeleton } from "@/components/shared/Skeleton";
 
 export default function ContratsPage() {
   const [contracts, setContracts] = useState<Contrat[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,16 +41,24 @@ export default function ContratsPage() {
       setLoading(true);
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      params.page = page.toString();
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type_contrat = typeFilter;
 
       const res = await api.get<ContratListResponse>("/contrats", params);
       setContracts(res.data.items);
+      setTotalPages(res.data.total_pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
       console.error("Error fetching contracts:", err);
     } finally {
       setLoading(false);
     }
+  }, [search, statusFilter, typeFilter, page]);
+
+  
+  useEffect(() => {
+    setPage(1);
   }, [search, statusFilter, typeFilter]);
 
   useEffect(() => {
@@ -63,6 +66,7 @@ export default function ContratsPage() {
   }, [fetchContracts]);
 
   const handleDelete = async (id: string, ref: string) => {
+    // using window.confirm is not ideal in glassmorphism but keeping logic
     if (confirm(`Confirmez-vous l'archivage du contrat ${ref} ?`)) {
       try {
         await api.delete(`/contrats/${id}`);
@@ -82,174 +86,168 @@ export default function ContratsPage() {
   const totalVolumeDZD = contracts.reduce((acc, c) => acc + (c.montant || 0), 0);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
+      {/* Page Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+            <FileText className="w-3 h-3" />
+            Suivi Contractuel
+          </p>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
             Gestion des Contrats & Conventions
           </h1>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Suivi des accords commerciaux, avenants d&apos;extension et alertes d&apos;échéances
+          <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
+            Suivi des accords commerciaux, avenants d'extension et alertes d'échéances
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={fetchContracts}
-            className="text-xs border-border h-9"
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
-            size="sm"
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Plus className="h-4 w-4" />
             Nouveau Contrat
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Total Conventions</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <FileText className="h-4 w-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Contrats</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-text-primary font-mono">{totalCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Accords contractuels enregistrés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Conventions enregistrées</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
+            <FileText className="h-5 w-5 text-white/80 group-hover:text-white" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Contrats Actifs</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-success-bg text-success-text">
-              <CheckCircle2 className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Contrats Actifs</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{actifsCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-success font-mono">{actifsCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">En cours d&apos;exécution</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">En cours de validité</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Échéance &le; 30 jours</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-warning-bg text-warning-text">
-              <Clock className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Échéances Proches</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{expirantBientotCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-warning font-mono">{expirantBientotCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">À renouveler rapidement</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Expirant dans &lt; 30 jours</p>
+          </div>
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <AlertTriangle className="h-5 w-5 text-[var(--color-turbo)]" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Volume Financier Global</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <DollarSign className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Volume Financier (Actif)</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] truncate max-w-[100px] sm:max-w-[120px]">{totalVolumeDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-[10px] font-bold text-white/40">DZD</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-primary-base font-mono truncate">
-              {totalVolumeDZD.toLocaleString("fr-DZ")} DZD
-            </div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Engagement financier total</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Valeur totale cumulée</p>
+          </div>
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <DollarSign className="h-5 w-5 text-[var(--color-electric-violet)]" />
+          </div>
+        </div>
       </div>
 
-      {/* Filter Bar */}
-      <Card className="bg-surface border-border shadow-xs">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par référence, objet ou partenaire..."
-                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-4 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
+      {/* Filter & Search Bar */}
+      <div className="relative z-20 flex flex-col sm:flex-row justify-between gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher une référence, un partenaire, un objet..."
+            className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+          />
+        </div>
 
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="ACTIF">🟢 Contrats Actifs</option>
-                <option value="EXPIRE">🔴 Contrats Expirés</option>
-              </select>
-            </div>
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
+            style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+          >
+            <option value="" className="bg-[var(--color-haiti)] text-white">Tous les statuts</option>
+            <option value="ACTIF" className="bg-[var(--color-haiti)] text-white">Contrats Actifs</option>
+            <option value="EXPIRE" className="bg-[var(--color-haiti)] text-white">Contrats Expirés</option>
+          </select>
 
-            <div>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les types de contrat</option>
-                <option value="Transport">Transport Régulier / Navettes</option>
-                <option value="Tourisme">Circuits Touristiques</option>
-                <option value="Location">Location d&apos;Autocars</option>
-                <option value="Fourniture">Fourniture de Pièces</option>
-                <option value="Maintenance">Prestations de Maintenance</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
+            style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+          >
+            <option value="" className="bg-[var(--color-haiti)] text-white">Tous les types de contrat</option>
+            <option value="Transport" className="bg-[var(--color-haiti)] text-white">Transport Régulier / Navettes</option>
+            <option value="Tourisme" className="bg-[var(--color-haiti)] text-white">Circuits Touristiques</option>
+            <option value="Location" className="bg-[var(--color-haiti)] text-white">Location d'Autocars</option>
+            <option value="Fourniture" className="bg-[var(--color-haiti)] text-white">Fourniture de Pièces</option>
+            <option value="Maintenance" className="bg-[var(--color-haiti)] text-white">Prestations de Maintenance</option>
+          </select>
+        </div>
+      </div>
 
-      {/* Contracts Table */}
-      <Card className="bg-surface border-border shadow-xs overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-table-header">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Réf. Contrat</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Partenaire Contractant</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Type & Objet</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Montant Global</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Période d&apos;Effet</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Échéance & Alerte</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      {/* Table Section */}
+      <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+        <div className="w-full min-w-0">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.02]">
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Réf. Contrat</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Partenaire</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Objet</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Période</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut / Échéance</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-xs text-text-secondary">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary-base" />
-                    Chargement du registre contractuel...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <TableSkeleton rows={5} />
+                  </td>
+                </tr>
               ) : contracts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <FileText className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-semibold text-text-primary">Aucun contrat trouvé</p>
-                    <p className="text-xs text-text-secondary mt-1">
-                      Ajustez vos filtres ou ajoutez une nouvelle convention.
-                    </p>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <EmptyState 
+                      title="Aucun contrat" 
+                      message="Aucun contrat ou convention ne correspond à vos critères de recherche." 
+                      icon={FileText} 
+                    />
+                  </td>
+                </tr>
               ) : (
                 contracts.map((c) => {
                   const isClient = c.partenaire_role === "CLIENT";
@@ -258,114 +256,111 @@ export default function ContratsPage() {
                   const isExpired = c.jours_restants !== null && c.jours_restants !== undefined && c.jours_restants < 0;
 
                   return (
-                    <TableRow
+                    <tr
                       key={c.id}
-                      className="border-b border-border hover:bg-primary-light/20 transition-colors"
+                      className="group hover:bg-white/[0.02] transition-colors"
                     >
-                      <TableCell>
+                      <td className="py-4 px-5">
                         <Link
                           href={`/contrats/${c.id}`}
-                          className="font-mono text-xs font-bold text-primary-base hover:underline block"
+                          className="font-mono text-[13px] font-bold text-[var(--color-electric-violet)] hover:text-[#9D75FF] transition-colors"
                         >
                           {c.reference}
                         </Link>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="text-xs font-bold text-text-primary">
-                            {c.partenaire_nom || "Entreprise"}
-                          </p>
-                          <span
-                            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.2 text-[10px] font-semibold mt-0.5 ${
-                              isClient
-                                ? "bg-primary-light text-primary-base"
-                                : "bg-warning-bg text-warning-text"
-                            }`}
-                          >
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-white mb-0.5">{c.partenaire_nom || "Entreprise"}</span>
+                          <span className={`inline-flex items-center gap-1 w-fit rounded-full px-2 py-0.5 text-[9px] font-accent uppercase tracking-widest font-bold ${
+                            isClient ? "bg-white/10 text-white" : "bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)]"
+                          }`}>
                             {isClient ? <Users className="h-2.5 w-2.5" /> : <Factory className="h-2.5 w-2.5" />}
                             {isClient ? "Client" : "Fournisseur"}
                           </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-xs font-semibold text-text-primary truncate max-w-[200px]" title={c.objet}>
+                      </td>
+                      <td className="py-4 px-5">
+                        <p className="text-[13px] font-medium text-white truncate max-w-[200px]" title={c.objet}>
                           {c.objet}
                         </p>
-                        <span className="text-[11px] text-text-secondary">{c.type_contrat}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold text-text-primary">
+                        <p className="text-[11px] text-white/50">{c.type_contrat}</p>
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="font-mono text-[13px] font-bold text-white">
                           {c.montant.toLocaleString("fr-DZ")} {c.devise}
-                        </span>
+                        </div>
                         {c.mode_facturation && (
-                          <p className="text-[10px] text-text-secondary">{c.mode_facturation}</p>
+                          <p className="text-[10px] text-white/50">{c.mode_facturation}</p>
                         )}
-                      </TableCell>
-                      <TableCell className="text-xs text-text-secondary font-mono">
-                        {new Date(c.date_debut).toLocaleDateString("fr-FR")} &rarr;{" "}
-                        {new Date(c.date_fin).toLocaleDateString("fr-FR")}
-                      </TableCell>
-                      <TableCell>
-                        {isExpired ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg px-2 py-0.5 text-[11px] font-bold text-danger-text">
-                            🔴 Expiré
-                          </span>
-                        ) : isUrgent ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg px-2 py-0.5 text-[11px] font-bold text-danger-text animate-pulse">
-                            🔴 {c.alerte_expiration}
-                          </span>
-                        ) : isWarning ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-bold text-warning-text">
-                            🟠 {c.alerte_expiration}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success-text">
-                            🟢 Valide ({c.jours_restants} j)
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="text-[11px] text-white/70 font-mono flex flex-col gap-0.5">
+                          <span>{new Date(c.date_debut).toLocaleDateString("fr-FR")}</span>
+                          <span className="text-white/30">&darr;</span>
+                          <span>{new Date(c.date_fin).toLocaleDateString("fr-FR")}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="flex flex-col gap-1.5 items-start">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             c.statut === "ACTIF"
-                              ? "bg-success-bg text-success-text"
-                              : "bg-danger-bg text-danger-text"
-                          }`}
-                        >
-                          {c.statut}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-primary-base hover:bg-primary-light/50 h-7 px-2.5"
-                        >
+                              ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"
+                              : "bg-white/5 text-white/50 border border-white/10"
+                          }`}>
+                            {c.statut}
+                          </span>
+                          
+                          {isExpired ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-400">
+                              <AlertTriangle className="h-3 w-3" /> Expiré
+                            </span>
+                          ) : isUrgent ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-400 animate-pulse">
+                              <Clock className="h-3 w-3" /> {c.alerte_expiration}
+                            </span>
+                          ) : isWarning ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-turbo)]">
+                              <Clock className="h-3 w-3" /> {c.alerte_expiration}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-white/50">
+                              Valide ({c.jours_restants} j)
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <Link href={`/contrats/${c.id}`}>
-                            <Eye className="h-3.5 w-3.5 mr-1" /> Dossier
+                            <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white transition-all">
+                              <Eye className="w-3.5 h-3.5" />
+                              DOSSIER
+                            </button>
                           </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(c.id, c.reference)}
-                          className="text-xs text-danger hover:bg-danger-bg h-7 px-2"
-                          title="Archiver le contrat"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                          <button
+                            onClick={() => handleDelete(c.id, c.reference)}
+                            className="p-1.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20"
+                            title="Archiver"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+        <GlassPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
+      </div>
 
-      {/* Add Contract Modal */}
       <AddContractModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -374,3 +369,4 @@ export default function ContratsPage() {
     </div>
   );
 }
+

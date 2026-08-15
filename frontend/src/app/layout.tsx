@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { TopBar } from "@/components/layout/TopBar";
+import { ClientLayout } from "@/components/layout/ClientLayout";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
-  title: "E-Transport ERP — Gestion de Flotte & Logistique",
-  description:
-    "Système ERP complet pour entreprise de transport : Véhicules, Chauffeurs, Clients, Maintenance, Contrats, Cautions et Stock.",
+  title: "Fl\u014d | Fleet Management & BI",
+  description: "Plateforme ERP SaaS de gestion de flotte en temps réel.",
+  openGraph: {
+    title: "Fl\u014d | Fleet Management & BI",
+    description: "Plateforme ERP SaaS de gestion de flotte en temps réel.",
+    type: "website",
+    locale: "fr_DZ",
+  },
 };
 
 export default function RootLayout({
@@ -22,18 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} h-full`}>
-      <body className="h-full bg-background font-sans text-text-primary antialiased">
-        <div className="flex min-h-screen">
-          {/* Main Sidebar */}
-          <Sidebar />
-
-          {/* Main View Area */}
-          <div className="flex flex-1 flex-col pl-[72px] md:pl-[240px] transition-all duration-300">
-            <TopBar />
-            <main className="flex-1 p-6 md:p-8">{children}</main>
-          </div>
-        </div>
+    <html lang="fr" className="h-full overflow-x-hidden">
+      <head>
+        {/* Fontshare — Satoshi, Clash Display, General Sans, Cabinet Grotesk */}
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@500,600&f[]=general-sans@400,500&f[]=cabinet-grotesk@700&display=swap" />
+        {/* Google Fonts — DM Sans, Space Grotesk, Poppins, Inter, Bruno Ace SC */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Space+Grotesk:wght@600&family=Poppins:wght@600&family=Inter:wght@400;500&family=Bruno+Ace+SC&display=swap" />
+      </head>
+      <body className="h-full font-sans text-text-primary antialiased bg-[var(--color-haiti)] overflow-x-hidden">
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

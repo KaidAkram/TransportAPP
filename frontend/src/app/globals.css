@@ -1,65 +1,206 @@
 @import "tailwindcss";
 
 /* ============================================
-   E-TRANSPORT ERP — Design System Tokens
-   Based on Design_system_E_Transport.pdf
+   Flō ERP — Design System Tokens
    ============================================ */
 
 @theme inline {
-  /* --- Primary Palette --- */
-  --color-primary-base: #1E40AF;
-  --color-primary-light: #DBEAFE;
-  --color-accent: #3B82F6;
+  /* --- Brand Colors (Quantum Palette – Default) --- */
+  --color-electric-violet: #834DFB;
+  --color-turbo: #F0E100;
+  --color-haiti: #1B102B;
+  --color-blue-chalk: #F5F3FF;
+
+  --color-primary-base: var(--color-electric-violet);
+  --color-background: var(--color-haiti);
+  --color-surface: var(--color-haiti);
+  --color-sidebar: var(--color-haiti);
+
+  /* --- Text Colors (Dark Mode Default) --- */
+  --color-text-primary: #FFFFFF;
+  --color-text-inverse: #1B102B;
+  --color-text-subtle: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
 
   /* --- Semantic Status Colors --- */
-  --color-success: #10B981;
-  --color-success-bg: #D1FAE5;
-  --color-success-text: #065F46;
+  --color-status-success-bg: rgba(0, 77, 64, 0.2);
+  --color-status-success-text: #E6F0F0;
+  --color-status-alert-bg: rgba(168, 18, 28, 0.2);
+  --color-status-alert-text: #FCE2E4;
+  --color-success: #004D40;
+  --color-danger: #A8121C;
 
-  --color-warning: #F59E0B;
-  --color-warning-bg: #FEF3C7;
-  --color-warning-text: #92400E;
+  /* --- Borders --- */
+  --color-border: rgba(255, 255, 255, 0.1);
 
-  --color-danger: #EF4444;
-  --color-danger-bg: #FEE2E2;
-  --color-danger-text: #991B1B;
+  /* --- Typography (Dynamic) --- */
+  --font-brand: 'Bruno Ace SC', sans-serif;
+  --font-sans: var(--font-family-body), system-ui, sans-serif;
+  --font-heading: var(--font-family-display), system-ui, sans-serif;
+  --font-accent: var(--font-family-body), system-ui, sans-serif;
 
-  --color-neutral: #6B7280;
-  --color-neutral-bg: #F3F4F6;
-  --color-neutral-text: #374151;
-
-  /* --- Backgrounds & Surfaces --- */
-  --color-background: #F3F4F6;
-  --color-surface: #FFFFFF;
-  --color-sidebar: #111827;
-
-  /* --- Text --- */
-  --color-text-primary: #111827;
-  --color-text-secondary: #4B5563;
-  --color-text-inverse: #FFFFFF;
-
-  /* --- Borders & Tables --- */
-  --color-border: #E5E7EB;
-  --color-table-header: #F9FAFB;
-
-  /* --- Typography --- */
-  --font-sans: 'Inter', 'Roboto', ui-sans-serif, system-ui, sans-serif;
-
-  /* --- Spacing (8px grid enforced via Tailwind defaults) --- */
+  /* --- Animations --- */
+  --animate-float-slow: float-slow 15s ease-in-out infinite;
+  --animate-float-medium: float-medium 10s ease-in-out infinite;
+  --animate-stagger-up: stagger-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ============================================
-   Base Styles
+   MULTI-THEME SYSTEM — Data-Theme Overrides
+   ============================================ */
+
+:root,
+[data-theme="quantum"] {
+  --theme-accent-primary: #834DFB;
+  --theme-accent-secondary: #F0E100;
+  --theme-bg-deep: #1B102B;
+  --theme-bg-surface: rgba(255, 255, 255, 0.03);
+  --theme-bg-card: rgba(255, 255, 255, 0.04);
+  --theme-text-primary: #FFFFFF;
+  --theme-text-muted: rgba(255, 255, 255, 0.55);
+  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-orb-primary: rgba(131, 77, 251, 0.25);
+  --theme-orb-secondary: rgba(240, 225, 0, 0.10);
+  --theme-glass: rgba(255, 255, 255, 0.03);
+  --theme-glass-hover: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="racing-red"] {
+  --theme-accent-primary: #FF1F1F;
+  --theme-accent-secondary: #EFEEE8;
+  --theme-bg-deep: #0B0606;
+  --theme-bg-surface: rgba(255, 31, 31, 0.035);
+  --theme-bg-card: rgba(255, 31, 31, 0.055);
+  --theme-text-primary: #F5F0EE;
+  --theme-text-muted: rgba(245, 240, 238, 0.50);
+  --theme-border: rgba(255, 31, 31, 0.18);
+  --theme-orb-primary: rgba(239, 6, 6, 0.40);
+  --theme-orb-secondary: rgba(211, 204, 199, 0.06);
+  --theme-glass: rgba(255, 255, 255, 0.025);
+  --theme-glass-hover: rgba(255, 31, 31, 0.08);
+}
+
+[data-theme="volcanic-ash"] {
+  --theme-accent-primary: #FF5C0A;
+  --theme-accent-secondary: #9B4DFF;
+  --theme-bg-deep: #0E0C12;
+  --theme-bg-surface: rgba(255, 92, 10, 0.03);
+  --theme-bg-card: rgba(155, 77, 255, 0.04);
+  --theme-text-primary: #F2EDE8;
+  --theme-text-muted: rgba(242, 237, 232, 0.50);
+  --theme-border: rgba(255, 92, 10, 0.15);
+  --theme-orb-primary: rgba(255, 92, 10, 0.35);
+  --theme-orb-secondary: rgba(155, 77, 255, 0.28);
+  --theme-glass: rgba(255, 255, 255, 0.025);
+  --theme-glass-hover: rgba(255, 92, 10, 0.07);
+}
+
+[data-theme="exposure-green"] {
+  --theme-accent-primary: #7ED63B;
+  --theme-accent-secondary: #C8B97A;
+  --theme-bg-deep: #090D08;
+  --theme-bg-surface: rgba(126, 214, 59, 0.03);
+  --theme-bg-card: rgba(126, 214, 59, 0.05);
+  --theme-text-primary: #EBF5E0;
+  --theme-text-muted: rgba(235, 245, 224, 0.50);
+  --theme-border: rgba(126, 214, 59, 0.15);
+  --theme-orb-primary: rgba(126, 214, 59, 0.30);
+  --theme-orb-secondary: rgba(200, 185, 122, 0.15);
+  --theme-glass: rgba(255, 255, 255, 0.025);
+  --theme-glass-hover: rgba(126, 214, 59, 0.07);
+}
+
+[data-theme="solar-flare"] {
+  --theme-accent-primary: #E85002;
+  --theme-accent-secondary: #A7A7A7;
+  --theme-bg-deep: #111111;
+  --theme-bg-surface: rgba(232, 80, 2, 0.04);
+  --theme-bg-card: rgba(51, 51, 51, 0.60);
+  --theme-text-primary: #F9F9F9;
+  --theme-text-muted: #646464;
+  --theme-border: rgba(232, 80, 2, 0.25);
+  --theme-orb-primary: rgba(232, 80, 2, 0.30);
+  --theme-orb-secondary: rgba(167, 167, 167, 0.10);
+  --theme-glass: rgba(255, 255, 255, 0.03);
+  --theme-glass-hover: rgba(232, 80, 2, 0.07);
+}
+
+[data-theme="digital-ocean"] {
+  --theme-accent-primary: #1E90FF;
+  --theme-accent-secondary: #00C896;
+  --theme-bg-deep: #060D12;
+  --theme-bg-surface: rgba(30, 144, 255, 0.03);
+  --theme-bg-card: rgba(0, 200, 150, 0.04);
+  --theme-text-primary: #DCF0F8;
+  --theme-text-muted: rgba(220, 240, 248, 0.50);
+  --theme-border: rgba(30, 144, 255, 0.18);
+  --theme-orb-primary: rgba(30, 144, 255, 0.38);
+  --theme-orb-secondary: rgba(0, 200, 150, 0.22);
+  --theme-glass: rgba(255, 255, 255, 0.025);
+  --theme-glass-hover: rgba(30, 144, 255, 0.08);
+}
+
+/* ============================================
+   Theme Token Binding
    ============================================ */
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
+  background-color: var(--theme-bg-deep, #1B102B);
+  color: var(--theme-text-primary, #FFFFFF);
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  --color-electric-violet: var(--theme-accent-primary);
+  --color-turbo: var(--theme-accent-secondary);
+  --color-haiti: var(--theme-bg-deep);
+  --color-text-primary: var(--theme-text-primary);
+  --color-text-muted: var(--theme-text-muted);
+  --color-border: var(--theme-border);
+  --color-background: var(--theme-bg-deep);
+  --color-primary-base: var(--theme-accent-primary);
+}
+
+option {
+  background-color: var(--theme-bg-deep);
+  color: var(--theme-text-primary);
+}
+
+/* ============================================
+   Glassmorphism — Theme-Aware
+   ============================================ */
+
+@layer utilities {
+  .glass-panel {
+    background: var(--theme-glass, rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.05));
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+  }
+
+  .glass-panel:hover {
+    background: var(--theme-glass-hover, rgba(255, 255, 255, 0.05));
+    border-color: var(--theme-border, rgba(255, 255, 255, 0.1));
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  .theme-orb-primary {
+    background: var(--theme-orb-primary);
+  }
+  .theme-orb-secondary {
+    background: var(--theme-orb-secondary);
+  }
 }
 
 /* ============================================
@@ -69,17 +210,44 @@ body {
 h1 {
   font-size: 24px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--theme-text-primary);
+  transition: color 0.4s ease;
 }
 
 h2 {
   font-size: 18px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--theme-text-primary);
+  transition: color 0.4s ease;
 }
 
 /* ============================================
-   Scrollbar Styling (Modern, Subtle)
+   Keyframes
+   ============================================ */
+
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, -20px) scale(1.05); }
+}
+
+@keyframes stagger-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.04; }
+  50% { opacity: 0.08; }
+}
+
+/* ============================================
+   Scrollbar
    ============================================ */
 
 ::-webkit-scrollbar {
@@ -92,10 +260,201 @@ h2 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--theme-border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neutral);
+  background: var(--theme-accent-primary);
+}
+
+/* ============================================
+   Forms & Inputs
+   ============================================ */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ============================================
+   Table Density System
+   ============================================ */
+
+body[data-density="compact"] th {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+body[data-density="compact"] td {
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+  font-size: 0.8125rem !important;
+}
+
+body[data-density="compact"] td p.text-sm {
+  font-size: 0.8125rem !important;
+}
+
+body[data-density="compact"] td button.p-2 {
+  padding: 0.25rem !important;
+}
+
+body[data-density="compact"] td .gap-2 {
+  gap: 0.25rem !important;
+}
+
+/* ============================================
+   Global Table Overflow Guard
+   ============================================ */
+
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+table td,
+table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
+
+table td.wrap,
+table th.wrap {
+  white-space: normal;
+  overflow: visible;
+}
+
+table td:last-child,
+table th:last-child {
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  white-space: nowrap;
+}
+
+/* ============================================
+   TYPOGRAPHY SYSTEM
+   ============================================ */
+
+:root,
+[data-typography="quantum-tech"] {
+  --font-family-display: "Clash Display", "Arial Black", sans-serif;
+  --font-family-body: "Satoshi", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --line-height-heading: 1.1;
+  --line-height-body: 1.5;
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-body: -0.01em;
+  --font-weight-display: 600;
+  --font-weight-body: 500;
+}
+
+[data-typography="luxury-impact"] {
+  --font-family-display: "Cabinet Grotesk", "Arial Black", sans-serif;
+  --font-family-body: "DM Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --line-height-heading: 1.15;
+  --line-height-body: 1.55;
+  --letter-spacing-heading: -0.03em;
+  --letter-spacing-body: normal;
+  --font-weight-display: 700;
+  --font-weight-body: 400;
+}
+
+[data-typography="future-grid"] {
+  --font-family-display: "Space Grotesk", "Courier New", monospace;
+  --font-family-body: "General Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --line-height-heading: 1.1;
+  --line-height-body: 1.5;
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-body: -0.01em;
+  --font-weight-display: 600;
+  --font-weight-body: 400;
+}
+
+/* Elegant Soft — uses Satoshi as body (NOT Inter) */
+[data-typography="elegant-soft"] {
+  --font-family-display: "Poppins", "Century Gothic", sans-serif;
+  --font-family-body: "Satoshi", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --line-height-heading: 1.2;
+  --line-height-body: 1.6;
+  --letter-spacing-heading: normal;
+  --letter-spacing-body: normal;
+  --font-weight-display: 600;
+  --font-weight-body: 400;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+body, p, .font-sans, .font-accent {
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+/* ============================================
+   Layout Shift Prevention
+   Containers use contain: layout to prevent
+   jumps during theme/typography switching.
+   ============================================ */
+
+.contain-layout {
+  contain: layout;
+}
+
+/* ============================================
+   Mobile Grid — Strict 1-column <768px
+   ============================================ */
+
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid > [class*="col-span"] {
+    grid-column: 1 / -1 !important;
+  }
+
+  .glass-panel {
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+/* ============================================
+   Skeleton Loader Utility
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   Performance — GPU-Accelerated Animations
+   ============================================ */
+
+.will-change-transform {
+  will-change: transform, opacity;
 }

@@ -7,7 +7,6 @@ import {
   Users,
   Plus,
   Search,
-  Filter,
   RefreshCw,
   Eye,
   Archive,
@@ -16,60 +15,85 @@ import {
   CheckCircle2,
   Clock,
   UserX,
-  Phone,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddEmployeeModal } from "@/components/modules/employes/AddEmployeeModal";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import { api } from "@/lib/api";
 import { Employe, EmployeListResponse } from "@/types/employe";
+import { GlassPagination } from "@/components/ui/GlassPagination";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { TableSkeleton } from "@/components/shared/Skeleton";
+import { Portal } from "@/components/shared/Portal";
 
 export default function EmployesPage() {
   const [employees, setEmployees] = useState<Employe[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Glass Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    employeeId: string | null;
+    employeeName: string;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    employeeId: null,
+    employeeName: "",
+    isLoading: false,
+  });
 
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      params.page = page.toString();
       if (roleFilter) params.type_employe = roleFilter;
       if (statusFilter) params.statut = statusFilter;
 
       const res = await api.get<EmployeListResponse>("/employes", params);
       setEmployees(res.data.items);
+      setTotalPages(res.data.total_pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
       console.error("Error fetching employees:", err);
     } finally {
       setLoading(false);
     }
+  }, [search, roleFilter, statusFilter, page]);
+
+  
+  useEffect(() => {
+    setPage(1);
   }, [search, roleFilter, statusFilter]);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  const handleArchive = async (id: string, name: string) => {
-    if (confirm(`Confirmez-vous le départ et l'archivage du collaborateur ${name} ?`)) {
-      try {
-        await api.patch(`/employes/${id}/archive`, {});
-        fetchEmployees();
-      } catch (err) {
-        alert("Erreur lors de l'archivage de l'employé.");
-      }
+  const handleArchiveClick = (id: string, name: string) => {
+    setConfirmModal({ isOpen: true, employeeId: id, employeeName: name, isLoading: false });
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!confirmModal.employeeId) return;
+    setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await api.patch(`/employes/${confirmModal.employeeId}/archive`, {});
+      fetchEmployees();
+    } catch (err) {
+      console.error("Erreur lors de l'archivage:", err);
+    } finally {
+      setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false });
     }
   };
 
@@ -79,198 +103,179 @@ export default function EmployesPage() {
   const absents = employees.filter((e) => e.statut === "ABSENT").length;
   const suspendus = employees.filter((e) => e.statut === "SUSPENDU" || e.statut === "QUITTE").length;
 
+  const roleTabClass = (isActive: boolean) =>
+    `flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ${
+      isActive
+        ? "bg-white/10 text-white border border-white/20 shadow-sm"
+        : "text-white/40 hover:text-white/80 hover:bg-white/5 border border-transparent"
+    }`;
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
       {/* Page Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Gestion du Personnel & Équipes
+          <div className="flex items-center gap-2 mb-2">
+            <span className="h-2 w-2 rounded-full bg-[var(--color-electric-violet)] animate-pulse" />
+            <span className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-[var(--color-electric-violet)]">
+              Capital Humain
+            </span>
+          </div>
+          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight drop-shadow-md">
+            Ressources Humaines
           </h1>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Supervision RH, chauffeurs grand tourisme, techniciens d&apos;atelier et permis de conduire
+          <p className="text-sm text-white/50 mt-1 max-w-xl">
+            Gestion du personnel naviguant et technique de l'entreprise.
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={fetchEmployees}
-            className="text-xs border-border h-9"
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
-            size="sm"
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Plus className="h-4 w-4" />
             Nouveau Collaborateur
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Effectif Total</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <Users className="h-4 w-4" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Effectif Total</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-text-primary font-mono">{totalCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Collaborateurs enregistrés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Personnel enregistré</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
+            <Users className="h-5 w-5 text-white/80 group-hover:text-white" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Personnel Actif</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-success-bg text-success-text">
-              <CheckCircle2 className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Service</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] drop-shadow-[0_0_10px_rgba(131,77,251,0.3)]">{actifs}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-success font-mono">{actifs}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">En poste & disponibles</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Collaborateurs actifs</p>
+          </div>
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <CheckCircle2 className="h-5 w-5 text-[var(--color-electric-violet)]" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Absents / Congé</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-warning-bg text-warning-text">
-              <Clock className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Absents / Congé</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)]">{absents}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-warning font-mono">{absents}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Congés & indisponibilités</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Non disponibles</p>
+          </div>
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Suspendus / Quittés</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-danger-bg text-danger-text">
-              <UserX className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Inactifs</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white/60">{suspendus}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-danger font-mono">{suspendus}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Inactifs ou archivés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Quitté ou Suspendu</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-full border border-white/10 group-hover:border-white/20 transition-colors">
+            <UserX className="h-5 w-5 text-white/40" />
+          </div>
+        </div>
       </div>
 
-      {/* Role Switcher Tabs */}
-      <div className="flex border-b border-border bg-surface rounded-t-lg px-4 pt-2 gap-2">
-        <button
-          onClick={() => setRoleFilter("")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === ""
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Users className="h-4 w-4" />
+      {/* Modern Pill Tabs for Roles */}
+      <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10 w-fit min-w-0 max-w-full opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.15s' }}>
+        <button onClick={() => setRoleFilter("")} className={roleTabClass(roleFilter === "")}>
+          <Users className="h-3.5 w-3.5" />
           Tous les collaborateurs
         </button>
-        <button
-          onClick={() => setRoleFilter("CHAUFFEUR")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === "CHAUFFEUR"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Shield className="h-4 w-4" />
+        <button onClick={() => setRoleFilter("CHAUFFEUR")} className={roleTabClass(roleFilter === "CHAUFFEUR")}>
+          <Shield className="h-3.5 w-3.5" />
           Chauffeurs Professionnels
         </button>
-        <button
-          onClick={() => setRoleFilter("MECANICIEN")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            roleFilter === "MECANICIEN"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Wrench className="h-4 w-4" />
+        <button onClick={() => setRoleFilter("MECANICIEN")} className={roleTabClass(roleFilter === "MECANICIEN")}>
+          <Wrench className="h-3.5 w-3.5" />
           Mécaniciens & Atelier
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <Card className="bg-surface border-border shadow-xs">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Search */}
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par nom, prénom, matricule ou téléphone..."
-                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-4 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les statuts RH</option>
-                <option value="ACTIF">🟢 Actif</option>
-                <option value="ABSENT">🟠 Absent / Congé</option>
-                <option value="SUSPENDU">🔴 Suspendu</option>
-                <option value="QUITTE">⚪ Quitté</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="relative z-20 flex flex-col sm:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par nom, prénom, matricule ou téléphone..."
+            className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+          />
+        </div>
+        <div className="w-[180px]">
+          <GlassSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "Tous les statuts RH" },
+              { value: "ACTIF", label: "Actif" },
+              { value: "ABSENT", label: "Absent / Congé" },
+              { value: "SUSPENDU", label: "Suspendu" },
+              { value: "QUITTE", label: "Quitté" },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Personnel Data Table */}
-      <Card className="bg-surface border-border shadow-xs overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-table-header">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Matricule</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Collaborateur</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Rôle / Métier</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Spécialité / Fonction</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Téléphone</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      <div className="glass-panel overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.25s' }}>
+        <div className="overflow-hidden">
+          <table className="w-full text-left text-xs table-fixed">
+            <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
+              <tr>
+                <th className="py-3 px-3 w-[10%]">Matricule</th>
+                <th className="py-3 px-3 w-[22%]">Collaborateur</th>
+                <th className="py-3 px-3 w-[12%]">Rôle / Métier</th>
+                <th className="py-3 px-3 w-[22%]">Spécialité / Fonction</th>
+                <th className="py-3 px-3 w-[10%]">Téléphone</th>
+                <th className="py-3 px-3 w-[10%]">Statut</th>
+                <th className="py-3 px-3 text-right w-[14%]">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-xs text-text-secondary">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary-base" />
-                    Chargement du registre du personnel...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <TableSkeleton rows={5} />
+                  </td>
+                </tr>
               ) : employees.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <Users className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-semibold text-text-primary">Aucun collaborateur trouvé</p>
-                    <p className="text-xs text-text-secondary mt-1">
-                      Ajustez vos filtres ou ajoutez un nouvel employé à l&apos;effectif.
-                    </p>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <EmptyState 
+                      title="Aucun collaborateur" 
+                      message="Aucun collaborateur ne correspond à vos critères de recherche." 
+                      icon={Users} 
+                    />
+                  </td>
+                </tr>
               ) : (
                 employees.map((e) => {
                   const isChauffeur = e.type_employe === "CHAUFFEUR";
@@ -281,19 +286,18 @@ export default function EmployesPage() {
                       : "/assets/avatars/mechanic_pro.jpg");
 
                   return (
-                    <TableRow
+                    <tr
                       key={e.id}
-                      className="border-b border-border hover:bg-primary-light/20 transition-colors"
+                      className="hover:bg-white/5 transition-colors group"
                     >
-                      <TableCell className="text-xs font-mono font-bold text-text-primary">
-                        <Link href={`/employes/${e.id}`} className="hover:text-primary-base hover:underline">
+                      <td className="py-3 px-3 text-xs font-mono font-bold truncate">
+                        <Link href={`/employes/${e.id}`} className="text-white/80 hover:text-[var(--color-electric-violet)] transition-colors underline-offset-4 hover:underline">
                           {e.matricule}
                         </Link>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-3 px-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-9 w-9 overflow-hidden rounded-full border border-border bg-table-header shrink-0">
-                            {/* Executive Avatar Image with Fallback */}
+                          <div className="relative h-9 w-9 overflow-hidden rounded-full border border-white/10 bg-white/5 shrink-0">
                             <Image
                               src={avatarSrc}
                               alt={`${e.nom} ${e.prenom}`}
@@ -302,80 +306,99 @@ export default function EmployesPage() {
                               unoptimized
                             />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <Link
                               href={`/employes/${e.id}`}
-                              className="text-xs font-semibold text-text-primary hover:text-primary-base transition-colors"
+                              className="text-xs font-semibold text-white hover:text-[var(--color-electric-violet)] transition-colors truncate block"
                             >
                               {e.nom} {e.prenom}
                             </Link>
                             {e.date_embauche && (
-                              <p className="text-[11px] text-text-secondary">
+                              <p className="text-[10px] text-white/40 truncate">
                                 Embauché le {new Date(e.date_embauche).toLocaleDateString("fr-FR")}
                               </p>
                             )}
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-3 px-3">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                          className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold ${
                             isChauffeur
-                              ? "bg-primary-light text-primary-base"
-                              : "bg-warning-bg text-warning-text"
+                              ? "bg-[var(--color-electric-violet)] text-white"
+                              : "bg-[var(--color-turbo)] text-black"
                           }`}
                         >
                           {isChauffeur ? <Shield className="h-3 w-3" /> : <Wrench className="h-3 w-3" />}
                           {isChauffeur ? "Chauffeur" : "Mécanicien"}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-xs text-text-secondary">
+                      </td>
+                      <td className="py-3 px-3 text-xs text-white/60 truncate">
                         {isChauffeur
                           ? e.fonction || "Chauffeur Professionnel"
                           : e.specialite || e.fonction || "Atelier Mécanique"}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-text-primary">
+                      </td>
+                      <td className="py-3 px-3 text-xs font-mono text-white/80 truncate">
                         {e.telephone || "—"}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-3 px-3">
                         <StatusBadge status={e.statut} />
-                      </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-primary-base hover:bg-primary-light/50 h-7 px-2.5"
-                        >
-                          <Link href={`/employes/${e.id}`}>
-                            <Eye className="h-3.5 w-3.5 mr-1" /> Fiche RH
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/employes/${e.id}`}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--color-electric-violet)]/20 text-white border border-[var(--color-electric-violet)]/50 hover:bg-[var(--color-electric-violet)]/30 hover:border-[var(--color-electric-violet)]/70 transition-all text-[10px] font-bold font-accent uppercase tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(131,77,251,0.2)]"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> Fiche RH
                           </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleArchive(e.id, `${e.nom} ${e.prenom}`)}
-                          className="text-xs text-danger hover:bg-danger-bg h-7 px-2"
-                          title="Archiver l'employé"
-                        >
-                          <Archive className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                          <button
+                            onClick={() => handleArchiveClick(e.id, `${e.nom} ${e.prenom}`)}
+                            className="p-1 rounded-lg border border-white/10 bg-white/5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all"
+                            title="Archiver l'employé"
+                          >
+                            <Archive className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+        <GlassPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
+      </div>
 
-      {/* Add Employee Modal */}
+            {/* Modals */}
+      <Portal>
+{/* Add Employee Modal */}
       <AddEmployeeModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchEmployees()}
       />
+
+      {/* Archive Confirmation Modal */}
+      <GlassConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Archiver le collaborateur"
+        message={`Confirmez-vous le départ et l'archivage du collaborateur ${confirmModal.employeeName} ? Cette action changera son statut en "Hors Service".`}
+        confirmText="Confirmer l'archivage"
+        cancelText="Annuler"
+        type="danger"
+        onConfirm={handleArchiveConfirm}
+        onCancel={() => setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false })}
+        isLoading={confirmModal.isLoading}
+      />
+      </Portal>
     </div>
   );
 }
+

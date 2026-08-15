@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { UserPlus, X, User, Shield, Wrench, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { UserPlus, X, Shield, Wrench, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { Employe } from "@/types/employe";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 
 const employeSchema = z.object({
   matricule: z.string().min(3, "Matricule requis (ex: CH-002, MEC-003)"),
   nom: z.string().min(2, "Le nom est requis"),
   prenom: z.string().min(2, "Le prénom est requis"),
   type_employe: z.enum(["CHAUFFEUR", "MECANICIEN", "ADMINISTRATIF"]),
-  telephone: z.string().optional().nullable(),
+  telephone: z.string().regex(/^[\d\s\-\+\(\)]*$/, "Format invalide").or(z.literal("")).optional().nullable(),
   adresse: z.string().optional().nullable(),
   date_naissance: z.string().optional().nullable(),
   date_embauche: z.string().optional().nullable(),
@@ -44,13 +46,27 @@ interface AddEmployeeModalProps {
   onSuccess: (newEmploye: Employe) => void;
 }
 
+// Reusable glass input class
+const glassInput = "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all";
+const glassInputMono = `${glassInput} font-mono`;
+const glassInputDate = `${glassInput} [color-scheme:dark]`;
+const glassSelect = "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all appearance-none cursor-pointer [color-scheme:dark]";
+const glassLabel = "block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-2";
+
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModalProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
     handleSubmit,
+    control,
     watch,
     reset,
     formState: { errors },
@@ -67,7 +83,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
 
   const selectedType = watch("type_employe");
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
   const onSubmit = async (data: EmployeFormValues) => {
     try {
@@ -93,7 +109,27 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
       };
 
       const res = await api.post<Employe>("/employes", payload);
+
+      // Upload pending files if any
+      if (pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          const uploadData = new FormData();
+          uploadData.append("file", file);
+          uploadData.append("entity_type", "employe");
+          uploadData.append("entity_id", res.data.id);
+          uploadData.append("document_type", "Autre");
+          try {
+            await api.post("/upload", uploadData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (uploadErr) {
+            console.error("Failed to upload file:", file.name, uploadErr);
+          }
+        }
+      }
+
       reset();
+      setPendingFiles([]);
       onSuccess(res.data);
       onClose();
     } catch (err: any) {
@@ -103,207 +139,222 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-xl bg-surface border border-border shadow-xl overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div
+        className="w-full max-w-2xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh] relative"
+        style={{ background: 'radial-gradient(circle at top right, rgba(131,77,251,0.05), transparent 60%), rgba(255,255,255,0.02)' }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-table-header">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-light text-primary-base">
+        <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/30">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text-primary">Nouveau Collaborateur</h2>
-              <p className="text-xs text-text-secondary">Enregistrement RH Chauffeur ou Mécanicien</p>
+              <h2 className="text-lg font-heading font-bold text-white tracking-tight">Nouveau Collaborateur</h2>
+              <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] mt-0.5">Enregistrement RH Chauffeur ou Mécanicien</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+            className="rounded-xl p-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="relative p-6 space-y-5 overflow-y-auto">
           {serverError && (
-            <div className="flex items-center gap-2 rounded-lg bg-danger-bg p-3 text-xs text-danger-text border border-danger/20">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{serverError}</span>
+            <div className="flex items-center gap-3 rounded-xl bg-rose-500/10 p-4 border border-rose-500/20">
+              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0" />
+              <span className="text-xs text-rose-200 font-medium">{serverError}</span>
             </div>
           )}
 
-          {/* Section 1: Rôle & Type (Triggers Dynamic Fields) */}
-          <div className="rounded-lg border border-border bg-primary-light/10 p-3">
-            <label className="block text-xs font-bold text-primary-base mb-1">
-              Catégorie de Collaborateur *
+          {/* Section 1: Rôle & Type */}
+          <div className="rounded-xl border border-[var(--color-electric-violet)]/20 bg-[var(--color-electric-violet)]/5 p-4">
+            <label className="block text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] mb-2">
+              Catégorie de Collaborateur <span className="text-rose-400">*</span>
             </label>
-            <select
-              {...register("type_employe")}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-            >
-              <option value="CHAUFFEUR">🪪 Chauffeur Professionnel</option>
-              <option value="MECANICIEN">🔧 Mécanicien / Chef d&apos;Atelier</option>
-              <option value="ADMINISTRATIF">📋 Personnel Administratif</option>
-            </select>
+            <Controller
+              name="type_employe"
+              control={control}
+              render={({ field }) => (
+                <GlassSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={[
+                    { value: "CHAUFFEUR", label: "Chauffeur Professionnel" },
+                    { value: "MECANICIEN", label: "Mécanicien / Chef d'Atelier" },
+                    { value: "ADMINISTRATIF", label: "Personnel Administratif" },
+                  ]}
+                />
+              )}
+            />
           </div>
 
           {/* Section 2: Données Communes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Matricule RH *
+              <label className={glassLabel}>
+                Matricule RH <span className="text-rose-400">*</span>
               </label>
               <input
                 {...register("matricule")}
                 placeholder={selectedType === "CHAUFFEUR" ? "ex: CH-005" : "ex: MEC-004"}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputMono}
               />
-              {errors.matricule && <p className="text-[11px] text-danger mt-1">{errors.matricule.message}</p>}
+              {errors.matricule && <p className="text-[11px] text-rose-400 mt-1.5">{errors.matricule.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Statut d&apos;Activité RH *
+              <label className={glassLabel}>
+                Statut d&apos;Activité RH <span className="text-rose-400">*</span>
               </label>
-              <select
-                {...register("statut")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="ACTIF">🟢 Actif</option>
-                <option value="ABSENT">🟠 Absent / En Congé</option>
-                <option value="SUSPENDU">🔴 Suspendu</option>
-                <option value="QUITTE">⚪ Quitté / Archivé</option>
-              </select>
+              <Controller
+                name="statut"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[
+                      { value: "ACTIF", label: "Actif" },
+                      { value: "ABSENT", label: "Absent / En Congé" },
+                      { value: "SUSPENDU", label: "Suspendu" },
+                      { value: "QUITTE", label: "Quitté / Archivé" },
+                    ]}
+                  />
+                )}
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Nom *</label>
+              <label className={glassLabel}>Nom <span className="text-rose-400">*</span></label>
               <input
                 {...register("nom")}
                 placeholder="ex: Belkacem"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
-              {errors.nom && <p className="text-[11px] text-danger mt-1">{errors.nom.message}</p>}
+              {errors.nom && <p className="text-[11px] text-rose-400 mt-1.5">{errors.nom.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Prénom *</label>
+              <label className={glassLabel}>Prénom <span className="text-rose-400">*</span></label>
               <input
                 {...register("prenom")}
                 placeholder="ex: Rachid"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
-              {errors.prenom && <p className="text-[11px] text-danger mt-1">{errors.prenom.message}</p>}
+              {errors.prenom && <p className="text-[11px] text-rose-400 mt-1.5">{errors.prenom.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Téléphone</label>
+              <label className={glassLabel}>Téléphone</label>
               <input
                 {...register("telephone")}
                 placeholder="ex: 0550 12 34 56"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputMono}
               />
+              {errors.telephone && <p className="text-[11px] text-rose-400 mt-1.5">{errors.telephone.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Fonction / Intitulé</label>
+              <label className={glassLabel}>Fonction / Intitulé</label>
               <input
                 {...register("fonction")}
                 placeholder={selectedType === "CHAUFFEUR" ? "Chauffeur Longue Distance" : "Électromécanicien"}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Date d&apos;embauche</label>
+              <label className={glassLabel}>Date d&apos;embauche</label>
               <input
                 type="date"
                 {...register("date_embauche")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputDate}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">Date de naissance</label>
+              <label className={glassLabel}>Date de naissance</label>
               <input
                 type="date"
                 {...register("date_naissance")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputDate}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-primary mb-1">Adresse de résidence</label>
+            <label className={glassLabel}>Adresse de résidence</label>
             <input
               {...register("adresse")}
               placeholder="ex: Cité 500 Logements, Oran"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+              className={glassInput}
             />
           </div>
 
           {/* DYNAMIC SECTION: CHAUFFEUR SPECIFICS */}
           {selectedType === "CHAUFFEUR" && (
-            <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
-              <h3 className="text-xs font-bold text-primary-base flex items-center gap-1.5">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <h3 className="text-xs font-bold text-[var(--color-electric-violet)] flex items-center gap-2">
                 <Shield className="h-4 w-4" /> Permis de Conduire & Assurance Chauffeur
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    N° Permis de Conduire
-                  </label>
+                  <label className={glassLabel}>N° Permis de Conduire</label>
                   <input
                     {...register("permis_numero")}
                     placeholder="ex: DZ-31-123456"
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    className={glassInputMono}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Catégories (séparées par virgules)
-                  </label>
+                  <label className={glassLabel}>Catégories (séparées par virgules)</label>
                   <input
                     {...register("permis_categories")}
                     placeholder="ex: B, D, D1"
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    className={glassInputMono}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Date d&apos;obtention
-                  </label>
+                  <label className={glassLabel}>Date d&apos;obtention</label>
                   <input
                     type="date"
                     {...register("permis_date_obtention")}
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    className={glassInputDate}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Date d&apos;expiration
-                  </label>
+                  <label className={glassLabel}>Date d&apos;expiration</label>
                   <input
                     type="date"
                     {...register("permis_date_expiration")}
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    className={glassInputDate}
                   />
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-border">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("assurance")}
-                    className="h-4 w-4 rounded border-border text-primary-base focus:ring-primary-base"
-                  />
-                  <span className="text-xs font-medium text-text-primary">
+              <div className="pt-3 border-t border-white/10">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      {...register("assurance")}
+                      className="peer appearance-none h-5 w-5 rounded-md border-2 border-white/20 bg-white/5 checked:bg-[var(--color-electric-violet)] checked:border-[var(--color-electric-violet)] transition-all focus:outline-none focus:ring-2 focus:ring-[var(--color-electric-violet)]/30"
+                    />
+                    <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" viewBox="0 0 14 10" fill="none">
+                      <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
                     Assurance Chauffeur Professionnel active et valide
                   </span>
                 </label>
@@ -313,53 +364,52 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
 
           {/* DYNAMIC SECTION: MECANICIEN SPECIFICS */}
           {selectedType === "MECANICIEN" && (
-            <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
-              <h3 className="text-xs font-bold text-primary-base flex items-center gap-1.5">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <h3 className="text-xs font-bold text-[var(--color-electric-violet)] flex items-center gap-2">
                 <Wrench className="h-4 w-4" /> Spécialité & Compétences Atelier
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Spécialité Technique
-                  </label>
+                  <label className={glassLabel}>Spécialité Technique</label>
                   <input
                     {...register("specialite")}
-                    placeholder="ex: Freinage Pneumatique, Moteur Euro 6, Électricité"
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    placeholder="ex: Freinage Pneumatique, Moteur Euro 6"
+                    className={glassInput}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Grade / Niveau
-                  </label>
+                  <label className={glassLabel}>Grade / Niveau</label>
                   <input
                     {...register("type_mecanicien")}
-                    placeholder="ex: Chef d'Atelier, Technicien Supérieur, Apprenti"
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    placeholder="ex: Chef d'Atelier, Technicien Supérieur"
+                    className={glassInput}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-text-primary mb-1">
-                    Années d&apos;expérience
-                  </label>
+                  <label className={glassLabel}>Années d&apos;expérience</label>
                   <input
                     {...register("experience")}
                     placeholder="ex: 12 ans"
-                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                    className={glassInput}
                   />
                 </div>
 
-                <div className="flex items-center pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      {...register("est_responsable")}
-                      className="h-4 w-4 rounded border-border text-primary-base focus:ring-primary-base"
-                    />
-                    <span className="text-xs font-medium text-text-primary">
-                      Habilité Chef d&apos;équipe / Responsable d&apos;Atelier
+                <div className="flex items-end pb-1">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        {...register("est_responsable")}
+                        className="peer appearance-none h-5 w-5 rounded-md border-2 border-white/20 bg-white/5 checked:bg-[var(--color-electric-violet)] checked:border-[var(--color-electric-violet)] transition-all focus:outline-none focus:ring-2 focus:ring-[var(--color-electric-violet)]/30"
+                      />
+                      <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" viewBox="0 0 14 10" fill="none">
+                        <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                      Chef d&apos;équipe / Responsable
                     </span>
                   </label>
                 </div>
@@ -367,27 +417,37 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
             </div>
           )}
 
+          {/* File Upload Zone */}
+          <div className="pt-4 border-t border-white/10">
+            <label className={glassLabel}>Pièces Jointes (Optionnel)</label>
+            <CreationFileUploader
+              files={pendingFiles}
+              onFilesChange={setPendingFiles}
+              maxFiles={5}
+            />
+          </div>
+
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <Button
+          <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/10">
+            <button
               type="button"
-              variant="outline"
               onClick={onClose}
-              className="text-xs border-border"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
               disabled={isSubmitting}
             >
               Annuler
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
               disabled={isSubmitting}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[var(--color-electric-violet)]/90 hover:shadow-[0_0_20px_rgba(131,77,251,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isSubmitting ? "Enregistrement..." : "Créer le collaborateur"}
-            </Button>
+            </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

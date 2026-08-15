@@ -14,13 +14,14 @@ import {
   ExternalLink,
   X,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { AlertItem, AlertsResponse } from "@/types/dashboard";
 import { useAlertStore } from "@/stores/alertStore";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alerts, setAlerts] = useState<(AlertItem & { read?: boolean })[]>([]);
   const [urgentCount, setUrgentCount] = useState(0);
   const [warningCount, setWarningCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -31,8 +32,11 @@ export function NotificationBell() {
   const fetchAlerts = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get<AlertsResponse>("/alertes");
-      setAlerts(res.data.items);
+      const [res] = await Promise.all([
+        api.get<AlertsResponse>("/alertes"),
+        new Promise(resolve => setTimeout(resolve, 800)) // Ensures animation is visible for at least 0.8s
+      ]);
+      setAlerts(res.data.items.map(a => ({ ...a, read: false })));
       setUrgentCount(res.data.urgent_count);
       setWarningCount(res.data.warning_count);
 
@@ -76,20 +80,33 @@ export function NotificationBell() {
 
   const totalActive = urgentCount + warningCount;
 
+  const handleAlertClick = (id: string, severity: string) => {
+    const alert = alerts.find(a => a.id === id);
+    if (alert && !alert.read) {
+      setAlerts(alerts.map(a => a.id === id ? { ...a, read: true } : a));
+      if (severity === "URGENT") {
+        setUrgentCount(prev => Math.max(0, prev - 1));
+      } else {
+        setWarningCount(prev => Math.max(0, prev - 1));
+      }
+    }
+    setIsOpen(false);
+  };
+
   const getAlertIcon = (type: string) => {
     switch (type) {
       case "DOCUMENT":
-        return <FileText className="h-4 w-4 text-warning" />;
+        return <FileText className="h-4 w-4 text-yellow-400" />;
       case "CONTRAT":
-        return <FileText className="h-4 w-4 text-primary-base" />;
+        return <FileText className="h-4 w-4 text-[var(--color-turbo)]" />;
       case "CAUTION":
-        return <Shield className="h-4 w-4 text-warning" />;
+        return <Shield className="h-4 w-4 text-yellow-400" />;
       case "STOCK":
-        return <Package className="h-4 w-4 text-danger" />;
+        return <Package className="h-4 w-4 text-red-400" />;
       case "MAINTENANCE":
-        return <Wrench className="h-4 w-4 text-warning" />;
+        return <Wrench className="h-4 w-4 text-orange-400" />;
       default:
-        return <AlertTriangle className="h-4 w-4 text-warning" />;
+        return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
     }
   };
 
@@ -99,14 +116,14 @@ export function NotificationBell() {
       <button
         id="alerts-notification-btn"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative rounded-full p-2 text-text-secondary hover:bg-background hover:text-text-primary transition-colors focus:outline-none"
+        className={`relative rounded-full p-2 transition-all focus:outline-none ${isOpen ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
         title="Centre d'alertes du système"
       >
         <Bell className="h-5 w-5" />
         {totalActive > 0 && (
           <span
-            className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white animate-pulse ${
-              urgentCount > 0 ? "bg-danger" : "bg-warning"
+            className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-[0_0_10px_rgba(255,0,0,0.5)] ${
+              urgentCount > 0 ? "bg-red-500 animate-pulse" : "bg-orange-500"
             }`}
           >
             {totalActive > 9 ? "9+" : totalActive}
@@ -116,17 +133,17 @@ export function NotificationBell() {
 
       {/* Popover Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-border bg-surface shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-3 w-96 max-w-[90vw] rounded-2xl border border-white/10 bg-[var(--color-haiti)]/90 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-table-header">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-text-primary">Alertes & Conformité</span>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/20">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-white font-heading">Alertes & Conformité</span>
               {totalActive > 0 ? (
-                <span className="rounded-full bg-danger-bg text-danger-text px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded-full bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold">
                   {totalActive} active(s)
                 </span>
               ) : (
-                <span className="rounded-full bg-success-bg text-success-text px-2 py-0.5 text-[10px] font-semibold">
+                <span className="rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold">
                   0 alerte
                 </span>
               )}
@@ -134,14 +151,14 @@ export function NotificationBell() {
             <div className="flex items-center gap-1">
               <button
                 onClick={fetchAlerts}
-                className="rounded p-1 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+                className="rounded p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
                 title="Actualiser les alertes"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[var(--color-turbo)]" : ""}`} />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded p-1 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+                className="rounded p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -149,12 +166,30 @@ export function NotificationBell() {
           </div>
 
           {/* Alerts List */}
-          <div className="max-h-[380px] overflow-y-auto divide-y divide-border">
+          <div className="relative max-h-[380px] overflow-hidden">
+            {/* Loading Overlay */}
+            <AnimatePresence>
+              {loading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-10 bg-[#1B102B]/60 backdrop-blur-[2px] flex flex-col items-center justify-center"
+                >
+                  <RefreshCw className="w-8 h-8 text-[var(--color-turbo)] animate-spin mb-2" />
+                  <p className="text-[10px] font-accent uppercase tracking-widest text-white/70 font-bold">Actualisation...</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <div className="max-h-[380px] overflow-y-auto divide-y divide-white/5 custom-scrollbar">
             {alerts.length === 0 ? (
-              <div className="p-8 text-center">
-                <CheckCircle2 className="h-8 w-8 text-success mx-auto mb-2 opacity-80" />
-                <p className="text-xs font-semibold text-text-primary">Système 100% Conforme</p>
-                <p className="text-[11px] text-text-secondary mt-0.5">
+              <div className="p-8 text-center flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 border border-emerald-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                </div>
+                <p className="text-sm font-bold text-white">Système 100% Conforme</p>
+                <p className="text-xs text-white/50 mt-1 max-w-[200px]">
                   Aucune expiration ou rupture de stock détectée.
                 </p>
               </div>
@@ -166,30 +201,34 @@ export function NotificationBell() {
                   <Link
                     key={item.id}
                     href={item.link}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-start gap-3 p-3 hover:bg-primary-light/20 transition-colors group block"
+                    onClick={() => handleAlertClick(item.id, item.severity)}
+                    className={`flex items-start gap-4 p-4 transition-colors group block ${item.read ? 'opacity-50 hover:opacity-100 hover:bg-white/5' : 'bg-white/[0.02] hover:bg-white/10'}`}
                   >
                     <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        isUrgent ? "bg-danger-bg" : "bg-warning-bg"
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-colors ${
+                        isUrgent 
+                          ? "bg-red-500/10 border-red-500/20 group-hover:bg-red-500/20" 
+                          : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
                       }`}
                     >
                       {getAlertIcon(item.type)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <p className="text-xs font-bold text-text-primary truncate">{item.title}</p>
-                        <span
-                          className={`shrink-0 rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
-                            isUrgent
-                              ? "bg-danger-bg text-danger-text"
-                              : "bg-warning-bg text-warning-text"
-                          }`}
-                        >
-                          {item.badge_label}
-                        </span>
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className={`text-xs font-bold truncate ${item.read ? 'text-white/70' : 'text-white'}`}>{item.title}</p>
+                        {!item.read && (
+                          <span
+                            className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-accent uppercase tracking-widest font-bold border ${
+                              isUrgent
+                                ? "bg-red-500/20 text-red-400 border-red-500/30"
+                                : "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                            }`}
+                          >
+                            {item.badge_label}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-text-secondary line-clamp-2 leading-tight">
+                      <p className="text-[11px] text-white/60 line-clamp-2 leading-relaxed">
                         {item.message}
                       </p>
                     </div>
@@ -198,13 +237,14 @@ export function NotificationBell() {
               })
             )}
           </div>
+          </div>
 
           {/* Footer */}
-          <div className="p-2 border-t border-border bg-table-header text-center">
+          <div className="p-3 border-t border-white/10 bg-black/20 text-center">
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
-              className="text-[11px] font-semibold text-primary-base hover:underline inline-flex items-center gap-1"
+              className="text-[10px] font-accent uppercase tracking-widest font-bold text-[var(--color-turbo)] hover:text-[#ffe133] hover:bg-[var(--color-turbo)]/10 px-3 py-1.5 rounded-lg transition-all inline-flex items-center gap-1.5"
             >
               Consulter le Tableau de bord complet <ExternalLink className="h-3 w-3" />
             </Link>

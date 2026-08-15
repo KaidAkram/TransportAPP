@@ -1,41 +1,50 @@
-from datetime import date as dt_date, datetime
-from typing import Optional
+from datetime import date, datetime
+from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class DocumentBase(BaseModel):
-    nom: str = Field(..., description="Nom du document (ex: Police Assurance 2026)")
-    type: str = Field(..., description="Type (Assurance, Contrôle technique, Carte grise, etc.)")
-    url_fichier: str = Field(..., description="Chemin ou URL du fichier dans Supabase Storage")
-    date_emission: Optional[dt_date] = Field(None, description="Date d'émission")
-    date_expiration: Optional[dt_date] = Field(None, description="Date d'expiration")
+  nom: str
+  document_type: str = "Autre"
+  type: Optional[str] = None
+  description: Optional[str] = None
+  date_emission: Optional[date] = None
+  date_expiration: Optional[date] = None
+  statut_validite: Optional[str] = "Valide"
 
 
 class DocumentCreate(DocumentBase):
-    entity_type: str = Field("vehicule", description="Type d'entité rattachée (vehicule, employe, etc.)")
-    entity_id: UUID = Field(..., description="ID de l'entité rattachée")
+  entity_type: str
+  entity_id: UUID
+  url_fichier: Optional[str] = None
 
 
-class DocumentSummary(BaseModel):
-    id: UUID
-    nom: str
-    type: str
-    url_fichier: str
-    date_emission: Optional[dt_date] = None
-    date_expiration: Optional[dt_date] = None
-    statut_validite: Optional[str] = None
+class DocumentResponse(DocumentBase):
+  id: UUID
+  entity_type: str
+  entity_id: UUID
+  filename: Optional[str] = None
+  url_fichier: str
+  download_url: Optional[str] = None
+  view_url: Optional[str] = None
+  mime_type: Optional[str] = None
+  size: Optional[int] = 0
+  size_formatted: Optional[str] = None
+  uploaded_by: Optional[str] = "admin"
+  uploaded_at: datetime
+  created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+  model_config = ConfigDict(from_attributes=True)
 
 
-class DocumentRead(DocumentBase):
-    id: UUID
-    statut_validite: Optional[str] = None
-    entity_type: str
-    entity_id: UUID
-    created_at: datetime
-    updated_at: datetime
-    archived_at: Optional[datetime] = None
+class DocumentListResponse(BaseModel):
+  items: List[DocumentResponse]
+  total: int
+  entity_type: str
+  entity_id: UUID
 
-    model_config = ConfigDict(from_attributes=True)
+
+# Backward compatibility aliases
+DocumentRead = DocumentResponse
+DocumentSummary = DocumentResponse

@@ -17,57 +17,83 @@ import {
   UserCheck,
   AlertTriangle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
 import { api } from "@/lib/api";
 import { Intervention, InterventionListResponse } from "@/types/intervention";
+import { GlassPagination } from "@/components/ui/GlassPagination";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { TableSkeleton } from "@/components/shared/Skeleton";
+import { Portal } from "@/components/shared/Portal";
 
 export default function MaintenancePage() {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Glass Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    interventionId: string | null;
+    interventionNum: string;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    interventionId: null,
+    interventionNum: "",
+    isLoading: false,
+  });
 
   const fetchInterventions = useCallback(async () => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
 
       const res = await api.get<InterventionListResponse>("/interventions", params);
       setInterventions(res.data.items);
+      setTotalPages(res.data.total_pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
       console.error("Error fetching interventions:", err);
     } finally {
       setLoading(false);
     }
+  }, [search, typeFilter, statusFilter, page]);
+
+  
+  useEffect(() => {
+    setPage(1);
   }, [search, typeFilter, statusFilter]);
 
   useEffect(() => {
     fetchInterventions();
   }, [fetchInterventions]);
 
-  const handleDelete = async (id: string, num: string) => {
-    if (confirm(`Confirmez-vous l'annulation de l'ordre de travail ${num} ?`)) {
-      try {
-        await api.delete(`/interventions/${id}`);
-        fetchInterventions();
-      } catch (err) {
-        alert("Erreur lors de l'annulation de l'intervention.");
-      }
+  const handleDeleteClick = (id: string, num: string) => {
+    setConfirmModal({ isOpen: true, interventionId: id, interventionNum: num, isLoading: false });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmModal.interventionId) return;
+    setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await api.delete(`/interventions/${confirmModal.interventionId}`);
+      fetchInterventions();
+    } catch (err) {
+      console.error("Erreur lors de l'annulation de l'intervention:", err);
+    } finally {
+      setConfirmModal({ isOpen: false, interventionId: null, interventionNum: "", isLoading: false });
     }
   };
 
@@ -78,273 +104,300 @@ export default function MaintenancePage() {
   const totalCoutDZD = interventions.reduce((acc, i) => acc + (i.cout_total || 0), 0);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
+      {/* Page Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Maintenance & Ordres de Travail (GMAO)
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+            <Wrench className="w-3 h-3" />
+            Maintenance & GMAO
+          </p>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
+            Gestion des Ordres de Travail
           </h1>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Suivi des révisions, réparations préventives/correctives et traçabilité des pièces consommées
+          <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
+            Suivi des révisions, réparations et traçabilité des pièces consommées
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={fetchInterventions}
-            className="text-xs border-border h-9"
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
-            size="sm"
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Plus className="h-4 w-4" />
             Nouvel Ordre de Travail
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Total Interventions</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <Wrench className="h-4 w-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Interventions</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-text-primary font-mono">{totalCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Ordres de travail enregistrés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Ordres de travail émis</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
+            <Wrench className="h-5 w-5 text-white/80 group-hover:text-white" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Travaux Terminés</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-success-bg text-success-text">
-              <CheckCircle2 className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Travaux Terminés</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{termineesCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-success font-mono">{termineesCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Véhicules remis en circulation</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Remis en circulation</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/40 group-hover:border-emerald-500/60 transition-colors">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">En Cours Atelier</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-warning-bg text-warning-text">
-              <Clock className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Cours Atelier</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{enCoursCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-warning font-mono">{enCoursCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Véhicules immobilisés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Véhicules immobilisés</p>
+          </div>
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Budget Maintenance DZD</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <DollarSign className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Budget Dépensé</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] truncate max-w-[100px] sm:max-w-[120px]">{totalCoutDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-[10px] font-bold text-white/40 ml-1">DZD</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-primary-base font-mono truncate">
-              {totalCoutDZD.toLocaleString("fr-DZ")} DZD
-            </div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Dépenses pièces & réparations</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Coût global des réparations</p>
+          </div>
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <DollarSign className="h-5 w-5 text-[var(--color-electric-violet)]" />
+          </div>
+        </div>
       </div>
 
       {/* Filter Bar */}
-      <Card className="bg-surface border-border shadow-xs">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par n° OT, immatriculation, catégorie..."
-                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-4 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            <div>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les types d&apos;intervention</option>
-                <option value="PREVENTIVE">🟢 Maintenance Préventive</option>
-                <option value="CORRECTIVE">🔴 Maintenance Corrective (Dépannage)</option>
-              </select>
-            </div>
-
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="TERMINEE">🟢 Terminée</option>
-                <option value="EN_COURS">🟠 En cours d&apos;intervention</option>
-                <option value="PLANIFIEE">🟡 Planifiée</option>
-              </select>
-            </div>
+      <div className="relative z-20 flex flex-col sm:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
           </div>
-        </CardContent>
-      </Card>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par n° OT, immatriculation, catégorie..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
+          />
+        </div>
+        
+        <div className="w-full sm:w-[250px]">
+          <GlassSelect
+            value={typeFilter}
+            onChange={setTypeFilter}
+            options={[
+              { value: "", label: "Tous les types d'intervention" },
+              { value: "PREVENTIVE", label: "Maintenance Préventive" },
+              { value: "CORRECTIVE", label: "Maintenance Corrective" },
+            ]}
+          />
+        </div>
 
-      {/* Interventions Table */}
-      <Card className="bg-surface border-border shadow-xs overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-table-header">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">N° Ordre de Travail</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Véhicule</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Type & Catégorie</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Chef d&apos;Atelier / Mécanicien</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Date & Kilométrage</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Coût Travaux</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <div className="w-full sm:w-[200px]">
+          <GlassSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "Tous les statuts" },
+              { value: "PLANIFIEE", label: "Planifiée" },
+              { value: "EN_COURS", label: "En Cours" },
+              { value: "TERMINEE", label: "Terminée" },
+              { value: "ANNULEE", label: "Annulée" },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+        <div className="w-full min-w-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.02]">
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Ordre de Travail</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Véhicule</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Catégorie</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Responsable</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Date & Info</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Coût Total</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-xs text-text-secondary">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary-base" />
-                    Chargement du registre de maintenance...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={8} className="p-0">
+                    <TableSkeleton rows={6} />
+                  </td>
+                </tr>
               ) : interventions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <Wrench className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-semibold text-text-primary">Aucun ordre de travail trouvé</p>
-                    <p className="text-xs text-text-secondary mt-1">
-                      Ajustez vos filtres ou lancez un nouvel ordre de réparation ou de révision.
-                    </p>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={8} className="p-0">
+                    <EmptyState 
+                      title="Aucune intervention" 
+                      message="Aucun ordre de travail enregistré ne correspond à votre recherche." 
+                      icon={Wrench} 
+                    />
+                  </td>
+                </tr>
               ) : (
-                interventions.map((it) => {
-                  const isPreventive = it.type === "PREVENTIVE";
+                interventions.map((i) => {
+                  const isPreventive = i.type === "PREVENTIVE";
 
                   return (
-                    <TableRow
-                      key={it.id}
-                      className="border-b border-border hover:bg-primary-light/20 transition-colors"
+                    <tr
+                      key={i.id}
+                      className="group hover:bg-white/[0.02] transition-colors"
                     >
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold text-primary-base block">
-                          {it.numero}
+                      <td className="py-4 px-5">
+                        <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block">
+                          {i.numero}
                         </span>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-4 px-5">
                         <div className="flex items-center gap-2">
-                          <Bus className="h-3.5 w-3.5 text-primary-base" />
+                          <Bus className="h-4 w-4 text-white/50" />
                           <div>
-                            <p className="font-mono text-xs font-bold text-text-primary">
-                              {it.vehicule_immatriculation || "Véhicule"}
+                            <p className="text-xs font-bold text-white font-mono">
+                              {i.vehicule_immatriculation || "Véhicule"}
                             </p>
-                            <p className="text-[10px] text-text-secondary">
-                              {it.vehicule_marque} {it.vehicule_modele}
+                            <p className="text-[10px] text-white/40 mt-0.5 truncate max-w-[120px]">
+                              {i.vehicule_modele || "Modèle inconnu"}
                             </p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-4 px-5 max-w-[150px]">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold mb-1 ${
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-1 border ${
                             isPreventive
-                              ? "bg-primary-light text-primary-base"
-                              : "bg-danger-bg text-danger-text"
+                              ? "bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border-[var(--color-electric-violet)]/20"
+                              : "bg-orange-500/10 text-orange-400 border-orange-500/20"
                           }`}
                         >
-                          {isPreventive ? "🟢 Préventive" : "🔴 Corrective"}
+                          {isPreventive ? "Préventive" : "Corrective"}
                         </span>
-                        <p className="text-xs font-semibold text-text-primary">{it.categorie}</p>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="h-3.5 w-3.5 text-text-secondary" />
-                          <span className="text-xs font-medium text-text-primary">
-                            {it.mecanicien_nom_complet || "Atelier Général"}
-                          </span>
+                        <p className="text-[11px] text-white/80 font-bold truncate" title={i.categorie}>
+                          {i.categorie}
+                        </p>
+                      </td>
+                      <td className="py-4 px-5">
+                        {i.mecanicien_nom_complet ? (
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="h-3.5 w-3.5 text-white/50" />
+                            <p className="text-xs text-white/80">{i.mecanicien_nom_complet}</p>
+                          </div>
+                        ) : (
+                          <span className="text-white/40 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="text-xs text-white/80 font-mono">
+                          {new Date(i.date).toLocaleDateString("fr-FR")}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-xs text-text-secondary font-mono">
-                        <div>{new Date(it.date).toLocaleDateString("fr-FR")}</div>
-                        <div className="text-[10px] text-text-secondary font-bold">
-                          {it.kilometrage.toLocaleString("fr-DZ")} KM
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold text-text-primary">
-                          {it.cout_total.toLocaleString("fr-DZ")} DZD
+                        {i.kilometrage && (
+                          <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                            {i.kilometrage.toLocaleString("fr-FR")} KM
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-4 px-5">
+                        <span className="font-mono text-xs font-bold text-white block">
+                          {(i.cout_total || 0).toLocaleString("fr-DZ")} DZD
                         </span>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-4 px-5">
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                            it.statut === "TERMINEE"
-                              ? "bg-success-bg text-success-text"
-                              : it.statut === "EN_COURS"
-                              ? "bg-warning-bg text-warning-text"
-                              : "bg-neutral text-text-secondary"
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                            i.statut === "EN_COURS"
+                              ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
+                              : i.statut === "TERMINEE"
+                              ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
+                              : i.statut === "ANNULEE"
+                              ? "bg-red-500/10 text-red-400 border-red-500/20"
+                              : "bg-white/5 text-white/50 border-white/10"
                           }`}
                         >
-                          {it.statut === "TERMINEE"
-                            ? "Terminée"
-                            : it.statut === "EN_COURS"
-                            ? "En cours"
-                            : "Planifiée"}
+                          {i.statut}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(it.id, it.numero)}
-                          className="text-xs text-danger hover:bg-danger-bg h-7 px-2"
-                          title="Annuler l'intervention"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleDeleteClick(i.id, i.numero)}
+                            className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
+                            title="Annuler/Supprimer l'ordre de travail"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+        <GlassPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
+      </div>
 
-      {/* Add Intervention Modal */}
+            {/* Modals */}
+      <Portal>
+{/* Add Modal */}
       <AddInterventionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchInterventions()}
       />
+
+      {/* Confirm Archiving Modal */}
+      <GlassConfirmModal
+        isOpen={confirmModal.isOpen}
+        onCancel={() => setConfirmModal({ isOpen: false, interventionId: null, interventionNum: "", isLoading: false })}
+        onConfirm={handleDeleteConfirm}
+        title="Annuler l'Ordre de Travail"
+        message={`Êtes-vous sûr de vouloir annuler et archiver l'ordre de travail ${confirmModal.interventionNum} ?`}
+        confirmText="Confirmer l'annulation"
+        cancelText="Retour"
+        isLoading={confirmModal.isLoading}
+        type="danger"
+      />
+      </Portal>
     </div>
   );
 }
+

@@ -19,22 +19,14 @@ import {
   Users,
   Factory,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddAvenantModal } from "@/components/modules/contrats/AddAvenantModal";
 import { AddCautionModal } from "@/components/modules/cautions/AddCautionModal";
 import { AddContractDocumentModal } from "@/components/modules/contrats/AddContractDocumentModal";
+import { GlassDocumentManager } from "@/components/shared/GlassDocumentManager";
 import { api } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/constants";
 import { ContratDetail } from "@/types/contrat";
+import { Portal } from "@/components/shared/Portal";
 
 export default function ContratDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -64,8 +56,8 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-3">
-        <FileText className="h-8 w-8 animate-bounce text-primary-base" />
-        <p className="text-xs text-text-secondary">Chargement du dossier contractuel...</p>
+        <FileText className="h-8 w-8 animate-pulse text-[var(--color-electric-violet)]" />
+        <p className="text-xs text-white/50">Chargement du dossier contractuel...</p>
       </div>
     );
   }
@@ -73,11 +65,11 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
   if (!contrat) {
     return (
       <div className="text-center py-16 space-y-4">
-        <AlertTriangle className="h-10 w-10 text-danger mx-auto" />
-        <h2 className="text-lg font-bold text-text-primary">Contrat introuvable</h2>
-        <Button asChild variant="outline" className="text-xs border-border">
-          <Link href="/contrats">Retour au registre des contrats</Link>
-        </Button>
+        <AlertTriangle className="h-10 w-10 text-red-500 mx-auto" />
+        <h2 className="text-lg font-bold text-white">Contrat introuvable</h2>
+        <Link href="/contrats" className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors">
+          Retour au registre des contrats
+        </Link>
       </div>
     );
   }
@@ -88,513 +80,456 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
   const isExpired = contrat.jours_restants !== null && contrat.jours_restants !== undefined && contrat.jours_restants < 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="text-xs border-border h-9"
-          >
-            <Link href="/contrats">
-              <ArrowLeft className="h-4 w-4 mr-1.5" />
-              Retour aux contrats
-            </Link>
-          </Button>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
+        <div className="flex flex-col gap-3 flex-1 min-w-0 mr-4">
+          <Link href="/contrats" className="inline-flex w-fit items-center text-[10px] font-accent uppercase tracking-widest text-white/50 hover:text-[var(--color-electric-violet)] transition-colors">
+            <ArrowLeft className="h-3 w-3 mr-1" />
+            Retour aux contrats
+          </Link>
 
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold font-mono text-text-primary">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-heading font-extrabold text-white drop-shadow-md">
                 {contrat.reference}
               </h1>
               <span
-                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-accent uppercase tracking-widest font-bold ${
                   isClient
-                    ? "bg-primary-light text-primary-base"
-                    : "bg-warning-bg text-warning-text"
+                    ? "bg-white/10 text-white"
+                    : "bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)]"
                 }`}
               >
                 {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
                 {contrat.partenaire_nom}
               </span>
               <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-accent uppercase tracking-widest font-bold border ${
                   contrat.statut === "ACTIF"
-                    ? "bg-success-bg text-success-text"
-                    : "bg-danger-bg text-danger-text"
+                    ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
+                    : "bg-white/5 text-white/50 border-white/10"
                 }`}
               >
                 {contrat.statut}
               </span>
               {isExpired ? (
-                <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-xs font-bold text-danger-text">
-                  🔴 Expiré
+                <span className="rounded-full bg-red-500/10 border border-red-500/20 px-3 py-1 text-[10px] font-accent uppercase tracking-widest font-bold text-red-400">
+                  Expiré
                 </span>
               ) : isUrgent ? (
-                <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-xs font-bold text-danger-text animate-pulse">
-                  🔴 {contrat.alerte_expiration}
+                <span className="rounded-full bg-red-500/10 border border-red-500/20 px-3 py-1 text-[10px] font-accent uppercase tracking-widest font-bold text-red-400 animate-pulse">
+                  {contrat.alerte_expiration}
                 </span>
               ) : isWarning ? (
-                <span className="rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-bold text-warning-text">
-                  🟠 {contrat.alerte_expiration}
+                <span className="rounded-full bg-[var(--color-turbo)]/10 border border-[var(--color-turbo)]/20 px-3 py-1 text-[10px] font-accent uppercase tracking-widest font-bold text-[var(--color-turbo)]">
+                  {contrat.alerte_expiration}
                 </span>
               ) : null}
             </div>
-            <p className="text-xs text-text-secondary mt-0.5">
+            <p className="text-sm text-white/60 font-sans mt-2">
               {contrat.objet}
             </p>
           </div>
         </div>
 
         {/* Action Triggers */}
-        <div className="flex items-center gap-2.5">
-          <Button
-            size="sm"
-            variant="outline"
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-start sm:justify-end gap-2.5 shrink-0">
+          <button
             onClick={() => setIsDocModalOpen(true)}
-            className="text-xs border-border h-9"
+            className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all shadow-sm"
           >
-            <FileText className="h-3.5 w-3.5 mr-1.5 text-primary-base" />
-            + Document
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
+            <FileText className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)]" />
+            Document
+          </button>
+          <button
             onClick={() => setIsCautionModalOpen(true)}
-            className="text-xs border-border h-9"
+            className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all shadow-sm"
           >
-            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-warning" />
-            + Caution
-          </Button>
-          <Button
-            size="sm"
+            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-[var(--color-turbo)]" />
+            Caution
+          </button>
+          <button
             onClick={() => setIsAvenantModalOpen(true)}
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#6A3DE8] hover:shadow-[0_0_20px_rgba(131,77,251,0.4)] transition-all"
           >
             <FileEdit className="h-3.5 w-3.5 mr-1.5" />
-            + Nouvel Avenant
-          </Button>
+            Nouvel Avenant
+          </button>
         </div>
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-1">
-            <CardDescription className="text-xs">Montant Révisé Total</CardDescription>
-            <CardTitle className="text-lg font-bold font-mono text-primary-base truncate mt-1">
-              {contrat.montant_total_avec_avenants.toLocaleString("fr-DZ")} {contrat.devise}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-1">
-            <p className="text-[11px] text-text-secondary">
-              Initial : {contrat.montant.toLocaleString("fr-DZ")} {contrat.devise}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Montant Révisé Total</p>
+          <p className="text-xl font-heading font-extrabold text-white truncate my-1">
+            {contrat.montant_total_avec_avenants.toLocaleString("fr-DZ")} {contrat.devise}
+          </p>
+          <p className="text-[10px] text-white/40 mt-0.5">
+            Initial : {contrat.montant.toLocaleString("fr-DZ")} {contrat.devise}
+          </p>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-1">
-            <CardDescription className="text-xs">Avenants Enregistrés</CardDescription>
-            <CardTitle className="text-xl font-bold font-mono text-text-primary flex items-center justify-between">
-              {contrat.total_avenants}
-              <FileEdit className="h-4 w-4 text-primary-base" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-1">
-            <p className="text-[11px] text-text-secondary">Modifications contractuelles</p>
-          </CardContent>
-        </Card>
+        <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Avenants</p>
+          <p className="text-xl font-heading font-extrabold text-[var(--color-electric-violet)] my-1">
+            {contrat.avenants.length}
+          </p>
+          <p className="text-[10px] text-white/40 mt-0.5">Modifications validées</p>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-1">
-            <CardDescription className="text-xs">Cautions Rattachées</CardDescription>
-            <CardTitle className="text-xl font-bold font-mono text-text-primary flex items-center justify-between">
-              {contrat.total_cautions}
-              <ShieldCheck className="h-4 w-4 text-warning" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-1">
-            <p className="text-[11px] text-text-secondary">Garanties financières liées</p>
-          </CardContent>
-        </Card>
+        <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Couverture / Caution</p>
+          <p className="text-xl font-heading font-extrabold text-[var(--color-turbo)] my-1">
+            {contrat.cautions.length}
+          </p>
+          <p className="text-[10px] text-white/40 mt-0.5">Garanties associées</p>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-1">
-            <CardDescription className="text-xs">Documents & Pièces</CardDescription>
-            <CardTitle className="text-xl font-bold font-mono text-text-primary flex items-center justify-between">
-              {contrat.total_documents}
-              <FileText className="h-4 w-4 text-success" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-1">
-            <p className="text-[11px] text-text-secondary">Scans & avenants signés</p>
-          </CardContent>
-        </Card>
+        <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Date de Fin Actuelle</p>
+          <p className="text-xl font-heading font-extrabold text-white my-1 truncate">
+            {new Date(contrat.date_fin).toLocaleDateString("fr-FR")}
+          </p>
+          <p className="text-[10px] text-white/40 mt-0.5">Prorogations incluses</p>
+        </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-border bg-surface rounded-t-lg px-4 pt-2 gap-2">
-        <button
-          onClick={() => setActiveTab("infos")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "infos"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <FileText className="h-4 w-4" />
-          1. Fiche Contractuelle
-        </button>
-        <button
-          onClick={() => setActiveTab("avenants")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "avenants"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <FileEdit className="h-4 w-4" />
-          2. Avenants ({contrat.avenants.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("cautions")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "cautions"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <ShieldCheck className="h-4 w-4" />
-          3. Cautions Bancaires ({contrat.cautions.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("documents")}
-          className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "documents"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <FileText className="h-4 w-4" />
-          4. Pièces Jointes ({contrat.documents.length})
-        </button>
-      </div>
-
-      {/* TAB 1: INFORMATIONS */}
-      {activeTab === "infos" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-150">
-          <Card className="bg-surface border-border shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Conditions Contractuelles</CardTitle>
-              <CardDescription className="text-xs">Paramètres financiers et modalités de facturation</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Référence</span>
-                <span className="font-mono font-bold text-primary-base">{contrat.reference}</span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Partenaire Contractant</span>
-                <span className="font-bold text-text-primary">{contrat.partenaire_nom}</span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Type de Marché</span>
-                <span className="font-semibold text-text-primary">{contrat.type_contrat}</span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Montant Initial HT</span>
-                <span className="font-mono font-bold text-text-primary">
-                  {contrat.montant.toLocaleString("fr-DZ")} {contrat.devise}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Mode de Règlement</span>
-                <span className="text-text-primary">{contrat.mode_facturation || "Mensuel"}</span>
-              </div>
-              <div className="grid grid-cols-2 py-2 text-xs">
-                <span className="text-text-secondary">Conditions de Paiement</span>
-                <span className="text-text-primary">{contrat.conditions_paiement || "Virement 30j"}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-surface border-border shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Calendrier & Validité</CardTitle>
-              <CardDescription className="text-xs">Dates d&apos;effet et statut de renouvellement</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Date d&apos;Effet (Début)</span>
-                <span className="font-mono text-text-primary">
-                  {new Date(contrat.date_debut).toLocaleDateString("fr-FR")}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Date d&apos;Échéance (Fin)</span>
-                <span className="font-mono font-bold text-text-primary">
-                  {new Date(contrat.date_fin).toLocaleDateString("fr-FR")}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Jours Restants</span>
-                <span className="font-mono font-bold text-text-primary">
-                  {contrat.jours_restants} jour(s)
-                </span>
-              </div>
-              <div className="grid grid-cols-2 py-2 border-b border-border text-xs">
-                <span className="text-text-secondary">Alerte Renouvellement</span>
-                <span>{contrat.alerte_expiration}</span>
-              </div>
-              <div className="grid grid-cols-2 py-2 text-xs">
-                <span className="text-text-secondary">Statut de la Convention</span>
-                <span className="font-bold text-success">{contrat.statut}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* TAB 2: AVENANTS */}
-      {activeTab === "avenants" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-text-secondary">
-              Historique des avenants modifiant les montants financiers ou les dates de fin.
-            </p>
-            <Button
-              size="sm"
-              onClick={() => setIsAvenantModalOpen(true)}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
-            >
-              <Plus className="h-3.5 w-3.5 mr-1" /> Nouvel Avenant
-            </Button>
+      {/* Main Content Area */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        
+        {/* Left Column : 2/3 */}
+        <div className="xl:col-span-2 space-y-6">
+          {/* Navigation Tabs */}
+          <div className="flex flex-nowrap border-b border-white/10 pb-px">
+            {[
+              { id: "infos", label: "Informations Générales", icon: FileText },
+              { id: "avenants", label: "Avenants", icon: FileEdit, count: contrat.avenants.length },
+              { id: "cautions", label: "Cautions / Garanties", icon: ShieldCheck, count: contrat.cautions.length },
+              { id: "documents", label: "Documents", icon: Download, count: contrat.documents.length },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`relative flex flex-1 sm:flex-none justify-center sm:justify-start items-center px-2 sm:px-3 py-2.5 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                    isActive ? "text-[var(--color-electric-violet)]" : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  <tab.icon className="hidden sm:block h-3.5 w-3.5 mr-1.5" />
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className={`ml-2 inline-flex h-5 items-center justify-center rounded-full px-1.5 text-[9px] font-mono ${
+                      isActive ? "bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)]" : "bg-white/5 text-white/50"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-electric-violet)] rounded-t-full shadow-[0_-2px_10px_rgba(131,77,251,0.5)]" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {contrat.avenants.length === 0 ? (
-            <Card className="bg-surface border-border p-12 text-center">
-              <FileEdit className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-semibold text-text-primary">Aucun avenant enregistré</p>
-              <p className="text-xs text-text-secondary mt-1">
-                Les avenants permettent de prolonger la durée du contrat ou d&apos;ajuster le montant financier.
-              </p>
-            </Card>
-          ) : (
-            <Card className="bg-surface border-border shadow-xs overflow-hidden">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-table-header">
-                    <TableRow className="border-b border-border">
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Numéro</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Date Signature</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Objet de l&apos;Avenant</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Variation Montant</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Nouvelle Échéance</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contrat.avenants.map((av) => (
-                      <TableRow key={av.id} className="border-b border-border hover:bg-primary-light/10">
-                        <TableCell className="font-mono text-xs font-bold text-primary-base">
-                          {av.numero}
-                        </TableCell>
-                        <TableCell className="text-xs font-mono text-text-secondary">
-                          {new Date(av.date).toLocaleDateString("fr-FR")}
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-xs font-semibold text-text-primary">{av.objet}</p>
-                          {av.description && (
-                            <p className="text-[11px] text-text-secondary mt-0.5">{av.description}</p>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs font-bold text-text-primary">
-                          {av.modif_montant
-                            ? `${av.modif_montant > 0 ? "+" : ""}${av.modif_montant.toLocaleString("fr-DZ")} DZD`
-                            : "—"}
-                        </TableCell>
-                        <TableCell className="text-xs font-mono text-text-secondary">
-                          {av.nouvelle_date_fin
-                            ? new Date(av.nouvelle_date_fin).toLocaleDateString("fr-FR")
-                            : "Inchangée"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+          {/* Tab Content */}
+          <div className="min-h-[400px]">
+            {activeTab === "infos" && (
+              <div className="space-y-6">
+                <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Building2 className="w-24 h-24 text-[var(--color-electric-violet)]" />
+                  </div>
+                  <h3 className="text-xs font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-5 flex items-center gap-2">
+                    <Building2 className="h-4 w-4" /> Détails Partenaire
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Raison Sociale</p>
+                      <p className="text-sm font-bold text-white">{contrat.partenaire_nom || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Rôle</p>
+                      <p className="text-sm font-bold text-white">{contrat.partenaire_role}</p>
+                    </div>
+                    {/* These fields might be missing if API doesn't return full partner object inside detail */}
+                    <div className="sm:col-span-2">
+                      <Link href={`/partenaires`} className="text-[11px] font-bold text-[var(--color-electric-violet)] hover:underline flex items-center gap-1 w-fit">
+                        <ArrowLeft className="h-3 w-3" />
+                        Voir la fiche partenaire complète
+                      </Link>
+                    </div>
+                  </div>
+                </div>
 
-      {/* TAB 3: CAUTIONS BANCAIRES */}
-      {activeTab === "cautions" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-text-secondary">
-              Cautions bancaires émises en couverture de ce marché (Bonne exécution ou Soumission).
-            </p>
-            <Button
-              size="sm"
-              onClick={() => setIsCautionModalOpen(true)}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
-            >
-              <Plus className="h-3.5 w-3.5 mr-1" /> Émettre une Caution
-            </Button>
+                <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <FileText className="w-24 h-24 text-[var(--color-turbo)]" />
+                  </div>
+                  <h3 className="text-xs font-accent uppercase tracking-widest text-[var(--color-turbo)] font-bold mb-5 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" /> Paramètres Contrat
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-6 gap-x-8">
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Type de Contrat</p>
+                      <p className="text-sm font-bold text-white">{contrat.type_contrat}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Périodicité Facturation</p>
+                      <p className="text-sm font-bold text-white">{contrat.mode_facturation || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Délai Paiement (Jours)</p>
+                      <p className="text-sm font-bold text-white font-mono">{contrat.conditions_paiement}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass-panel p-6 rounded-2xl">
+                  <h3 className="text-xs font-accent uppercase tracking-widest text-emerald-400 font-bold mb-5 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" /> Pénalités & Retards
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                    <div>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Taux Pénalité Retard (%)</p>
+                      <p className="text-sm font-bold text-white font-mono">{'N/A'}%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "avenants" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-white">Avenants Enregistrés</h3>
+                  <button
+                    onClick={() => setIsAvenantModalOpen(true)}
+                    className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/30 hover:bg-[var(--color-electric-violet)]/20 transition-all"
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Nouvel Avenant
+                  </button>
+                </div>
+                {contrat.avenants.length === 0 ? (
+                  <div className="text-center py-12 glass-panel rounded-2xl">
+                    <FileEdit className="h-8 w-8 text-white/20 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-white/80">Aucun avenant</p>
+                    <p className="text-xs text-white/40">Ce contrat n'a subi aucune modification.</p>
+                  </div>
+                ) : (
+                  <div className="glass-panel rounded-2xl overflow-hidden">
+                    <div className="min-w-0">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/[0.02]">
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Avenant</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Date Signature</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Type Modif</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Nouveau Montant / Fin</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {contrat.avenants.map((a) => (
+                            <tr key={a.id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="py-3 px-4 font-mono text-xs font-bold text-[var(--color-electric-violet)]">{a.numero}</td>
+                              <td className="py-3 px-4 text-xs font-mono text-white/70">{new Date(a.date).toLocaleDateString("fr-FR")}</td>
+                              <td className="py-3 px-4 text-xs font-medium text-white">{a.objet}</td>
+                              <td className="py-3 px-4 text-xs text-white/70 font-mono flex flex-col gap-0.5">
+                                {a.modif_montant !== null && (
+                                  <span>{a.modif_montant?.toLocaleString("fr-DZ")} DZD</span>
+                                )}
+                                {a.nouvelle_date_fin && (
+                                  <span className="text-[10px] text-[var(--color-turbo)]">
+                                    Fin repoussée : {new Date(a.nouvelle_date_fin).toLocaleDateString("fr-FR")}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                                  true ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20" : "bg-white/5 text-white/50 border border-white/10"
+                                }`}>
+                                  Validé
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "cautions" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-white">Garanties & Cautions</h3>
+                  <button
+                    onClick={() => setIsCautionModalOpen(true)}
+                    className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/30 hover:bg-[var(--color-turbo)]/20 transition-all"
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Nouvelle Caution
+                  </button>
+                </div>
+                {contrat.cautions.length === 0 ? (
+                  <div className="text-center py-12 glass-panel rounded-2xl">
+                    <ShieldCheck className="h-8 w-8 text-white/20 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-white/80">Aucune caution</p>
+                    <p className="text-xs text-white/40">Ce contrat n'a aucune garantie associée.</p>
+                  </div>
+                ) : (
+                  <div className="glass-panel rounded-2xl overflow-hidden">
+                    <div className="min-w-0">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/[0.02]">
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Caution</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Type</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Montant</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Banque</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Validité</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {contrat.cautions.map((c) => (
+                            <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="py-3 px-4 font-mono text-xs font-bold text-[var(--color-turbo)]">{c.numero}</td>
+                              <td className="py-3 px-4 text-xs font-medium text-white">{c.type}</td>
+                              <td className="py-3 px-4 text-xs font-mono text-white">{c.montant.toLocaleString("fr-DZ")}</td>
+                              <td className="py-3 px-4 text-xs text-white/70">{"N/A"}</td>
+                              <td className="py-3 px-4 text-[11px] font-mono text-white/70">
+                                {new Date(c.date_emission).toLocaleDateString("fr-FR")} <br />
+                                {new Date(c.date_echeance || '').toLocaleDateString("fr-FR")}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                                  c.statut === "ACTIF" ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20" : "bg-white/5 text-white/50 border border-white/10"
+                                }`}>
+                                  {c.statut}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "documents" && (
+              <div className="space-y-4">
+                <GlassDocumentManager 
+                  entityType="contrat" 
+                  entityId={contrat.id} 
+                />
+              </div>
+            )}
           </div>
-
-          {contrat.cautions.length === 0 ? (
-            <Card className="bg-surface border-border p-12 text-center">
-              <ShieldCheck className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-semibold text-text-primary">Aucune caution bancaire rattachée</p>
-              <p className="text-xs text-text-secondary mt-1">
-                Émettez une caution de bonne exécution et générez l&apos;acte officiel PDF instantanément.
-              </p>
-            </Card>
-          ) : (
-            <Card className="bg-surface border-border shadow-xs overflow-hidden">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-table-header">
-                    <TableRow className="border-b border-border">
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">N° Caution</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Montant Garanti</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Date Émission</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
-                      <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Document</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contrat.cautions.map((cau) => (
-                      <TableRow key={cau.id} className="border-b border-border hover:bg-primary-light/10">
-                        <TableCell className="font-mono text-xs font-bold text-primary-base">
-                          {cau.numero}
-                        </TableCell>
-                        <TableCell className="text-xs font-semibold text-text-primary">
-                          {cau.type === "BONNE_EXECUTION" ? "🛡️ Bonne Exécution" : "📑 Soumission"}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs font-bold text-text-primary">
-                          {cau.montant.toLocaleString("fr-DZ")} {cau.devise}
-                        </TableCell>
-                        <TableCell className="text-xs font-mono text-text-secondary">
-                          {new Date(cau.date_emission).toLocaleDateString("fr-FR")}
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                              cau.statut === "CHEZ_CLIENT"
-                                ? "bg-warning-bg text-warning-text"
-                                : "bg-success-bg text-success-text"
-                            }`}
-                          >
-                            {cau.statut === "CHEZ_CLIENT" ? "Chez le Client" : cau.statut}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {cau.url_caution_pdf ? (
-                            <a
-                              href={cau.url_caution_pdf}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-primary-base font-semibold hover:bg-primary-light/30 transition-colors"
-                            >
-                              <Download className="h-3 w-3" /> PDF
-                            </a>
-                          ) : (
-                            <span className="text-xs text-text-secondary">—</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
         </div>
-      )}
 
-      {/* TAB 4: DOCUMENTS */}
-      {activeTab === "documents" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-text-secondary">
-              Contrat signé, bons de commande, bordereaux et annexes techniques.
-            </p>
-            <Button
-              size="sm"
-              onClick={() => setIsDocModalOpen(true)}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
-            >
-              <Plus className="h-3.5 w-3.5 mr-1" /> Nouveau Document
-            </Button>
-          </div>
+        {/* Right Column : 1/3 (Timeline & Alerts) */}
+        <div className="space-y-6">
+          <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <Clock className="w-32 h-32 text-white" />
+            </div>
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-6 flex items-center gap-2">
+              <Clock className="h-4 w-4" /> Durée de Vie
+            </h3>
 
-          {contrat.documents.length === 0 ? (
-            <Card className="bg-surface border-border p-12 text-center">
-              <FileText className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-semibold text-text-primary">Aucun document rattaché</p>
-              <p className="text-xs text-text-secondary mt-1">
-                Joignez la version numérisée du contrat paraphé ou les ordres de service.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {contrat.documents.map((doc) => (
-                <Card key={doc.id} className="bg-surface border-border shadow-xs overflow-hidden">
-                  <CardHeader className="p-4 pb-2 border-b border-border bg-table-header flex flex-row items-center justify-between">
-                    <div className="overflow-hidden">
-                      <CardTitle className="text-xs font-semibold truncate">{doc.nom}</CardTitle>
-                      <CardDescription className="text-[11px]">{doc.type}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-2 text-xs">
-                    <div className="flex justify-between py-1 border-b border-border">
-                      <span className="text-text-secondary">Émission :</span>
-                      <span className="font-mono text-text-primary">{doc.date_emission || "—"}</span>
-                    </div>
-                    <div className="pt-2">
-                      <a
-                        href={doc.url_fichier}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-center gap-1.5 w-full rounded-md border border-border bg-background py-1.5 text-xs text-primary-base font-semibold hover:bg-primary-light/30 transition-colors"
-                      >
-                        <Download className="h-3.5 w-3.5" /> Consulter le Fichier
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="relative pl-6 border-l-2 border-white/10 space-y-6">
+              <div className="relative">
+                <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-[1.65rem] top-1 shadow-[0_0_10px_rgba(52,211,153,0.5)] border border-emerald-900" />
+                <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 font-bold">Début du contrat</p>
+                <p className="text-sm font-bold text-white mt-0.5">
+                  {new Date(contrat.date_debut).toLocaleDateString("fr-FR", { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+
+              {contrat.avenants.map((av, idx) => (
+                <div key={av.id} className="relative">
+                  <div className="absolute w-2.5 h-2.5 bg-[var(--color-electric-violet)] rounded-full -left-[1.55rem] top-1 shadow-[0_0_10px_rgba(131,77,251,0.5)]" />
+                  <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold">Avenant {av.numero}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5">{av.objet}</p>
+                  <p className="text-[11px] font-mono text-white/50">{new Date(av.date).toLocaleDateString("fr-FR")}</p>
+                </div>
               ))}
+
+              <div className="relative">
+                <div className={`absolute w-3 h-3 rounded-full -left-[1.65rem] top-1 shadow-[0_0_10px_rgba(0,0,0,0.5)] border ${isExpired ? 'bg-red-500 border-red-900' : 'bg-[var(--color-turbo)] border-[var(--color-turbo)]/30'}`} />
+                <p className={`text-[10px] font-accent uppercase tracking-widest font-bold ${isExpired ? 'text-red-400' : 'text-[var(--color-turbo)]'}`}>
+                  Échéance Actuelle
+                </p>
+                <p className="text-sm font-bold text-white mt-0.5">
+                  {new Date(contrat.date_fin).toLocaleDateString("fr-FR", { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+                <div className="mt-2">
+                  {isExpired ? (
+                    <span className="inline-block px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-bold text-red-400">
+                      Expiré depuis {Math.abs(contrat.jours_restants || 0)} jours
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2.5 py-1 rounded-lg bg-[var(--color-turbo)]/10 border border-[var(--color-turbo)]/20 text-xs font-bold text-[var(--color-turbo)]">
+                      Finit dans {contrat.jours_restants} jours
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes ou Description */}
+          {false && (
+            <div className="glass-panel p-6 rounded-2xl">
+              <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" /> Notes Renouvellement
+              </h3>
+              <p className="text-sm text-white/80 leading-relaxed">
+                Aucune note de renouvellement
+              </p>
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Modals */}
+      <Portal>
       <AddAvenantModal
-        contratId={contrat.id}
         isOpen={isAvenantModalOpen}
         onClose={() => setIsAvenantModalOpen(false)}
-        onSuccess={() => fetchDetail()}
+        onSuccess={() => {
+          setIsAvenantModalOpen(false);
+          fetchDetail();
+        }}
+        contratId={contrat.id}
       />
       <AddCautionModal
         isOpen={isCautionModalOpen}
         onClose={() => setIsCautionModalOpen(false)}
-        onSuccess={() => fetchDetail()}
-        defaultContratId={contrat.id}
-        defaultClientId={contrat.partenaire_id}
+        onSuccess={() => {
+          setIsCautionModalOpen(false);
+          fetchDetail();
+        }}
+        // In real app, might want to pre-fill the contractId via props or state
       />
       <AddContractDocumentModal
-        contratId={contrat.id}
         isOpen={isDocModalOpen}
         onClose={() => setIsDocModalOpen(false)}
-        onSuccess={() => fetchDetail()}
+        onSuccess={() => {
+          setIsDocModalOpen(false);
+          fetchDetail();
+        }}
+        contratId={contrat.id}
       />
+      </Portal>
     </div>
   );
 }

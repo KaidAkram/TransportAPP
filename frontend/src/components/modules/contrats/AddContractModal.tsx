@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { createPortal } from "react-dom";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FileText, X, AlertCircle, Building2, Calendar, DollarSign } from "lucide-react";
+import { FileText, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { Contrat } from "@/types/contrat";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 
 const contractSchema = z.object({
   reference: z.string().min(2, "La référence contractuelle est requise (ex: CTR-2026-001)"),
@@ -32,13 +35,24 @@ interface AddContractModalProps {
   onSuccess: (newContract: Contrat) => void;
 }
 
+const glassInput = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--color-electric-violet)]/50 focus:border-[var(--color-electric-violet)]/50 transition-all shadow-inner font-medium";
+const glassInputMono = `${glassInput} font-mono text-[#0ea5e9]`;
+const glassLabel = "block text-[11px] font-accent uppercase tracking-widest text-white/50 mb-2 font-bold";
+
 export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModalProps) {
   const [partners, setPartners] = useState<Partenaire[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -63,8 +77,6 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const onSubmit = async (data: ContractFormValues) => {
     try {
       setIsSubmitting(true);
@@ -74,7 +86,27 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
         ...data,
         montant: Number(data.montant),
       });
+
+      // Upload pending files if any
+      if (pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          const uploadData = new FormData();
+          uploadData.append("file", file);
+          uploadData.append("entity_type", "contrat");
+          uploadData.append("entity_id", res.data.id);
+          uploadData.append("document_type", "Autre");
+          try {
+            await api.post("/upload", uploadData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (uploadErr) {
+            console.error("Failed to upload file:", file.name, uploadErr);
+          }
+        }
+      }
+
       reset();
+      setPendingFiles([]);
       onSuccess(res.data);
       onClose();
     } catch (err: any) {
@@ -84,143 +116,173 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-xl bg-surface border border-border shadow-xl overflow-hidden">
+  if (!mounted || !isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div 
+        className="w-full max-w-2xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh] relative"
+        style={{ background: 'radial-gradient(circle at top right, rgba(14,165,233,0.08), transparent 60%), rgba(255,255,255,0.02)' }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-table-header">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-light text-primary-base">
+        <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0ea5e9]/20 text-[#0ea5e9] border border-[#0ea5e9]/30">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text-primary">Nouveau Contrat Commercial</h2>
-              <p className="text-xs text-text-secondary">Convention de transport, location ou prestation de service</p>
+              <h2 className="text-lg font-heading font-bold text-white tracking-tight">
+                Nouveau Contrat Commercial
+              </h2>
+              <p className="text-[10px] font-accent uppercase tracking-widest text-[#0ea5e9] mt-0.5">
+                Convention de transport, location ou prestation
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+            className="rounded-xl p-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            disabled={isSubmitting}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        {/* Content Area */}
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
           {serverError && (
-            <div className="flex items-center gap-2 rounded-lg bg-danger-bg p-3 text-xs text-danger-text border border-danger/20">
+            <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-xs text-red-400 border border-red-500/20">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{serverError}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Référence Contrat *
               </label>
               <input
                 {...register("reference")}
                 placeholder="ex: CTR-2026-001"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono font-bold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputMono}
               />
               {errors.reference && (
-                <p className="text-[11px] text-danger mt-1">{errors.reference.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.reference.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Partenaire Contractant *
               </label>
-              <select
-                {...register("partenaire_id")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Sélectionner une entreprise...</option>
-                {partners.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nom_commercial} ({p.role_partenaire === "CLIENT" ? "Client" : "Fournisseur"})
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="partenaire_id"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    options={partners.map(p => ({
+                      value: p.id,
+                      label: `${p.nom_commercial} (${p.role_partenaire === "CLIENT" ? "Client" : "Fournisseur"})`
+                    }))}
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner une entreprise..."
+                  />
+                )}
+              />
               {errors.partenaire_id && (
-                <p className="text-[11px] text-danger mt-1">{errors.partenaire_id.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.partenaire_id.message}</p>
               )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Objet de la Convention *
               </label>
               <input
                 {...register("objet")}
-                placeholder="ex: Convention de transport de personnel sur le site industriel de Hassi Messaoud"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                placeholder="ex: Convention de transport de personnel"
+                className={glassInput}
               />
-              {errors.objet && <p className="text-[11px] text-danger mt-1">{errors.objet.message}</p>}
+              {errors.objet && <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.objet.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Type de Contrat
               </label>
-              <select
-                {...register("type_contrat")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="Transport">Transport Régulier / Navettes</option>
-                <option value="Tourisme">Circuits Touristiques & Voyages</option>
-                <option value="Location">Location d&apos;Autocars avec Chauffeur</option>
-                <option value="Fourniture">Fourniture de Pièces & Consommables</option>
-                <option value="Maintenance">Prestation de Maintenance Spécialisée</option>
-              </select>
+              <Controller
+                name="type_contrat"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    options={[
+                      { value: "Transport", label: "Transport Régulier / Navettes" },
+                      { value: "Tourisme", label: "Circuits Touristiques & Voyages" },
+                      { value: "Location", label: "Location d'Autocars" },
+                      { value: "Fourniture", label: "Fourniture de Pièces" },
+                      { value: "Maintenance", label: "Maintenance Spécialisée" },
+                    ]}
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner..."
+                  />
+                )}
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Statut Contractuel
               </label>
-              <select
-                {...register("statut")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="ACTIF">🟢 Contrat Actif</option>
-                <option value="EXPIRE">🔴 Expiré / Clôturé</option>
-              </select>
+              <Controller
+                name="statut"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    options={[
+                      { value: "ACTIF", label: "Contrat Actif" },
+                      { value: "EXPIRE", label: "Expiré / Clôturé" },
+                    ]}
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner..."
+                  />
+                )}
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Date d&apos;Effet (Début) *
+              <label className={glassLabel}>
+                Date d'Effet (Début) *
               </label>
               <input
                 type="date"
                 {...register("date_debut")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
               {errors.date_debut && (
-                <p className="text-[11px] text-danger mt-1">{errors.date_debut.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.date_debut.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
-                Date d&apos;Échéance (Fin) *
+              <label className={glassLabel}>
+                Date d'Échéance (Fin) *
               </label>
               <input
                 type="date"
                 {...register("date_fin")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
               {errors.date_fin && (
-                <p className="text-[11px] text-danger mt-1">{errors.date_fin.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.date_fin.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Montant Global HT (DZD) *
               </label>
               <input
@@ -228,61 +290,82 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
                 step="1000"
                 {...register("montant", { valueAsNumber: true })}
                 placeholder="15000000"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono font-bold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputMono}
               />
               {errors.montant && (
-                <p className="text-[11px] text-danger mt-1">{errors.montant.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.montant.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Mode de Facturation
               </label>
-              <select
-                {...register("mode_facturation")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="Mensuel">Facturation Mensuelle</option>
-                <option value="Au voyage">Au Voyage / Rotation</option>
-                <option value="Forfait">Forfaitaire Global</option>
-                <option value="Par kilomètre">Au Kilomètre Parcouru</option>
-              </select>
+              <Controller
+                name="mode_facturation"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    options={[
+                      { value: "Mensuel", label: "Facturation Mensuelle" },
+                      { value: "Au voyage", label: "Au Voyage / Rotation" },
+                      { value: "Forfait", label: "Forfaitaire Global" },
+                      { value: "Par kilomètre", label: "Au Kilomètre Parcouru" },
+                    ]}
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner..."
+                  />
+                )}
+              />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Conditions de Paiement & Modalités
               </label>
               <input
                 {...register("conditions_paiement")}
                 placeholder="ex: Virement bancaire BNA à 30 jours fin de mois après service fait"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
             </div>
           </div>
 
+          {/* File Upload Zone */}
+          <div className="pt-2 border-t border-white/10 mt-4">
+            <label className={glassLabel}>
+              Pièces Jointes (Optionnel)
+            </label>
+            <CreationFileUploader
+              files={pendingFiles}
+              onFilesChange={setPendingFiles}
+              maxFiles={5}
+            />
+          </div>
+
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          <div className="relative flex items-center justify-end gap-4 px-6 py-5 border-t border-white/10 bg-black/20 shrink-0">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onClose}
-              className="text-xs border-border"
               disabled={isSubmitting}
+              className="text-white/70 hover:text-white hover:bg-white/10 font-bold"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
+              className="bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] transition-all font-bold px-6"
             >
-              {isSubmitting ? "Création..." : "Enregistrer le contrat"}
+              {isSubmitting ? "Enregistrement..." : "Ajouter le contrat"}
             </Button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

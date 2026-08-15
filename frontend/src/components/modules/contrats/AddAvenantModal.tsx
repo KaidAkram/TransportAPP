@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,6 +28,10 @@ interface AddAvenantModalProps {
   onSuccess: (newAvenant: Avenant) => void;
 }
 
+const glassInput = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--color-electric-violet)]/50 focus:border-[var(--color-electric-violet)]/50 transition-all shadow-inner font-medium";
+const glassInputMono = `${glassInput} font-mono`;
+const glassLabel = "block text-[11px] font-accent uppercase tracking-widest text-white/50 mb-2 font-bold";
+
 export function AddAvenantModal({
   contratId,
   isOpen,
@@ -35,6 +40,11 @@ export function AddAvenantModal({
 }: AddAvenantModalProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
@@ -48,7 +58,7 @@ export function AddAvenantModal({
     },
   });
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
   const onSubmit = async (data: AvenantFormValues) => {
     try {
@@ -71,135 +81,139 @@ export function AddAvenantModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-xl bg-surface border border-border shadow-xl overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div 
+        className="w-full max-w-lg rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col relative"
+        style={{ background: 'radial-gradient(circle at top right, rgba(131,77,251,0.08), transparent 60%), rgba(255,255,255,0.02)' }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-table-header">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-light text-primary-base">
+        <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/30">
               <FileEdit className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text-primary">Nouvel Avenant Contractuel</h2>
-              <p className="text-xs text-text-secondary">Modification de montant, durée ou clauses</p>
+              <h2 className="text-lg font-heading font-bold text-white tracking-tight">Nouvel Avenant Contractuel</h2>
+              <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] mt-0.5">Modification de contrat</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
+            className="rounded-xl p-2 text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           {serverError && (
-            <div className="flex items-center gap-2 rounded-lg bg-danger-bg p-3 text-xs text-danger-text border border-danger/20">
+            <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-xs text-red-400 border border-red-500/20">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{serverError}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Numéro Avenant *
               </label>
               <input
                 {...register("numero")}
                 placeholder="ex: Avenant N°01"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono font-bold text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInputMono}
               />
               {errors.numero && (
-                <p className="text-[11px] text-danger mt-1">{errors.numero.message}</p>
+                <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.numero.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Date Signature *
               </label>
               <input
                 type="date"
                 {...register("date")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
-              {errors.date && <p className="text-[11px] text-danger mt-1">{errors.date.message}</p>}
+              {errors.date && <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.date.message}</p>}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-primary mb-1">
-              Objet de l&apos;Avenant *
+            <label className={glassLabel}>
+              Objet de l'Avenant *
             </label>
             <input
               {...register("objet")}
-              placeholder="ex: Extension du périmètre de transport & prolongation"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+              placeholder="ex: Extension du périmètre & prolongation"
+              className={glassInput}
             />
-            {errors.objet && <p className="text-[11px] text-danger mt-1">{errors.objet.message}</p>}
+            {errors.objet && <p className="text-[10px] text-red-400 mt-1.5 font-medium">{errors.objet.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Variation Montant (+/- DZD)
               </label>
               <input
                 type="number"
-                step="1000"
                 {...register("modif_montant", { valueAsNumber: true })}
-                placeholder="ex: 2500000"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                placeholder="ex: 500000"
+                className={glassInputMono}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-primary mb-1">
+              <label className={glassLabel}>
                 Nouvelle Date Fin
               </label>
               <input
                 type="date"
                 {...register("nouvelle_date_fin")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                className={glassInput}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-primary mb-1">
-              Description & Clauses Modifiées
+            <label className={glassLabel}>
+              Description Détaillée
             </label>
             <textarea
               {...register("description")}
               rows={3}
-              placeholder="Détaillez les nouvelles conditions ou circuits ajoutés..."
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+              placeholder="Explications sur les nouvelles clauses..."
+              className={`${glassInput} resize-none`}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-4 pt-4 border-t border-white/10">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onClose}
-              className="text-xs border-border"
               disabled={isSubmitting}
+              className="text-white/70 hover:text-white hover:bg-white/10 font-bold"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="text-xs bg-primary-base hover:bg-primary-base/90 text-white"
+              className="bg-[var(--color-electric-violet)] hover:bg-[#6A3DE8] text-white shadow-[0_0_20px_rgba(131,77,251,0.3)] hover:shadow-[0_0_30px_rgba(131,77,251,0.5)] transition-all font-bold px-6"
             >
-              {isSubmitting ? "Enregistrement..." : "Ajouter l'avenant"}
+              {isSubmitting ? "Enregistrement..." : "Confirmer Avenant"}
             </Button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

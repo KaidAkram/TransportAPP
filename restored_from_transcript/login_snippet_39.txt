@@ -1,0 +1,178 @@
+Created At: 2026-08-14T18:40:29+01:00
+Completed At: 2026-08-14T18:40:30+01:00
+File Path: `file:///c:/Users/Akram%20KAID/Desktop/Entreprise_transport/frontend/src/app/login/page.tsx`
+Total Lines: 170
+Total Bytes: 7164
+Showing lines 1 to 170
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: "use client";
+2: 
+3: import { useState } from "react";
+4: import { useRouter } from "next/navigation";
+5: import { Bus, ShieldCheck, UserCheck, Lock, User, ArrowRight, CheckCircle2 } from "lucide-react";
+6: import { api } from "@/lib/api";
+7: import { useAuthStore, AuthUser } from "@/stores/authStore";
+8: 
+9: export default function LoginPage() {
+10:   const router = useRouter();
+11:   const { login } = useAuthStore();
+12: 
+13:   const [username, setUsername] = useState("");
+14:   const [password, setPassword] = useState("");
+15:   const [loading, setLoading] = useState(false);
+16:   const [error, setError] = useState<string | null>(null);
+17: 
+18:   const handleSubmit = async (e: React.FormEvent) => {
+19:     e.preventDefault();
+20:     if (!username || !password) {
+21:       setError("Veuillez saisir votre identifiant et mot de passe.");
+22:       return;
+23:     }
+24: 
+25:     setLoading(true);
+26:     setError(null);
+27: 
+28:     try {
+29:       const res = await api.post<{
+30:         access_token: string;
+31:         token_type: string;
+32:         user: AuthUser;
+33:       }>("/auth/login", {
+34:         username: username.trim(),
+35:         password: password.trim(),
+36:       });
+37: 
+38:       if (res.data && res.data.access_token) {
+39:         await login(res.data.access_token, res.data.user);
+40:         router.push("/");
+41:       }
+42:     } catch (err: any) {
+43:       setError(
+44:         err.detail ||
+45:           err.message ||
+46:           "Identifiants invalides. Veuillez vérifier votre nom d'utilisateur et mot de passe."
+47:       );
+48:     } finally {
+49:       setLoading(false);
+50:     }
+51:   };
+52: 
+53:   const handleQuickLogin = (userType: "admin" | "gestionnaire") => {
+54:     setUsername(userType);
+55:     setPassword("123");
+56:   };
+57: 
+58:   return (
+59:     <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden">
+60:       {/* Subtle Background Glows */}
+61:       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-base/20 rounded-full blur-3xl pointer-events-none" />
+62:       <div className="absolute bottom-10 right-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+63: 
+64:       <div className="w-full max-w-md space-y-6 relative z-10">
+65:         {/* Brand Header */}
+66:         <div className="text-center space-y-2">
+67:           <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary-base text-white shadow-lg shadow-primary-base/30 mb-2">
+68:             <Bus className="h-7 w-7" />
+69:           </div>
+70:           <h1 className="text-2xl font-bold text-white tracking-tight">E-TRANSPORT ERP</h1>
+71:           <p className="text-xs text-slate-400">
+72:             Portail d'Accès Sécurisé — Gestion de Flotte & Exploitation
+73:           </p>
+74:         </div>
+75: 
+76:         {/* Login Card */}
+77:         <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+78:           {error && (
+79:             <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-xs text-red-400 flex items-start gap-2">
+80:               <span className="font-bold">⚠️</span>
+81:               <span>{error}</span>
+82:             </div>
+83:           )}
+84: 
+85:           <form onSubmit={handleSubmit} className="space-y-4">
+86:             <div className="space-y-1.5">
+87:               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+88:                 Identifiant
+89:               </label>
+90:               <div className="relative">
+91:                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+92:                 <input
+93:                   type="text"
+94:                   value={username}
+95:                   onChange={(e) => setUsername(e.target.value)}
+96:                   placeholder="admin ou gestionnaire"
+97:                   required
+98:                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-white placeholder:text-slate-500 text-sm focus:outline-hidden focus:ring-2 focus:ring-primary-base/50"
+99:                 />
+100:               </div>
+101:             </div>
+102: 
+103:             <div className="space-y-1.5">
+104:               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+105:                 Mot de passe
+106:               </label>
+107:               <div className="relative">
+108:                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+109:                 <input
+110:                   type="password"
+111:                   value={password}
+112:                   onChange={(e) => setPassword(e.target.value)}
+113:                   placeholder="••••••••"
+114:                   required
+115:                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-white placeholder:text-slate-500 text-sm focus:outline-hidden focus:ring-2 focus:ring-primary-base/50"
+116:                 />
+117:               </div>
+118:             </div>
+119: 
+120:             <button
+121:               type="submit"
+122:               disabled={loading}
+123:               className="w-full mt-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 hover:opacity-95 disabled:opacity-50"
+124:               style={{ backgroundColor: "var(--color-primary-base)" }}
+125:             >
+126:               {loading ? "Vérification..." : "Se connecter"}
+127:               <ArrowRight className="h-4 w-4" />
+128:             </button>
+129:           </form>
+130: 
+131:           {/* Quick Fill Demo Badges */}
+132:           <div className="pt-4 border-t border-slate-800/80 space-y-3">
+133:             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
+134:               Comptes Démonstration (1-Clic)
+135:             </p>
+136:             <div className="grid grid-cols-2 gap-2.5">
+137:               <button
+138:                 type="button"
+139:                 onClick={() => handleQuickLogin("admin")}
+140:                 className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-left transition-all group"
+141:               >
+142:                 <div className="flex items-center gap-2 text-xs font-bold text-white group-hover:text-primary-base">
+143:                   <ShieldCheck className="h-4 w-4 text-primary-base" /> Admin
+144:                 </div>
+145:                 <div className="text-[10px] text-slate-400 mt-0.5 font-mono">admin / 123</div>
+146:               </button>
+147: 
+148:               <button
+149:                 type="button"
+150:                 onClick={() => handleQuickLogin("gestionnaire")}
+151:                 className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-left transition-all group"
+152:               >
+153:                 <div className="flex items-center gap-2 text-xs font-bold text-white group-hover:text-emerald-400">
+154:                   <UserCheck className="h-4 w-4 text-emerald-400" /> Gestionnaire
+155:                 </div>
+156:                 <div className="text-[10px] text-slate-400 mt-0.5 font-mono">gestionnaire / 123</div>
+157:               </button>
+158:             </div>
+159:           </div>
+160:         </div>
+161: 
+162:         {/* Footer info */}
+163:         <div className="text-center text-xs text-slate-500">
+164:           Système Sécurisé ERP Transport • République Algérienne Démocratique et Populaire
+165:         </div>
+166:       </div>
+167:     </div>
+168:   );
+169: }
+170: 
+The above content shows the entire, complete file contents of the requested file.

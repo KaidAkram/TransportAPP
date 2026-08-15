@@ -10,51 +10,67 @@ import {
   Download,
   FileText,
   Trash2,
-  Calendar,
-  DollarSign,
-  CheckCircle2,
   Clock,
-  Building2,
-  Layers,
+  CheckCircle2,
+  DollarSign,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { StatusBadge } from "@/components/shared/StatusBadge";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddCautionModal } from "@/components/modules/cautions/AddCautionModal";
 import { api } from "@/lib/api";
 import { Caution, CautionListResponse } from "@/types/caution";
+import { GlassPagination } from "@/components/ui/GlassPagination";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { TableSkeleton } from "@/components/shared/Skeleton";
+import { Portal } from "@/components/shared/Portal";
 
 export default function CautionsPage() {
   const [cautions, setCautions] = useState<Caution[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Glass Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    cautionId: string | null;
+    cautionNum: string;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    cautionId: null,
+    cautionNum: "",
+    isLoading: false,
+  });
 
   const fetchCautions = useCallback(async () => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
 
       const res = await api.get<CautionListResponse>("/cautions", params);
       setCautions(res.data.items);
+      setTotalPages(res.data.total_pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
       console.error("Error fetching cautions:", err);
     } finally {
       setLoading(false);
     }
+  }, [search, typeFilter, statusFilter, page]);
+
+  
+  useEffect(() => {
+    setPage(1);
   }, [search, typeFilter, statusFilter]);
 
   useEffect(() => {
@@ -70,14 +86,20 @@ export default function CautionsPage() {
     }
   };
 
-  const handleDelete = async (id: string, num: string) => {
-    if (confirm(`Confirmez-vous l'archivage de la caution ${num} ?`)) {
-      try {
-        await api.delete(`/cautions/${id}`);
-        fetchCautions();
-      } catch (err) {
-        alert("Erreur lors de l'archivage de la caution.");
-      }
+  const handleDeleteClick = (id: string, num: string) => {
+    setConfirmModal({ isOpen: true, cautionId: id, cautionNum: num, isLoading: false });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmModal.cautionId) return;
+    setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await api.delete(`/cautions/${confirmModal.cautionId}`);
+      fetchCautions();
+    } catch (err) {
+      console.error("Erreur lors de l'archivage de la caution:", err);
+    } finally {
+      setConfirmModal({ isOpen: false, cautionId: null, cautionNum: "", isLoading: false });
     }
   };
 
@@ -88,231 +110,231 @@ export default function CautionsPage() {
   const totalGarantiDZD = cautions.reduce((acc, c) => acc + (c.montant || 0), 0);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
+      {/* Page Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+            <ShieldCheck className="w-3 h-3" />
+            Engagements Financiers
+          </p>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
             Gestion des Cautions Bancaires
           </h1>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Suivi des engagements financiers (Soumission & Bonne Exécution) et génération d&apos;actes officiels
+          <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
+            Suivi des garanties (Soumission & Bonne Exécution) et génération d'actes
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={fetchCautions}
-            className="text-xs border-border h-9"
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
-            size="sm"
-            className="text-xs bg-primary-base hover:bg-primary-base/90 text-white h-9"
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Plus className="h-4 w-4" />
             Nouvelle Caution
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Total Cautions</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <ShieldCheck className="h-4 w-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Cautions</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-text-primary font-mono">{totalCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Actes de garantie émis</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Actes de garantie émis</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
+            <ShieldCheck className="h-5 w-5 text-white/80 group-hover:text-white" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Chez le Client (En cours)</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-warning-bg text-warning-text">
-              <Clock className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Chez le Client</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{chezClientCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-warning font-mono">{chezClientCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">En cours de rétention</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">En cours de rétention</p>
+          </div>
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Retournées / Mainlevée</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-success-bg text-success-text">
-              <CheckCircle2 className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Retournées</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{retourneeCount}</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-success font-mono">{retourneeCount}</div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Fonds libérés</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Fonds libérés / Mainlevée</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          </div>
+        </div>
 
-        <Card className="bg-surface border-border shadow-xs">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-medium text-text-secondary">Encours Cautionné</CardTitle>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary-light text-primary-base">
-              <DollarSign className="h-4 w-4" />
+        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+          <div>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Encours Cautionné</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] truncate max-w-[100px] sm:max-w-[120px]">{totalGarantiDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-[10px] font-bold text-white/40 ml-1">DZD</span>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-primary-base font-mono truncate">
-              {totalGarantiDZD.toLocaleString("fr-DZ")} DZD
-            </div>
-            <p className="text-[11px] text-text-secondary mt-0.5">Garanties bancaires globales</p>
-          </CardContent>
-        </Card>
+            <p className="text-[10px] text-white/40 mt-1">Garanties globales</p>
+          </div>
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <DollarSign className="h-5 w-5 text-[var(--color-electric-violet)]" />
+          </div>
+        </div>
       </div>
 
       {/* Filter Bar */}
-      <Card className="bg-surface border-border shadow-xs">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par n° caution, client, contrat..."
-                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-4 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              />
-            </div>
-
-            <div>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les types de caution</option>
-                <option value="BONNE_EXECUTION">🛡️ Bonne Exécution</option>
-                <option value="SOUMISSION">📑 Soumission (Appel d&apos;Offres)</option>
-              </select>
-            </div>
-
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-text-primary focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="CHEZ_CLIENT">🟠 Chez le Client</option>
-                <option value="CREATION">🟡 En Création</option>
-                <option value="RETOURNEE">🟢 Retournée</option>
-                <option value="MAIN_LEVEE">⚪ Mainlevée Accordée</option>
-              </select>
-            </div>
+      <div className="relative z-20 flex flex-col sm:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
           </div>
-        </CardContent>
-      </Card>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par n° caution, client, contrat..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
+          />
+        </div>
+        
+        <div className="w-full sm:w-[220px]">
+          <GlassSelect
+            value={typeFilter}
+            onChange={setTypeFilter}
+            options={[
+              { value: "", label: "Tous les types de caution" },
+              { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+              { value: "SOUMISSION", label: "Soumission (AO)" },
+            ]}
+          />
+        </div>
+
+        <div className="w-full sm:w-[200px]">
+          <GlassSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "Tous les statuts" },
+              { value: "CHEZ_CLIENT", label: "Chez le Client" },
+              { value: "CREATION", label: "En Création" },
+              { value: "RETOURNEE", label: "Retournée" },
+              { value: "MAIN_LEVEE", label: "Mainlevée Accordée" },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Cautions Table */}
-      <Card className="bg-surface border-border shadow-xs overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-table-header">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">N° Caution</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Client Bénéficiaire</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Type & Objet</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Montant Garanti</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Réf. Contrat / AO</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Émission / Échéance</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase">Statut</TableHead>
-                <TableHead className="text-xs font-semibold text-text-secondary uppercase text-right">Attestation PDF</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+        <div className="w-full min-w-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.02]">
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Caution</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Client / Bénéficiaire</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Objet</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant Garanti</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Émission / Échéance</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-xs text-text-secondary">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary-base" />
-                    Chargement des cautions bancaires...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <TableSkeleton rows={5} />
+                  </td>
+                </tr>
               ) : cautions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <ShieldCheck className="h-8 w-8 text-neutral mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-semibold text-text-primary">Aucune caution enregistrée</p>
-                    <p className="text-xs text-text-secondary mt-1">
-                      Ajustez vos filtres ou émettez une nouvelle caution de soumission ou bonne exécution.
-                    </p>
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={7} className="p-0">
+                    <EmptyState 
+                      title="Aucune caution" 
+                      message="Aucune caution enregistrée ne correspond à vos filtres." 
+                      icon={ShieldCheck} 
+                    />
+                  </td>
+                </tr>
               ) : (
                 cautions.map((c) => {
                   const isBonneExec = c.type === "BONNE_EXECUTION";
 
                   return (
-                    <TableRow
+                    <tr
                       key={c.id}
-                      className="border-b border-border hover:bg-primary-light/20 transition-colors"
+                      className="group hover:bg-white/[0.02] transition-colors"
                     >
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold text-primary-base block">
+                      <td className="py-4 px-5">
+                        <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block mb-0.5">
                           {c.numero}
                         </span>
-                        <span className="text-[10px] text-text-secondary">{c.banque_emetteur}</span>
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-xs font-bold text-text-primary">
+                        <span className="text-[10px] text-white/40 font-mono">
+                          {c.banque_emetteur}
+                        </span>
+                      </td>
+                      <td className="py-4 px-5">
+                        <p className="text-xs font-bold text-white">
                           {c.client_nom || "Client"}
                         </p>
-                      </TableCell>
-                      <TableCell>
+                        <p className="text-[10px] text-white/40 mt-0.5 font-mono">
+                          Réf: {c.contrat_reference || c.reference_numero || "—"}
+                        </p>
+                      </td>
+                      <td className="py-4 px-5 max-w-[200px]">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold mb-1 ${
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-1 border ${
                             isBonneExec
-                              ? "bg-primary-light text-primary-base"
-                              : "bg-warning-bg text-warning-text"
+                              ? "bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border-[var(--color-electric-violet)]/20"
+                              : "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
                           }`}
                         >
-                          {isBonneExec ? "🛡️ Bonne Exécution" : "📑 Soumission"}
+                          {isBonneExec ? "Bonne Exécution" : "Soumission"}
                         </span>
-                        <p className="text-xs text-text-secondary truncate max-w-[180px]" title={c.objet}>
+                        <p className="text-xs text-white/60 truncate" title={c.objet}>
                           {c.objet}
                         </p>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold text-text-primary">
+                      </td>
+                      <td className="py-4 px-5">
+                        <span className="font-mono text-xs font-bold text-white block">
                           {c.montant.toLocaleString("fr-DZ")} {c.devise}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-text-secondary">
-                        {c.contrat_reference || c.reference_numero || "—"}
-                      </TableCell>
-                      <TableCell className="text-xs text-text-secondary font-mono">
-                        <div>{new Date(c.date_emission).toLocaleDateString("fr-FR")}</div>
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="text-xs text-white/80 font-mono">
+                          {new Date(c.date_emission).toLocaleDateString("fr-FR")}
+                        </div>
                         {c.date_echeance && (
-                          <div className="text-[10px] text-text-secondary">
+                          <div className="text-[10px] text-[var(--color-turbo)] font-mono mt-0.5">
                             Échéance: {new Date(c.date_echeance).toLocaleDateString("fr-FR")}
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="py-4 px-5">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                             c.statut === "CHEZ_CLIENT"
-                              ? "bg-warning-bg text-warning-text"
+                              ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
                               : c.statut === "RETOURNEE" || c.statut === "MAIN_LEVEE"
-                              ? "bg-success-bg text-success-text"
-                              : "bg-neutral text-text-secondary"
+                              ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
+                              : "bg-white/5 text-white/50 border-white/10"
                           }`}
                         >
                           {c.statut === "CHEZ_CLIENT"
@@ -323,52 +345,73 @@ export default function CautionsPage() {
                             ? "Mainlevée"
                             : "Création"}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        {c.url_caution_pdf ? (
-                          <a
-                            href={c.url_caution_pdf}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-primary-base font-semibold hover:bg-primary-light/30 transition-colors"
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {c.url_caution_pdf ? (
+                            <a
+                              href={c.url_caution_pdf}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white font-medium hover:bg-white/10 transition-colors shadow-sm"
+                            >
+                              <Download className="h-3.5 w-3.5" /> PDF
+                            </a>
+                          ) : (
+                            <button
+                              onClick={() => handleGeneratePdf(c.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--color-electric-violet)]/30 bg-[var(--color-electric-violet)]/10 px-3 py-1.5 text-xs text-[var(--color-electric-violet)] font-medium hover:bg-[var(--color-electric-violet)]/20 transition-colors shadow-sm"
+                            >
+                              <FileText className="h-3 w-3" /> Générer
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteClick(c.id, c.numero)}
+                            className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
+                            title="Archiver la caution"
                           >
-                            <Download className="h-3.5 w-3.5" /> PDF Acte
-                          </a>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleGeneratePdf(c.id)}
-                            className="text-xs border-border h-7 text-primary-base"
-                          >
-                            <FileText className="h-3 w-3 mr-1" /> Générer
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(c.id, c.numero)}
-                          className="text-xs text-danger hover:bg-danger-bg h-7 px-2"
-                          title="Archiver la caution"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+        <GlassPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
+      </div>
 
-      {/* Add Caution Modal */}
+            {/* Modals */}
+      <Portal>
+{/* Add Caution Modal */}
       <AddCautionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchCautions()}
       />
+
+      {/* Confirm Archiving Modal */}
+      <GlassConfirmModal
+        isOpen={confirmModal.isOpen}
+        onCancel={() => setConfirmModal({ isOpen: false, cautionId: null, cautionNum: "", isLoading: false })}
+        onConfirm={handleDeleteConfirm}
+        title="Archiver la caution"
+        message={`Êtes-vous sûr de vouloir archiver la caution ${confirmModal.cautionNum} ? Cette action la masquera des listes actives.`}
+        confirmText="Archiver"
+        cancelText="Annuler"
+        isLoading={confirmModal.isLoading}
+        type="danger"
+      />
+      </Portal>
     </div>
   );
 }
+

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: entreprise-transport
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: frankfurt
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///etransport.db
+      - key: PORT
+        value: 8000
