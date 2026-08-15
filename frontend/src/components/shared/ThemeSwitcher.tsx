@@ -4,12 +4,13 @@ import { useSettingsStore, THEMES, ThemeId } from "@/stores/settingsStore";
 import { CheckCircle2, Palette } from "lucide-react";
 
 export function ThemeSwitcher() {
-  const { adminTheme, setAdminTheme } = useSettingsStore();
+  const { adminTheme, setAdminTheme, saveGlobalSettings } = useSettingsStore();
 
-  const handleSelect = (themeId: ThemeId) => {
+  const handleSelect = async (themeId: ThemeId) => {
     setAdminTheme(themeId);
     // Instantly apply to body
     document.body.setAttribute("data-theme", themeId);
+    await saveGlobalSettings();
   };
 
   return (

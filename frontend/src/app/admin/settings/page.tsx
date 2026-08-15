@@ -46,6 +46,7 @@ export default function AdminSettingsPage() {
     await new Promise(resolve => setTimeout(resolve, 800));
     
     updateCompany(formData);
+    await useSettingsStore.getState().saveGlobalSettings();
     
     setIsSaving(false);
     setToastMessage("Paramètres de l'entreprise mis à jour avec succès !");

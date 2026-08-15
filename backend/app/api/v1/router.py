@@ -14,12 +14,14 @@ from app.api.v1.devis import router as devis_router
 from app.api.v1.factures import router as factures_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.documents import router as documents_router
+from app.api.v1.settings import router as settings_router
 
 api_v1_router = APIRouter()
 
 # Register all ERP module sub-routers
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(auth_router)
+api_v1_router.include_router(settings_router)
 api_v1_router.include_router(admin_features_router)
 api_v1_router.include_router(dashboard_router)
 api_v1_router.include_router(vehicules_router)

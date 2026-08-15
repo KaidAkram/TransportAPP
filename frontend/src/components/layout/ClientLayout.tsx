@@ -20,6 +20,8 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     initAuth();
+    // Fetch global system settings (enforced for everyone)
+    useSettingsStore.getState().fetchGlobalSettings();
   }, [initAuth]);
 
   // Apply theme to <body>

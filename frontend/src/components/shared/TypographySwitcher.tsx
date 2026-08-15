@@ -4,7 +4,12 @@ import { useSettingsStore, TYPOGRAPHY_VIBES, TypographyVibeId } from "@/stores/s
 import { Type } from "lucide-react";
 
 export function TypographySwitcher() {
-  const { adminTypographyVibe, setAdminTypographyVibe } = useSettingsStore();
+  const { adminTypographyVibe, setAdminTypographyVibe, saveGlobalSettings } = useSettingsStore();
+
+  const handleSelect = async (vibeId: TypographyVibeId) => {
+    setAdminTypographyVibe(vibeId);
+    await saveGlobalSettings();
+  };
 
   return (
     <div className="glass-panel p-6 rounded-3xl border border-[var(--theme-border)] mt-8">
@@ -26,7 +31,7 @@ export function TypographySwitcher() {
           return (
             <button
               key={vibe.id}
-              onClick={() => setAdminTypographyVibe(vibe.id)}
+              onClick={() => handleSelect(vibe.id)}
               className={`relative text-left p-4 rounded-2xl border transition-all duration-300 overflow-hidden group ${
                 isActive
                   ? "bg-[var(--theme-glass-hover)] border-[var(--theme-accent-primary)] shadow-[0_0_20px_var(--theme-orb-primary)]"

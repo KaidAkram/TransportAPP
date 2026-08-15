@@ -126,6 +126,9 @@ interface SettingsState {
     notificationsEnabled: boolean;
   };
   updatePreferences: (newPrefs: Partial<SettingsState['userPreferences']>) => void;
+
+  fetchGlobalSettings: () => Promise<void>;
+  saveGlobalSettings: () => Promise<void>;
 }
 
 const defaultCompany: CompanySettings = {
@@ -139,9 +142,11 @@ const defaultCompany: CompanySettings = {
   phone: '+213 555 123 456',
 };
 
+import { api } from '@/lib/api';
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       company: defaultCompany,
       updateCompany: (newSettings) =>
         set((state) => ({ company: { ...state.company, ...newSettings } })),
@@ -162,6 +167,39 @@ export const useSettingsStore = create<SettingsState>()(
         set((state) => ({
           userPreferences: { ...state.userPreferences, ...newPrefs },
         })),
+
+      fetchGlobalSettings: async () => {
+        try {
+          const res = await api.get<{
+            theme: ThemeId;
+            typography: TypographyVibeId;
+            company: CompanySettings;
+          }>('/settings/global');
+          
+          if (res.data) {
+            set({
+              adminTheme: res.data.theme,
+              adminTypographyVibe: res.data.typography,
+              company: res.data.company,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch global settings:", error);
+        }
+      },
+
+      saveGlobalSettings: async () => {
+        const state = get();
+        try {
+          await api.put('/settings/global', {
+            theme: state.adminTheme,
+            typography: state.adminTypographyVibe,
+            company: state.company,
+          });
+        } catch (error) {
+          console.error("Failed to save global settings:", error);
+        }
+      },
     }),
     {
       name: 'etransport-settings-storage',

@@ -26,6 +26,7 @@ from app.models.vehicule import Vehicule, Constat
 from app.models.intervention import Intervention
 from app.models.finance import Devis, DevisLigne, Facture, FactureLigne, Paiement, DepenseVehicule
 from app.models.feature_toggle import FeatureToggle
+from app.models.settings import SystemSettings
 
 __all__ = [
   "Base",
@@ -73,4 +74,5 @@ __all__ = [
   "Paiement",
   "DepenseVehicule",
   "FeatureToggle",
+  "SystemSettings",
 ]
