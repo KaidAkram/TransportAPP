@@ -27,28 +27,22 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   // Apply theme to <body>
   useEffect(() => {
     if (!mounted) return;
-    const isAdmin = user?.role === "admin";
-    const isLoginPage = pathname === "/login";
-    // Apply admin theme to login page so the branding is consistent before auth
-    const themeToApply = (isAdmin || isLoginPage) ? adminTheme : "quantum";
-    document.body.setAttribute("data-theme", themeToApply);
-  }, [mounted, adminTheme, user?.role, pathname]);
+    // Apply the global admin theme to everyone
+    document.body.setAttribute("data-theme", adminTheme);
+  }, [mounted, adminTheme, pathname]);
 
   // Apply typography to <body> and load dynamic fonts
   useEffect(() => {
     if (!mounted) return;
-    const isAdmin = user?.role === "admin";
-    const isLoginPage = pathname === "/login";
-    // Only admins or the login page get the customized typography vibe
-    const vibeToApply = (isAdmin || isLoginPage) ? adminTypographyVibe : "quantum-tech";
-    document.body.setAttribute("data-typography", vibeToApply);
+    // Apply the global admin typography vibe to everyone
+    document.body.setAttribute("data-typography", adminTypographyVibe);
     
     // Apply table density setting
     const densityToApply = userPreferences?.tableDensity || 'comfortable';
     document.body.setAttribute("data-density", densityToApply);
 
     // Dynamically load font stylesheet if it has a specific URL
-    const vibeDef = TYPOGRAPHY_VIBES.find((v) => v.id === vibeToApply);
+    const vibeDef = TYPOGRAPHY_VIBES.find((v) => v.id === adminTypographyVibe);
     if (vibeDef && vibeDef.fontUrl) {
       const linkId = `typography-font-${vibeDef.id}`;
       if (!document.getElementById(linkId)) {
