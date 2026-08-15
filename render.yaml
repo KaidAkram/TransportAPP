@@ -8,5 +8,3 @@ services:
     envVars:
       - key: DATABASE_URL
         value: sqlite:////app/etransport.db
-      - key: PORT
-        value: 8000
