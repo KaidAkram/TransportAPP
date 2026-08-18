@@ -20,6 +20,10 @@ const demandeSchema = z.object({
   date_emission: z.string().min(1, "La date d'émission est requise"),
   reference_numero: z.string().min(1, "La référence AO / contrat est requise"),
   objet: z.string().min(5, "L'objet de la garantie est requis"),
+  lieu_demande: z.string().optional(),
+  lieu_soumission: z.string().optional(),
+  numero_compte_bancaire: z.string().optional(),
+  societe_nom: z.string().optional(),
 });
 
 type DemandeFormValues = z.infer<typeof demandeSchema>;
@@ -56,6 +60,10 @@ export function NouvelleDemandeModal({
       date_emission: new Date().toISOString().split("T")[0],
       reference_numero: "",
       objet: "",
+      lieu_demande: "",
+      lieu_soumission: "",
+      numero_compte_bancaire: "",
+      societe_nom: "",
     },
   });
 
@@ -93,6 +101,10 @@ export function NouvelleDemandeModal({
         type: "DEMANDE" as const,
         statut: "CREATION" as const,
         devise: "DZD",
+        lieu_demande: data.lieu_demande || null,
+        lieu_soumission: data.lieu_soumission || null,
+        numero_compte_bancaire: data.numero_compte_bancaire || null,
+        societe_nom: data.societe_nom || null,
       };
 
       const res = await api.post<Caution>("/cautions", payload);
@@ -273,6 +285,46 @@ export function NouvelleDemandeModal({
               {errors.objet && (
                 <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.objet.message}</p>
               )}
+            </div>
+
+            {/* Société + Compte bancaire */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Nom de la Société</label>
+                <input
+                  {...register("societe_nom")}
+                  placeholder="Ex: ENGTP DIRECTION REGIONALE ARZEW"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>N° Compte Bancaire</label>
+                <input
+                  {...register("numero_compte_bancaire")}
+                  placeholder="Ex: 001 00954 0300 101763 41"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            {/* Lieu de demande / Lieu de soumission */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Lieu de la Demande</label>
+                <input
+                  {...register("lieu_demande")}
+                  placeholder="Ex: Arzew"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Lieu de Soumission</label>
+                <input
+                  {...register("lieu_soumission")}
+                  placeholder="Ex: Alger"
+                  className={inputClass}
+                />
+              </div>
             </div>
 
             {serverError && (

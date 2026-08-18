@@ -20,6 +20,10 @@ class CautionBase(BaseModel):
   date_echeance: Optional[dt_date] = Field(None, description="Date de fin de validité / échéance")
   statut: StatutCaution = Field(StatutCaution.CREATION, description="Statut de gestion de la caution")
   banque_emetteur: Optional[str] = Field("Banque Nationale d'Algérie (BNA)", description="Banque garante émettrice")
+  lieu_demande: Optional[str] = Field(None, description="Lieu de la demande (ex: Arzew)")
+  lieu_soumission: Optional[str] = Field(None, description="Lieu de soumission (ex: Alger)")
+  numero_compte_bancaire: Optional[str] = Field(None, description="Numéro du compte bancaire de la société")
+  societe_nom: Optional[str] = Field(None, description="Nom de la société émettrice (ex: ENGTP)")
   url_caution_pdf: Optional[str] = Field(None, description="URL / chemin du document PDF officiel généré")
 
 
@@ -37,6 +41,10 @@ class CautionUpdate(BaseModel):
   date_echeance: Optional[dt_date] = None
   statut: Optional[StatutCaution] = None
   banque_emetteur: Optional[str] = None
+  lieu_demande: Optional[str] = None
+  lieu_soumission: Optional[str] = None
+  numero_compte_bancaire: Optional[str] = None
+  societe_nom: Optional[str] = None
   url_caution_pdf: Optional[str] = None
 
 

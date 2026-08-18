@@ -28,8 +28,12 @@ export interface Caution {
  date_echeance?: string | null;
  date_retour?: string | null;
  statut: StatutCaution;
- banque_emetteur?: string | null;
- url_caution_pdf?: string | null;
+  banque_emetteur?: string | null;
+  lieu_demande?: string | null;
+  lieu_soumission?: string | null;
+  numero_compte_bancaire?: string | null;
+  societe_nom?: string | null;
+  url_caution_pdf?: string | null;
  url_main_levee_pdf?: string | null;
  created_at: string;
  updated_at: string;

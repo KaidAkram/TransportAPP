@@ -76,6 +76,10 @@ class Caution(Base, BaseModelMixin):
     nullable=False,
   )
   banque_emetteur = Column(String(150), default="Banque Nationale d'Algérie (BNA)", nullable=True)
+  lieu_demande = Column(String(200), nullable=True)
+  lieu_soumission = Column(String(200), nullable=True)
+  numero_compte_bancaire = Column(String(100), nullable=True)
+  societe_nom = Column(String(200), nullable=True)
   url_caution_pdf = Column(String(500), nullable=True)
   url_main_levee_pdf = Column(String(500), nullable=True)
 
