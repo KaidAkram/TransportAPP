@@ -38,6 +38,17 @@ print(schema_result.stdout)
 if schema_result.returncode != 0:
     print(f"[entrypoint] Schema creation stderr: {schema_result.stderr}")
 
+# ── 2.5 Seed demo data ────────────────────────────────────────────
+db_url = os.environ.get("DATABASE_URL", "sqlite:////app/etransport.db")
+seed_result = subprocess.run(
+    [sys.executable, "seed_data.py", db_url],
+    cwd=BACKEND_DIR,
+    capture_output=True, text=True,
+)
+print(seed_result.stdout)
+if seed_result.returncode != 0:
+    print(f"[entrypoint] Seed stderr: {seed_result.stderr}")
+
 # ── 3. Start FastAPI backend (background) ──────────────────────────
 backend = subprocess.Popen(
     [sys.executable, "-m", "uvicorn", "app.main:app",
