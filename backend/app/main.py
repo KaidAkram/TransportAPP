@@ -1,8 +1,9 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import engine, Base
+from app.core.database import engine, Base, is_sqlite
 import app.models # Ensure all models are registered with Base.metadata
 from app.api.v1.router import api_v1_router
 from app.api.v1.health import router as health_router
@@ -10,12 +11,24 @@ from app.api.v1.health import router as health_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-  # Ensure all tables are created on startup
   print(f"[STARTUP] {settings.PROJECT_NAME} v{settings.VERSION} starting up...")
+
+  # For SQLite: drop all tables and recreate to guarantee schema is up-to-date.
+  # create_all() only creates missing tables, it does NOT add missing columns.
+  if is_sqlite:
+    db_path = settings.DATABASE_URL.replace("sqlite:///", "").replace("sqlite:////", "/")
+    if os.path.exists(db_path):
+      print(f"[STARTUP] Removing stale SQLite database: {db_path}")
+      os.remove(db_path)
+      # Also remove WAL/SHM journal files if present
+      for suffix in ("-wal", "-shm", "-journal"):
+        journal = db_path + suffix
+        if os.path.exists(journal):
+          os.remove(journal)
+
   Base.metadata.create_all(bind=engine)
   print("[STARTUP] All database tables verified and synchronized.")
   yield
-  # Shutdown
   print(f"[SHUTDOWN] {settings.PROJECT_NAME} shutting down...")
 
 
