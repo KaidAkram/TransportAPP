@@ -40,7 +40,10 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [formData, setFormData] = useState<VehicleFormValues | null>(null);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [carteGriseFile, setCarteGriseFile] = useState<File[]>([]);
+  const [assuranceFile, setAssuranceFile] = useState<File[]>([]);
+  const [controleTechniqueFile, setControleTechniqueFile] = useState<File[]>([]);
+  const [agrementFile, setAgrementFile] = useState<File[]>([]);
 
   const {
     register,
@@ -76,26 +79,37 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
         annee: formData.annee || null,
       });
 
+      const filesToUpload = [
+        { file: carteGriseFile[0], type: "Carte grise" },
+        { file: assuranceFile[0], type: "Assurance" },
+        { file: controleTechniqueFile[0], type: "Contrôle technique" },
+        { file: agrementFile[0], type: "Agrément de transport" }
+      ].filter(item => item.file);
+
       // Upload pending files if any
-      if (pendingFiles.length > 0) {
-        for (const file of pendingFiles) {
+      if (filesToUpload.length > 0) {
+        for (const item of filesToUpload) {
           const uploadData = new FormData();
-          uploadData.append("file", file);
+          uploadData.append("file", item.file);
           uploadData.append("entity_type", "vehicule");
           uploadData.append("entity_id", res.data.id);
-          uploadData.append("document_type", "Autre");
+          uploadData.append("document_type", item.type);
+          uploadData.append("nom", item.type);
           try {
             await api.post("/upload", uploadData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
           } catch (uploadErr) {
-            console.error("Failed to upload file:", file.name, uploadErr);
+            console.error("Failed to upload file:", item.file.name, uploadErr);
           }
         }
       }
 
       reset();
-      setPendingFiles([]);
+      setCarteGriseFile([]);
+      setAssuranceFile([]);
+      setControleTechniqueFile([]);
+      setAgrementFile([]);
       setIsConfirming(false);
       onSuccess(res.data);
       onClose();
@@ -342,13 +356,26 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
               {/* File Upload Zone */}
               <div className="pt-2 border-t border-white/10 mt-4">
                 <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-3">
-                  Pièces Jointes (Optionnel)
+                  Pièces Jointes Initiale du Véhicule
                 </label>
-                <CreationFileUploader
-                  files={pendingFiles}
-                  onFilesChange={setPendingFiles}
-                  maxFiles={5}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-1">Carte Grise</label>
+                    <CreationFileUploader files={carteGriseFile} onFilesChange={setCarteGriseFile} maxFiles={1} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-1">Assurance</label>
+                    <CreationFileUploader files={assuranceFile} onFilesChange={setAssuranceFile} maxFiles={1} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-1">Contrôle Technique</label>
+                    <CreationFileUploader files={controleTechniqueFile} onFilesChange={setControleTechniqueFile} maxFiles={1} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-1">Agrément de Transport</label>
+                    <CreationFileUploader files={agrementFile} onFilesChange={setAgrementFile} maxFiles={1} />
+                  </div>
+                </div>
               </div>
 
               {/* Footer Actions */}

@@ -25,9 +25,10 @@ interface AddDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newDoc: DocumentSummary) => void;
+  defaultType?: string;
 }
 
-export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess }: AddDocumentModalProps) {
+export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess, defaultType }: AddDocumentModalProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -45,10 +46,19 @@ export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess }: Add
   } = useForm<DocumentFormValues>({
     resolver: zodResolver(documentSchema),
     defaultValues: {
-      type: "Assurance",
+      type: defaultType || "Assurance",
       url_fichier: "",
     },
   });
+
+  // Effectue la réinitialisation si `defaultType` change pour que le formulaire prenne la bonne valeur
+  useEffect(() => {
+    if (defaultType) {
+      reset({ type: defaultType, url_fichier: "" });
+    } else {
+      reset({ type: "Assurance", url_fichier: "" });
+    }
+  }, [defaultType, reset]);
 
   const onSubmit = async (data: DocumentFormValues) => {
     try {
@@ -136,8 +146,9 @@ export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess }: Add
             </label>
             <select
               {...register("type")}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[#251739] transition-all appearance-none cursor-pointer"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: `right 1.25rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` }}
+              disabled={!!defaultType}
+              className={`w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm ${!!defaultType ? 'text-white/50 cursor-not-allowed' : 'text-white cursor-pointer'} focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[#251739] transition-all appearance-none`}
+              style={!defaultType ? { backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: `right 1.25rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` } : {}}
             >
               <option value="Assurance">Assurance</option>
               <option value="Contrôle technique">Contrôle technique</option>

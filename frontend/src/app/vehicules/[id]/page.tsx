@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
@@ -40,6 +40,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"infos" | "documents" | "constats" | "maintenance">("infos");
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [docModalDefaultType, setDocModalDefaultType] = useState<string | undefined>(undefined);
   const [isConstatModalOpen, setIsConstatModalOpen] = useState(false);
   const [isInterventionModalOpen, setIsInterventionModalOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
@@ -132,7 +133,10 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         {/* Action Triggers */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsDocModalOpen(true)}
+            onClick={() => {
+              setDocModalDefaultType(undefined);
+              setIsDocModalOpen(true);
+            }}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all"
           >
             <Plus className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)]" />
@@ -281,93 +285,173 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
 
       {/* TAB 2: DOCUMENTS */}
       {activeTab === "documents" && (
-        <div className="space-y-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+        <div className="space-y-6 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center justify-between">
             <p className="text-xs text-white/50">
-              Papiers réglementaires, contrôle technique et assurance avec alertes d&apos;expiration.
+              Papiers réglementaires, contrôle technique et assurance avec historique des versions.
             </p>
           </div>
 
-          {vehicule.documents.length === 0 ? (
-            <div className="glass-panel p-12 text-center">
-              <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="h-6 w-6 text-white/20" />
-              </div>
-              <p className="text-sm font-bold text-white">Aucun document rattaché</p>
-              <p className="text-xs text-white/40 mt-1">
-                Ajoutez l&apos;assurance, la carte grise ou le contrôle technique pour suivre leur validité.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vehicule.documents.map((doc) => {
-                const isExpired = doc.statut_validite === "Expiré";
-                const isWarning = doc.statut_validite === "Expire bientôt";
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].map((catType) => {
+              // Get all docs for this category, sorted by created_at desc (newest first)
+              const catDocs = vehicule.documents
+                .filter((d) => d.type === catType || d.document_type === catType)
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              
+              const activeDoc = catDocs[0];
+              const historyDocs = catDocs.slice(1);
 
-                return (
-                  <div
-                    key={doc.id}
-                    className="glass-panel overflow-hidden group cursor-pointer hover:bg-white/[0.03] transition-all"
-                    onClick={() => setPreviewFile({ url: `${API_BASE_URL}/documents/${doc.id}/view`, name: doc.nom, type: doc.type })}
-                  >
-                    <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-                      <div className="overflow-hidden">
-                        <h4 className="text-xs font-heading font-bold text-white truncate">{doc.nom}</h4>
-                        <p className="text-[10px] text-white/40">{doc.type}</p>
-                      </div>
-                      <span
-                        className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-accent font-bold uppercase tracking-wider ${
-                          isExpired
-                            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                            : isWarning
-                            ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/20"
-                            : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        }`}
-                      >
-                        {doc.statut_validite || "Valide"}
-                      </span>
-                    </div>
-                    <div className="p-4 space-y-2 text-xs">
-                      <div className="flex justify-between py-1.5 border-b border-white/5">
-                        <span className="text-white/40">Émission</span>
-                        <span className="font-mono text-white/80">{doc.date_emission || "—"}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-white/5">
-                        <span className="text-white/40">Expiration</span>
+              return (
+                <div key={catType} className="glass-panel p-5 flex flex-col h-full border border-white/10">
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                    <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-[var(--color-electric-violet)]" />
+                      {catType}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setDocModalDefaultType(catType);
+                        setIsDocModalOpen(true);
+                      }}
+                      className="text-[10px] font-bold text-[var(--color-turbo)] hover:text-[#ffe133] px-3 py-1.5 rounded-lg bg-[var(--color-turbo)]/10 hover:bg-[var(--color-turbo)]/20 transition-all flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" /> Nouvelle version
+                    </button>
+                  </div>
+
+                  {/* Active Document */}
+                  {activeDoc ? (
+                    <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 mb-4 flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="overflow-hidden pr-2">
+                          <p className="text-xs font-bold text-white truncate">{activeDoc.nom}</p>
+                          <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at).toLocaleDateString("fr-FR")}</p>
+                        </div>
                         <span
-                          className={`font-mono font-bold ${
-                            isExpired ? "text-rose-400" : isWarning ? "text-[var(--color-turbo)]" : "text-white"
+                          className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-accent font-bold uppercase tracking-wider ${
+                            activeDoc.statut_validite === "Expiré"
+                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                              : activeDoc.statut_validite === "Expire bientôt"
+                              ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/20"
+                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                           }`}
                         >
-                          {doc.date_expiration || "Sans expiration"}
+                          {activeDoc.statut_validite || "Valide"}
                         </span>
                       </div>
-                      <div className="flex gap-2 pt-2">
+                      
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="bg-white/5 rounded-lg p-2">
+                          <p className="text-[9px] font-accent text-white/40 uppercase mb-0.5">Émission</p>
+                          <p className="text-xs font-mono text-white/80">{activeDoc.date_emission || "—"}</p>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2">
+                          <p className="text-[9px] font-accent text-white/40 uppercase mb-0.5">Expiration</p>
+                          <p className={`text-xs font-mono font-bold ${activeDoc.statut_validite === "Expiré" ? "text-rose-400" : activeDoc.statut_validite === "Expire bientôt" ? "text-[var(--color-turbo)]" : "text-white"}`}>
+                            {activeDoc.date_expiration || "—"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewFile({ url: `${API_BASE_URL}/documents/${doc.id}/view`, name: doc.nom, type: doc.type });
-                          }}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs text-[var(--color-electric-violet)] font-medium hover:bg-white/10 transition-colors"
+                          onClick={() => setPreviewFile({ url: `${API_BASE_URL}/documents/${activeDoc.id}/view`, name: activeDoc.nom, type: activeDoc.type })}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-electric-violet)]/30 bg-[var(--color-electric-violet)]/10 py-1.5 text-[10px] font-bold text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/20 transition-colors"
                         >
-                          <Eye className="h-3.5 w-3.5" /> Voir
+                          <Eye className="h-3.5 w-3.5" /> Afficher
                         </button>
                         <a
-                          href={`${API_BASE_URL}/documents/${doc.id}/download`}
+                          href={`${API_BASE_URL}/documents/${activeDoc.id}/download`}
                           target="_blank"
                           rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs text-white/70 font-medium hover:bg-white/10 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 py-1.5 text-[10px] font-bold text-white/70 hover:bg-white/10 transition-colors"
                         >
                           <Download className="h-3.5 w-3.5" /> Télécharger
                         </a>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-xl p-6 mb-4 flex-1 flex flex-col items-center justify-center text-center">
+                      <FileText className="h-6 w-6 text-white/10 mb-2" />
+                      <p className="text-xs font-bold text-white/50">Aucun document actif</p>
+                    </div>
+                  )}
+
+                  {/* History Accordion */}
+                  {historyDocs.length > 0 && (
+                    <details className="group border border-white/10 bg-white/5 rounded-xl">
+                      <summary className="flex items-center justify-between p-3 cursor-pointer text-xs font-medium text-white/60 hover:text-white transition-colors list-none">
+                        <span>Anciennes versions ({historyDocs.length})</span>
+                        <span className="transition group-open:rotate-180">
+                          <svg fill="none" height="16" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="16"><path d="M6 9l6 6 6-6"></path></svg>
+                        </span>
+                      </summary>
+                      <div className="p-3 pt-0 border-t border-white/5 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                        {historyDocs.map((hdoc) => (
+                          <div key={hdoc.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => setPreviewFile({ url: `${API_BASE_URL}/documents/${hdoc.id}/view`, name: hdoc.nom, type: hdoc.type })}>
+                            <div className="overflow-hidden pr-2">
+                              <p className="text-[10px] font-bold text-white/70 truncate">{hdoc.nom}</p>
+                              <p className="text-[9px] font-mono text-white/40">Exp: {hdoc.date_expiration || "—"}</p>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Eye className="h-3 w-3 text-white/40 hover:text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Other Documents Section */}
+          <div className="glass-panel p-5 mt-6 border border-white/10">
+            <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2 mb-4">
+              <FileText className="h-4 w-4 text-[var(--color-electric-violet)]" />
+              Autres documents
+            </h3>
+            
+            {(() => {
+              const otherDocs = vehicule.documents.filter(
+                (d) => !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.type) &&
+                       !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.document_type)
+              ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+              if (otherDocs.length === 0) {
+                return (
+                  <p className="text-xs text-white/40">Aucun autre document rattaché.</p>
                 );
-              })}
-            </div>
-          )}
+              }
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {otherDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="bg-white/5 border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-all"
+                      onClick={() => setPreviewFile({ url: `${API_BASE_URL}/documents/${doc.id}/view`, name: doc.nom, type: doc.type })}
+                    >
+                      <div className="p-3 border-b border-white/5 flex items-center justify-between">
+                        <div className="overflow-hidden">
+                          <h4 className="text-[11px] font-bold text-white truncate">{doc.nom}</h4>
+                          <p className="text-[9px] text-white/40">{doc.type || "Autre"}</p>
+                        </div>
+                      </div>
+                      <div className="p-3 flex justify-end gap-2">
+                         <button className="text-[10px] font-medium text-white/50 hover:text-white flex items-center gap-1">
+                           <Eye className="h-3 w-3" /> Voir
+                         </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
@@ -527,7 +611,12 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
       <AddDocumentModal
         vehiculeId={vehicule.id}
         isOpen={isDocModalOpen}
-        onClose={() => setIsDocModalOpen(false)}
+        defaultType={docModalDefaultType}
+        onClose={() => {
+          setIsDocModalOpen(false);
+          // Small timeout to avoid visual glitch during closing animation
+          setTimeout(() => setDocModalDefaultType(undefined), 300);
+        }}
         onSuccess={() => fetchDetail()}
       />
       <AddConstatModal
