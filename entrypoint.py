@@ -1,8 +1,9 @@
-"""Entrypoint — no bash, no CRLF issues, guaranteed fresh DB schema."""
+"""Entrypoint — schema creation + seed + start servers."""
 import os
 import subprocess
 import sys
 import time
+import traceback
 import urllib.request
 
 APP_DIR = "/app"
@@ -10,6 +11,7 @@ BACKEND_DIR = "/app/backend"
 FRONTEND_DIR = "/app/frontend"
 
 # ── 1. Delete every .db file under /app (brute force) ──────────────
+print("[entrypoint] Cleaning old database files...")
 for root, _dirs, files in os.walk(APP_DIR):
     for f in files:
         if f.endswith(".db") or ".db-" in f:
@@ -20,36 +22,39 @@ for root, _dirs, files in os.walk(APP_DIR):
             except OSError:
                 pass
 
-# ── 2. Create a fresh schema BEFORE starting uvicorn ───────────────
-print("[entrypoint] Creating database schema...")
-schema_result = subprocess.run(
-    [sys.executable, "-c", (
-        "import sys; sys.path.insert(0, '.'), "
-        "from app.core.database import engine, Base, is_sqlite, "
-        "import app.models, "
-        "Base.metadata.drop_all(bind=engine) if is_sqlite else None, "
-        "Base.metadata.create_all(bind=engine), "
-        "print('[schema] Tables created.')"
-    )],
-    cwd=BACKEND_DIR,
-    capture_output=True, text=True,
-)
-print(schema_result.stdout)
-if schema_result.returncode != 0:
-    print(f"[entrypoint] Schema creation stderr: {schema_result.stderr}")
+# ── 2. Create schema + seed (in-process, full error visibility) ───
+sys.path.insert(0, BACKEND_DIR)
 
-# ── 2.5 Seed demo data ────────────────────────────────────────────
-db_url = os.environ.get("DATABASE_URL", "sqlite:////app/etransport.db")
-seed_result = subprocess.run(
-    [sys.executable, "seed_data.py", db_url],
-    cwd=BACKEND_DIR,
-    capture_output=True, text=True,
-)
-print(seed_result.stdout)
-if seed_result.returncode != 0:
-    print(f"[entrypoint] Seed stderr: {seed_result.stderr}")
+try:
+    print("[entrypoint] Loading app modules...")
+    from app.core.config import settings
+    print(f"[entrypoint] DATABASE_URL = {settings.DATABASE_URL}")
+
+    from app.core.database import engine, Base, is_sqlite
+    import app.models
+
+    print("[entrypoint] Dropping all tables (SQLite)...")
+    if is_sqlite:
+        Base.metadata.drop_all(bind=engine)
+
+    print("[entrypoint] Creating all tables...")
+    Base.metadata.create_all(bind=engine)
+
+    print("[entrypoint] Tables created successfully.")
+
+    # ── Seed demo data ─────────────────────────────────────────────
+    print("[entrypoint] Running seed_data...")
+    from seed_data import seed_database
+    seed_database(settings.DATABASE_URL)
+
+    print("[entrypoint] Schema + seed complete.")
+
+except Exception:
+    print("[entrypoint] FATAL ERROR during schema/seed:")
+    traceback.print_exc()
 
 # ── 3. Start FastAPI backend (background) ──────────────────────────
+print("[entrypoint] Starting backend...")
 backend = subprocess.Popen(
     [sys.executable, "-m", "uvicorn", "app.main:app",
      "--host", "0.0.0.0", "--port", "8080"],
@@ -57,10 +62,10 @@ backend = subprocess.Popen(
 )
 
 # ── 4. Wait for backend health ─────────────────────────────────────
-print("[entrypoint] Waiting for backend…")
+print("[entrypoint] Waiting for backend...")
 for _ in range(30):
     try:
-        urllib.request.urlopen("http://localhost:8080/health", timeout=2)
+        urllib.request.urlopen("http://localhost:8080/api/v1/health", timeout=2)
         print("[entrypoint] Backend is ready!")
         break
     except Exception:
