@@ -5,12 +5,13 @@ import { createPortal } from "react-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FileText, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { FileText, X, AlertCircle, CheckCircle2, UploadCloud } from "lucide-react";
 import { api } from "@/lib/api";
 import { Caution } from "@/types/caution";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const demandeSchema = z.object({
   type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
@@ -43,6 +44,7 @@ export function NouvelleDemandeModal({
   const [clients, setClients] = useState<Partenaire[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const {
     register,
@@ -81,6 +83,7 @@ export function NouvelleDemandeModal({
     } else {
       document.body.style.overflow = "unset";
       setServerError(null);
+      setFiles([]);
       reset();
     }
     return () => {
@@ -110,6 +113,24 @@ export function NouvelleDemandeModal({
       const res = await api.post<Caution>("/cautions", payload);
       const newCaution = res.data;
 
+      // Upload attached files
+      if (files.length > 0) {
+        for (const file of files) {
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("entity_type", "caution");
+            formData.append("entity_id", newCaution.id);
+            formData.append("document_type", "Demande de caution");
+            await api.post("/upload", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (fileErr) {
+            console.warn("File upload failed:", fileErr);
+          }
+        }
+      }
+
       // Auto-generate PDF
       let finalCaution = newCaution;
       try {
@@ -120,6 +141,7 @@ export function NouvelleDemandeModal({
       }
 
       reset();
+      setFiles([]);
       onSuccess(finalCaution);
       onClose();
     } catch (err: any) {
@@ -325,6 +347,16 @@ export function NouvelleDemandeModal({
                   className={inputClass}
                 />
               </div>
+            </div>
+
+            {/* Documents */}
+            <div>
+              <label className={labelClass}>Documents joints</label>
+              <CreationFileUploader
+                files={files}
+                onFilesChange={setFiles}
+                maxFiles={5}
+              />
             </div>
 
             {serverError && (

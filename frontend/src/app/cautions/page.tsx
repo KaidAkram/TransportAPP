@@ -290,9 +290,11 @@ export default function CautionsPage() {
                       className="group hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-4 px-5">
-                        <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block mb-0.5">
-                          {c.numero}
-                        </span>
+                        <Link href={`/cautions/${c.id}`}>
+                          <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block mb-0.5 hover:underline cursor-pointer">
+                            {c.numero}
+                          </span>
+                        </Link>
                         <span className="text-[10px] text-white/40 font-mono">
                           {c.banque_emetteur}
                         </span>
