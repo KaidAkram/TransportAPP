@@ -38,6 +38,9 @@ RUN pip install --no-cache-dir -r requirements.txt uvicorn
 # Copy backend
 COPY backend/ ./backend/
 
+# Remove any stale database from cached layers — schema is created on startup
+RUN rm -f /app/etransport.db /app/backend/etransport.db
+
 # Install frontend dependencies and build
 COPY frontend/ ./frontend/
 WORKDIR /app/frontend
