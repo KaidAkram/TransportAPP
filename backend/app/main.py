@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,15 +17,34 @@ async def lifespan(app: FastAPI):
   # For SQLite: drop all tables and recreate to guarantee schema is up-to-date.
   # create_all() only creates missing tables, it does NOT add missing columns.
   if is_sqlite:
-    db_path = settings.DATABASE_URL.replace("sqlite:///", "").replace("sqlite:////", "/")
-    if os.path.exists(db_path):
-      print(f"[STARTUP] Removing stale SQLite database: {db_path}")
-      os.remove(db_path)
-      # Also remove WAL/SHM journal files if present
-      for suffix in ("-wal", "-shm", "-journal"):
-        journal = db_path + suffix
-        if os.path.exists(journal):
-          os.remove(journal)
+    # Extract the actual file path from the URL
+    db_url = settings.DATABASE_URL
+    if db_url.startswith("sqlite:////"):
+      db_path = db_url[len("sqlite:///"):]  # sqlite:////app/x -> /app/x
+    elif db_url.startswith("sqlite:///"):
+      db_path = db_url[len("sqlite:///"):]
+    else:
+      db_path = db_url
+
+    print(f"[STARTUP] SQLite database path: {db_path}")
+
+    # Use SQLAlchemy to drop all tables (works even if engine already opened the file)
+    print("[STARTUP] Dropping all existing tables...")
+    with engine.connect() as conn:
+      if os.path.exists(db_path):
+        # Get all table names and drop them
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        if tables:
+          # Use CASCADE for SQLite
+          for table in tables:
+            try:
+              conn.execute(text(f"DROP TABLE IF EXISTS [{table}]"))
+            except Exception as e:
+              print(f"[STARTUP] Warning dropping {table}: {e}")
+          conn.commit()
+          print(f"[STARTUP] Dropped {len(tables)} tables.")
 
   Base.metadata.create_all(bind=engine)
   print("[STARTUP] All database tables verified and synchronized.")
