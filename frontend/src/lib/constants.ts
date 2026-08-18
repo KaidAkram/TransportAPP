@@ -118,7 +118,7 @@ export const NAV_ITEMS = [
  { label: "Partenaires CRM", href: "/partenaires", icon: "Building2"},
  { label: "Contrats", href: "/contrats", icon: "FileText"},
  { label: "Cautions", href: "/cautions", icon: "Shield"},
- { label: "Maintenance", href: "/maintenance", icon: "Wrench"},
+ { label: "Interventions & Maint.", href: "/maintenance", icon: "Wrench"},
  { label: "Stock & Pièces", href: "/stock", icon: "Package"},
 ] as const;
 

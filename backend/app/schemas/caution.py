@@ -7,7 +7,7 @@ from app.schemas.document import DocumentSummary
 
 
 class CautionBase(BaseModel):
-  numero: str = Field(..., description="Numéro unique de la caution bancaire (ex: CAU-2026-001)")
+  numero: Optional[str] = Field(None, description="Numéro unique de la caution bancaire (ex: CAU-2026-001)")
   type: TypeCaution = Field(..., description="Type de caution (SOUMISSION ou BONNE_EXECUTION)")
   client_id: UUID = Field(..., description="ID du client bénéficiaire")
   contrat_id: Optional[UUID] = Field(None, description="ID du contrat rattaché (optionnel pour Soumission)")

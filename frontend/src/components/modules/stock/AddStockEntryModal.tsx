@@ -14,7 +14,7 @@ import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 
 const entrySchema = z.object({
   piece_id: z.string().min(1, "Veuillez sélectionner la pièce livrée"),
-  quantite: z.number().min(1, "La quantité livrée doit être supérieure à zéro"),
+  quantite: z.coerce.number().min(1, "La quantité livrée doit être supérieure à zéro"),
   fournisseur_id: z.string().optional().nullable(),
   date: z.string().min(1, "La date de livraison est requise"),
   motif: z.string().min(3, "Le motif est requis"),
@@ -212,6 +212,7 @@ export function AddStockEntryModal({
                         value={field.value}
                         onChange={field.onChange}
                         min={1}
+                        step="any"
                         suffix={selectedPiece ? selectedPiece.unite : ""}
                       />
                     )}

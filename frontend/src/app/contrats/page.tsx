@@ -10,7 +10,6 @@ import {
   Eye,
   Trash2,
   Calendar,
-  DollarSign,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -160,17 +159,14 @@ export default function ContratsPage() {
           </div>
         </div>
 
-        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+        <div className="glass-panel px-6 py-5 hover:bg-white/[0.02] transition-colors group overflow-hidden">
           <div>
             <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Volume Financier (Actif)</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] truncate max-w-[100px] sm:max-w-[120px]">{totalVolumeDZD.toLocaleString("fr-FR")}</span>
-              <span className="text-[10px] font-bold text-white/40">DZD</span>
+              <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalVolumeDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-[10px] font-bold text-white/40 shrink-0">DZD</span>
             </div>
             <p className="text-[10px] text-white/40 mt-1">Valeur totale cumulée</p>
-          </div>
-          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
-            <DollarSign className="h-5 w-5 text-[var(--color-electric-violet)]" />
           </div>
         </div>
       </div>

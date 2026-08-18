@@ -26,13 +26,13 @@ const interventionSchema = z.object({
   type: z.enum(["PREVENTIVE", "CORRECTIVE"]),
   categorie: z.string().min(1, "La catégorie de travaux est requise"),
   date: z.string().min(1, "La date est requise"),
-  kilometrage: z.number().min(0, "Le kilométrage doit être positif"),
+  kilometrage: z.coerce.number().min(0, "Le kilométrage doit être positif"),
   probleme_constate: z.string().optional().nullable(),
   diagnostic: z.string().optional().nullable(),
   travail_effectue: z.string().optional().nullable(),
-  cout_total: z.number().min(0, "Le coût doit être positif"),
+  cout_total: z.coerce.number().min(0, "Le coût doit être positif"),
   prochaine_date_maintenance: z.string().optional().nullable(),
-  prochain_kilo_maintenance: z.number().optional().nullable(),
+  prochain_kilo_maintenance: z.coerce.number().optional().nullable(),
   statut: z.enum(["PLANIFIEE", "EN_COURS", "TERMINEE", "ANNULEE"]),
   pieces_utilisees: z.array(pieceUsageSchema).optional(),
 });
@@ -351,6 +351,7 @@ export function AddInterventionModal({
                         value={field.value}
                         onChange={field.onChange}
                         min={0}
+                        step="any"
                         suffix="DZD"
                       />
                     )}

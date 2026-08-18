@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Clock,
   UserX,
+  AlertTriangle,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddEmployeeModal } from "@/components/modules/employes/AddEmployeeModal";
@@ -297,14 +298,24 @@ export default function EmployesPage() {
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-9 w-9 overflow-hidden rounded-full border border-white/10 bg-white/5 shrink-0">
-                            <Image
-                              src={avatarSrc}
-                              alt={`${e.nom} ${e.prenom}`}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
+                          <div className="relative h-9 w-9 shrink-0">
+                            <div className="relative h-full w-full overflow-hidden rounded-full border border-white/10 bg-white/5">
+                              <Image
+                                src={avatarSrc}
+                                alt={`${e.nom} ${e.prenom}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            </div>
+                            {e.dossier_complet === false && (
+                              <div className="absolute -top-1.5 -right-1.5 group/tooltip flex items-center justify-center">
+                                <AlertTriangle className="h-4 w-4 text-[var(--color-turbo)] fill-[var(--color-turbo)]/20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover/tooltip:block w-max bg-[var(--color-turbo)] text-black text-[10px] py-0.5 px-1.5 rounded font-bold shadow-lg z-50">
+                                  Dossier incomplet
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="min-w-0">
                             <Link

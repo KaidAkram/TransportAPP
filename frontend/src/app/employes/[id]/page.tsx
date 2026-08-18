@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Award,
   Clock,
+  Eye,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ManageLicenseModal } from "@/components/modules/employes/ManageLicenseModal";
@@ -78,8 +79,11 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
 
   const isChauffeur = employe.type_employe === "CHAUFFEUR";
   const isMecanicien = employe.type_employe === "MECANICIEN";
+  
+  const uploadedPhotoDoc = employe.documents.find(d => (d.document_type || d.type) === "Photo");
   const avatarSrc =
-    employe.photo ||
+    (uploadedPhotoDoc ? `${API_BASE_URL}/documents/${uploadedPhotoDoc.id}/view` : null) ||
+    (employe.photo && !employe.photo.includes("driver_pro.jpg") && !employe.photo.includes("mechanic_pro.jpg") ? employe.photo : null) ||
     (isChauffeur
       ? "/assets/avatars/driver_pro.jpg"
       : "/assets/avatars/mechanic_pro.jpg");
@@ -540,62 +544,155 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
             </button>
           </div>
 
-          {employe.documents.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {employe.documents.map((doc) => {
-                const isExpired = doc.statut_validite === "Expiré";
-                const isWarning = doc.statut_validite === "Expire bientôt";
+          {(() => {
+            const requiredDocs = ["Extrait de naissance", "CNI", "Justificatif de résidence", "Carte Chifa", "Casier Judiciaire"];
+            if (isChauffeur) requiredDocs.push("Permis de conduire");
 
-                return (
-                  <div key={doc.id} className="glass-panel overflow-hidden">
-                    <div className="p-4 pb-3 border-b border-white/10 bg-black/10 flex flex-row items-center justify-between">
-                      <div className="overflow-hidden pr-3">
-                        <h3 className="text-xs font-bold font-heading text-white truncate">{doc.nom}</h3>
-                        <p className="text-[10px] text-white/40 font-accent uppercase tracking-wider mt-0.5">{doc.type}</p>
-                      </div>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold border uppercase tracking-wider ${
-                          isExpired
-                            ? "bg-red-500/20 text-red-400 border-red-500/30"
-                            : isWarning
-                            ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                        }`}
-                      >
-                        {doc.statut_validite || "Valide"}
-                      </span>
+            const uploadedTypes = new Set(employe.documents.map((d) => d.document_type || d.type));
+            const missing = requiredDocs.filter((req) => !uploadedTypes.has(req));
+
+            return (
+              <div className="space-y-6">
+                {missing.length > 0 && (
+                  <div className="glass-panel p-5 bg-rose-500/10 border-rose-500/20 flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
+                      <AlertTriangle className="h-5 w-5 text-rose-400" />
                     </div>
-                    <div className="p-5 space-y-3 text-[13px]">
-                      <div className="flex justify-between py-2 border-b border-white/5">
-                        <span className="text-white/50">Émission :</span>
-                        <span className="font-mono text-white/90">{doc.date_emission || "—"}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-white/5">
-                        <span className="text-white/50">Expiration :</span>
-                        <span
-                          className={`font-mono font-bold ${
-                            isExpired ? "text-red-400" : isWarning ? "text-amber-400" : "text-white"
-                          }`}
-                        >
-                          {doc.date_expiration || "Sans expiration"}
-                        </span>
-                      </div>
-                      <div className="pt-4">
-                        <a
-                          href={`${API_BASE_URL}/documents/${doc.id}/download`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--color-electric-violet)] py-3 text-[11px] text-white font-bold hover:bg-[#9d6cfc] transition-all uppercase tracking-wider"
-                        >
-                          <Download className="h-3.5 w-3.5" /> Consulter le Document
-                        </a>
-                      </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-rose-400 mb-1">Dossier Incomplet : Pièces Manquantes</h4>
+                      <p className="text-xs text-rose-300/80">
+                        Il manque {missing.length} document{missing.length > 1 ? 's' : ''} obligatoire{missing.length > 1 ? 's' : ''} :{" "}
+                        <span className="font-bold">{missing.join(", ")}</span>.
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {["Photo", "Extrait de naissance", "CNI", "Justificatif de résidence", "Carte Chifa", "Casier Judiciaire", "Permis de conduire", "Contrat de travail"].map((catType) => {
+                    const catDocs = employe.documents
+                      .filter((d) => d.type === catType || d.document_type === catType)
+                      .sort((a, b) => new Date(b.created_at || new Date().toISOString()).getTime() - new Date(a.created_at || new Date().toISOString()).getTime());
+                    
+                    const activeDoc = catDocs[0];
+                    const historyDocs = catDocs.slice(1);
+
+                    // Skip Chauffeur specific document for other employees if empty
+                    if (!isChauffeur && catType === "Permis de conduire" && !activeDoc) return null;
+
+                    return (
+                      <div key={catType} className="glass-panel p-5 flex flex-col h-full border border-white/10">
+                        {/* Category Header */}
+                        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                          <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-[var(--color-electric-violet)]" />
+                            {catType}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              // We can open the modal pre-filled with this category
+                              // setDocModalDefaultType(catType); // (Assumes this exists or will be handled later, for now just open)
+                              setIsDocModalOpen(true);
+                            }}
+                            className="text-[10px] font-bold text-[var(--color-turbo)] hover:text-[#ffe133] px-3 py-1.5 rounded-lg bg-[var(--color-turbo)]/10 hover:bg-[var(--color-turbo)]/20 transition-all flex items-center gap-1.5"
+                          >
+                            <Plus className="h-3 w-3" /> Nouvelle version
+                          </button>
+                        </div>
+
+                        {/* Active Document */}
+                        {activeDoc ? (
+                          <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 mb-4 flex-1">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="overflow-hidden pr-2">
+                                <p className="text-xs font-bold text-white truncate">{activeDoc.nom}</p>
+                                <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at || new Date()).toLocaleDateString("fr-FR")}</p>
+                              </div>
+                              <span
+                                className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-accent font-bold uppercase tracking-wider ${
+                                  activeDoc.statut_validite === "Expiré"
+                                    ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                    : activeDoc.statut_validite === "Expire bientôt"
+                                    ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/20"
+                                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                }`}
+                              >
+                                {activeDoc.statut_validite || "Valide"}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                              <div className="bg-white/5 rounded-lg p-2">
+                                <p className="text-[9px] font-accent text-white/40 uppercase mb-0.5">Émission</p>
+                                <p className="text-xs font-mono text-white/80">{activeDoc.date_emission || "—"}</p>
+                              </div>
+                              <div className="bg-white/5 rounded-lg p-2">
+                                <p className="text-[9px] font-accent text-white/40 uppercase mb-0.5">Expiration</p>
+                                <p className={`text-xs font-mono font-bold ${activeDoc.statut_validite === "Expiré" ? "text-rose-400" : activeDoc.statut_validite === "Expire bientôt" ? "text-[var(--color-turbo)]" : "text-white"}`}>
+                                  {activeDoc.date_expiration || "—"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <a
+                                href={`${API_BASE_URL}/documents/${activeDoc.id}/view`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-electric-violet)]/30 bg-[var(--color-electric-violet)]/10 py-1.5 text-[10px] font-bold text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/20 transition-colors"
+                              >
+                                <Eye className="h-3.5 w-3.5" /> Afficher
+                              </a>
+                              <a
+                                href={`${API_BASE_URL}/documents/${activeDoc.id}/download`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 py-1.5 text-[10px] font-bold text-white/70 hover:bg-white/10 transition-colors"
+                              >
+                                <Download className="h-3.5 w-3.5" /> Télécharger
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-xl p-6 mb-4 flex-1 flex flex-col items-center justify-center text-center">
+                            <FileText className="h-6 w-6 text-white/10 mb-2" />
+                            <p className="text-xs font-bold text-white/50">Aucun document actif</p>
+                          </div>
+                        )}
+
+                        {/* History Accordion */}
+                        {historyDocs.length > 0 && (
+                          <details className="group border border-white/10 bg-white/5 rounded-xl">
+                            <summary className="flex items-center justify-between p-3 cursor-pointer text-xs font-medium text-white/60 hover:text-white transition-colors list-none">
+                              <span>Anciennes versions ({historyDocs.length})</span>
+                              <span className="transition group-open:rotate-180">
+                                <svg fill="none" height="16" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="16"><path d="M6 9l6 6 6-6"></path></svg>
+                              </span>
+                            </summary>
+                            <div className="p-3 pt-0 border-t border-white/5 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                              {historyDocs.map((hdoc) => (
+                                <div key={hdoc.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                                  <div className="overflow-hidden pr-2">
+                                    <p className="text-[10px] font-bold text-white/70 truncate">{hdoc.nom}</p>
+                                    <p className="text-[9px] font-mono text-white/40">Exp: {hdoc.date_expiration || "—"}</p>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    <a href={`${API_BASE_URL}/documents/${hdoc.id}/view`} target="_blank" rel="noreferrer">
+                                      <Eye className="h-3 w-3 text-white/40 hover:text-white" />
+                                    </a>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
           
           <div className="pt-4 border-t border-white/5">
             <GlassDocumentManager

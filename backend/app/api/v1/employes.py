@@ -72,6 +72,22 @@ def list_employes(
     .all()
   )
 
+  employe_ids = [e.id for e in items]
+  if employe_ids:
+    docs = db.query(Document).filter(Document.entity_type == "employe", Document.entity_id.in_(employe_ids), Document.archived_at.is_(None)).all()
+    docs_by_emp = {e_id: [] for e_id in employe_ids}
+    for d in docs:
+      docs_by_emp[d.entity_id].append(d.document_type)
+
+    for e in items:
+      emp_docs = docs_by_emp[e.id]
+      required = ["EXTRAIT DE NAISSANCE", "CNI", "JUSTIFICATIF DE RÉSIDENCE", "CARTE CHIFA", "CASIER JUDICIAIRE"]
+      if e.type_employe == TypeEmploye.CHAUFFEUR:
+        required.append("Permis conduire")
+      
+      missing = [req for req in required if req not in emp_docs]
+      setattr(e, "dossier_complet", len(missing) == 0)
+
   return EmployeListResponse(
     items=items,
     total=total,

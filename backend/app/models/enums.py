@@ -46,6 +46,7 @@ class StatutContrat(str, enum.Enum):
 class TypeCaution(str, enum.Enum):
   SOUMISSION = "SOUMISSION"
   BONNE_EXECUTION = "BONNE_EXECUTION"
+  DEMANDE = "DEMANDE"
 
 
 class StatutCaution(str, enum.Enum):

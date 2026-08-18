@@ -1,4 +1,4 @@
-export type TypeCaution = "SOUMISSION"| "BONNE_EXECUTION";
+export type TypeCaution = "SOUMISSION"| "BONNE_EXECUTION"| "DEMANDE";
 export type StatutCaution = "CREATION"| "CHEZ_CLIENT"| "RETOURNEE"| "MAIN_LEVEE";
 
 export interface CautionDocument {

@@ -20,7 +20,7 @@ const contractSchema = z.object({
   type_contrat: z.string().min(1, "Le type de contrat est requis"),
   date_debut: z.string().min(1, "La date de début est requise"),
   date_fin: z.string().min(1, "La date de fin est requise"),
-  montant: z.number().min(0, "Le montant doit être positif"),
+  montant: z.coerce.number().min(0, "Le montant doit être positif"),
   devise: z.string(),
   mode_facturation: z.string().optional().nullable(),
   conditions_paiement: z.string().optional().nullable(),
@@ -55,6 +55,7 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -74,8 +75,10 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
         .get<PartenaireListResponse>("/partenaires", { per_page: "100" })
         .then((res) => setPartners(res.data.items))
         .catch(console.error);
+        
+      setValue("reference", "CTR-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString());
     }
-  }, [isOpen]);
+  }, [isOpen, setValue]);
 
   const onSubmit = async (data: ContractFormValues) => {
     try {
@@ -287,7 +290,7 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
               </label>
               <input
                 type="number"
-                step="1000"
+                step="any"
                 {...register("montant", { valueAsNumber: true })}
                 placeholder="15000000"
                 className={glassInputMono}

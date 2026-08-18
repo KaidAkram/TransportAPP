@@ -12,11 +12,11 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  DollarSign,
 } from "lucide-react";
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddCautionModal } from "@/components/modules/cautions/AddCautionModal";
+import { NouvelleDemandeModal } from "@/components/modules/cautions/NouvelleDemandeModal";
 import { api } from "@/lib/api";
 import { Caution, CautionListResponse } from "@/types/caution";
 import { GlassPagination } from "@/components/ui/GlassPagination";
@@ -34,6 +34,7 @@ export default function CautionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDemandeModalOpen, setIsDemandeModalOpen] = useState(false);
 
   // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -134,6 +135,13 @@ export default function CautionsPage() {
             Actualiser
           </button>
           <button
+            onClick={() => setIsDemandeModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-bold text-white border border-white/10 hover:bg-white/10 transition-colors shadow-sm"
+          >
+            <FileText className="h-4 w-4" />
+            Nouvelle Demande
+          </button>
+          <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
@@ -184,17 +192,14 @@ export default function CautionsPage() {
           </div>
         </div>
 
-        <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+        <div className="glass-panel px-6 py-5 hover:bg-white/[0.02] transition-colors group overflow-hidden">
           <div>
             <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Encours Cautionné</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] truncate max-w-[100px] sm:max-w-[120px]">{totalGarantiDZD.toLocaleString("fr-FR")}</span>
-              <span className="text-[10px] font-bold text-white/40 ml-1">DZD</span>
+              <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalGarantiDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-[10px] font-bold text-white/40 shrink-0">DZD</span>
             </div>
             <p className="text-[10px] text-white/40 mt-1">Garanties globales</p>
-          </div>
-          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
-            <DollarSign className="h-5 w-5 text-[var(--color-electric-violet)]" />
           </div>
         </div>
       </div>
@@ -222,6 +227,7 @@ export default function CautionsPage() {
               { value: "", label: "Tous les types de caution" },
               { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
               { value: "SOUMISSION", label: "Soumission (AO)" },
+              { value: "DEMANDE", label: "Demande" },
             ]}
           />
         </div>
@@ -276,6 +282,7 @@ export default function CautionsPage() {
               ) : (
                 cautions.map((c) => {
                   const isBonneExec = c.type === "BONNE_EXECUTION";
+                  const isDemande = c.type === "DEMANDE";
 
                   return (
                     <tr
@@ -301,12 +308,14 @@ export default function CautionsPage() {
                       <td className="py-4 px-5 max-w-[200px]">
                         <span
                           className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-1 border ${
-                            isBonneExec
+                            isDemande
+                              ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                              : isBonneExec
                               ? "bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border-[var(--color-electric-violet)]/20"
                               : "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
                           }`}
                         >
-                          {isBonneExec ? "Bonne Exécution" : "Soumission"}
+                          {isDemande ? "Demande" : isBonneExec ? "Bonne Exécution" : "Soumission"}
                         </span>
                         <p className="text-xs text-white/60 truncate" title={c.objet}>
                           {c.objet}
@@ -395,6 +404,13 @@ export default function CautionsPage() {
       <AddCautionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => fetchCautions()}
+      />
+
+      {/* Nouvelle Demande Modal */}
+      <NouvelleDemandeModal
+        isOpen={isDemandeModalOpen}
+        onClose={() => setIsDemandeModalOpen(false)}
         onSuccess={() => fetchCautions()}
       />
 

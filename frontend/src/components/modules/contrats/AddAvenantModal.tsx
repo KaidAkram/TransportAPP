@@ -15,7 +15,7 @@ const avenantSchema = z.object({
   date: z.string().min(1, "La date de signature est requise"),
   objet: z.string().min(5, "L'objet de la modification est requis"),
   description: z.string().optional().nullable(),
-  modif_montant: z.number().optional().nullable(),
+  modif_montant: z.coerce.number().optional().nullable(),
   nouvelle_date_fin: z.string().optional().nullable(),
 });
 
@@ -50,6 +50,7 @@ export function AddAvenantModal({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<AvenantFormValues>({
     resolver: zodResolver(avenantSchema),
@@ -57,6 +58,12 @@ export function AddAvenantModal({
       date: new Date().toISOString().split("T")[0],
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setValue("numero", "Avenant N°" + Math.floor(1 + Math.random() * 99).toString().padStart(2, '0'));
+    }
+  }, [isOpen, setValue]);
 
   if (!mounted || !isOpen) return null;
 
@@ -162,6 +169,7 @@ export function AddAvenantModal({
               </label>
               <input
                 type="number"
+                step="any"
                 {...register("modif_montant", { valueAsNumber: true })}
                 placeholder="ex: 500000"
                 className={glassInputMono}

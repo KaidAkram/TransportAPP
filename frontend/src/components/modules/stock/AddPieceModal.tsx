@@ -18,8 +18,8 @@ const pieceSchema = z.object({
   marque: z.string().optional().nullable(),
   modele_compatibilite: z.string().optional().nullable(),
   unite: z.string(),
-  stock_actuel: z.number().min(0, "Le stock initial doit être positif"),
-  stock_minimum: z.number().min(0, "Le seuil d'alerte doit être positif"),
+  stock_actuel: z.coerce.number().min(0, "Le stock initial doit être positif"),
+  stock_minimum: z.coerce.number().min(0, "Le seuil d'alerte doit être positif"),
   emplacement: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
 });
@@ -45,6 +45,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<PieceFormValues>({
     resolver: zodResolver(pieceSchema),
@@ -63,6 +64,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      setValue("reference", "ART-" + Math.floor(1000 + Math.random() * 9000).toString());
     } else {
       document.body.style.overflow = "unset";
       setIsConfirming(false);
@@ -222,6 +224,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
                         value={field.value}
                         onChange={field.onChange}
                         min={0}
+                        step="any"
                         suffix={watchUnite} // Ideally we'd watch this but let's just keep it simple
                       />
                     )}
@@ -238,6 +241,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
                         value={field.value}
                         onChange={field.onChange}
                         min={0}
+                        step="any"
                       />
                     )}
                   />

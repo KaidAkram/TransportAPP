@@ -32,10 +32,12 @@ export interface EmployeDocument {
  id: string;
  nom: string;
  type: string;
+ document_type?: string | null;
  url_fichier: string;
  date_emission?: string | null;
  date_expiration?: string | null;
  statut_validite?: "Valide"| "Expire bientôt"| "Expiré"| null;
+ created_at?: string | null;
 }
 
 export interface Employe {
@@ -60,6 +62,9 @@ export interface Employe {
  type_mecanicien?: string | null;
  experience?: string | null;
  est_responsable?: boolean | null;
+
+ // Dossier
+ dossier_complet?: boolean;
 
  created_at: string;
  updated_at: string;

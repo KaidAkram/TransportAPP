@@ -47,6 +47,7 @@ export function AddDevisModal({ isOpen, onClose, onSuccess }: AddDevisModalProps
     control,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<DevisFormValues>({
     resolver: zodResolver(devisSchema),
@@ -85,6 +86,7 @@ export function AddDevisModal({ isOpen, onClose, onSuccess }: AddDevisModalProps
       }).catch(err => console.error("Error fetching clients", err));
 
       reset({
+        numero: "DEV-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString(),
         client_id: "",
         objet: "",
         date_emission: new Date().toISOString().split("T")[0],

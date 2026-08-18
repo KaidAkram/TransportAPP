@@ -153,12 +153,16 @@ def get_caution(caution_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("", response_model=CautionRead, status_code=status.HTTP_201_CREATED, summary="Create New Caution", dependencies=[Depends(require_feature("create_caution"))])
 def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
-  existing = db.query(Caution).filter(Caution.numero == data.numero.strip()).first()
-  if existing:
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=f"Une caution avec le numéro '{data.numero}'existe déjà.",
-    )
+  if data.numero:
+    existing = db.query(Caution).filter(Caution.numero == data.numero.strip()).first()
+    if existing:
+      raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=f"Une caution avec le numéro '{data.numero}'existe déjà.",
+      )
+    final_numero = data.numero.strip()
+  else:
+    final_numero = f"CAU-{datetime.now().year}-{uuid4().hex[:6].upper()}"
 
   client = db.query(Partenaire).filter(Partenaire.id == data.client_id).first()
   if not client:
@@ -169,7 +173,7 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
 
   caution = Caution(
     id=uuid4(),
-    numero=data.numero.strip(),
+    numero=final_numero,
     type=data.type,
     client_id=data.client_id,
     contrat_id=data.contrat_id,

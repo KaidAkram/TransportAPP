@@ -56,7 +56,14 @@ const glassLabel = "block text-[10px] font-accent uppercase tracking-widest text
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModalProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [photoFile, setPhotoFile] = useState<File[]>([]);
+  const [naissanceFile, setNaissanceFile] = useState<File[]>([]);
+  const [cniFile, setCniFile] = useState<File[]>([]);
+  const [residenceFile, setResidenceFile] = useState<File[]>([]);
+  const [chifaFile, setChifaFile] = useState<File[]>([]);
+  const [casierFile, setCasierFile] = useState<File[]>([]);
+  const [permisFile, setPermisFile] = useState<File[]>([]);
+  const [autreFile, setAutreFile] = useState<File[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -69,6 +76,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
     control,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<EmployeFormValues>({
     resolver: zodResolver(employeSchema),
@@ -80,6 +88,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
       est_responsable: false,
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setValue("matricule", "EMP-" + Math.floor(1000 + Math.random() * 9000).toString());
+    }
+  }, [isOpen, setValue]);
 
   const selectedType = watch("type_employe");
 
@@ -111,25 +125,44 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
       const res = await api.post<Employe>("/employes", payload);
 
       // Upload pending files if any
-      if (pendingFiles.length > 0) {
-        for (const file of pendingFiles) {
+      const filesToUpload = [
+        { file: photoFile[0], type: "Photo" },
+        { file: naissanceFile[0], type: "Extrait de naissance" },
+        { file: cniFile[0], type: "CNI" },
+        { file: residenceFile[0], type: "Justificatif de résidence" },
+        { file: chifaFile[0], type: "Carte Chifa" },
+        { file: casierFile[0], type: "Casier Judiciaire" },
+        { file: permisFile[0], type: "Permis de conduire" },
+        { file: autreFile[0], type: "Autre" }
+      ].filter(item => item.file);
+
+      if (filesToUpload.length > 0) {
+        for (const item of filesToUpload) {
           const uploadData = new FormData();
-          uploadData.append("file", file);
+          uploadData.append("file", item.file);
           uploadData.append("entity_type", "employe");
           uploadData.append("entity_id", res.data.id);
-          uploadData.append("document_type", "Autre");
+          uploadData.append("document_type", item.type);
+          uploadData.append("nom", item.type);
           try {
             await api.post("/upload", uploadData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
           } catch (uploadErr) {
-            console.error("Failed to upload file:", file.name, uploadErr);
+            console.error("Failed to upload file:", item.file.name, uploadErr);
           }
         }
       }
 
       reset();
-      setPendingFiles([]);
+      setPhotoFile([]);
+      setNaissanceFile([]);
+      setCniFile([]);
+      setResidenceFile([]);
+      setChifaFile([]);
+      setCasierFile([]);
+      setPermisFile([]);
+      setAutreFile([]);
       onSuccess(res.data);
       onClose();
     } catch (err: any) {
@@ -418,13 +451,44 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
           )}
 
           {/* File Upload Zone */}
-          <div className="pt-4 border-t border-white/10">
-            <label className={glassLabel}>Pièces Jointes (Optionnel)</label>
-            <CreationFileUploader
-              files={pendingFiles}
-              onFilesChange={setPendingFiles}
-              maxFiles={5}
-            />
+          <div className="pt-4 border-t border-white/10 space-y-4">
+            <div>
+              <label className={glassLabel}>Photo de profil (Optionnel, sera placée au dessus)</label>
+              <CreationFileUploader files={photoFile} onFilesChange={setPhotoFile} maxFiles={1} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={glassLabel}>Extrait de Naissance</label>
+                <CreationFileUploader files={naissanceFile} onFilesChange={setNaissanceFile} maxFiles={1} />
+              </div>
+              <div>
+                <label className={glassLabel}>CNI (Carte Nationale d&apos;Identité)</label>
+                <CreationFileUploader files={cniFile} onFilesChange={setCniFile} maxFiles={1} />
+              </div>
+              <div>
+                <label className={glassLabel}>Justificatif de Résidence</label>
+                <CreationFileUploader files={residenceFile} onFilesChange={setResidenceFile} maxFiles={1} />
+              </div>
+              <div>
+                <label className={glassLabel}>Carte Chifa</label>
+                <CreationFileUploader files={chifaFile} onFilesChange={setChifaFile} maxFiles={1} />
+              </div>
+              <div>
+                <label className={glassLabel}>Casier Judiciaire</label>
+                <CreationFileUploader files={casierFile} onFilesChange={setCasierFile} maxFiles={1} />
+              </div>
+              {selectedType === "CHAUFFEUR" && (
+                <div>
+                  <label className={glassLabel}>Permis de conduire</label>
+                  <CreationFileUploader files={permisFile} onFilesChange={setPermisFile} maxFiles={1} />
+                </div>
+              )}
+              <div>
+                <label className={glassLabel}>Autre document (Optionnel)</label>
+                <CreationFileUploader files={autreFile} onFilesChange={setAutreFile} maxFiles={1} />
+              </div>
+            </div>
           </div>
 
           {/* Footer Actions */}

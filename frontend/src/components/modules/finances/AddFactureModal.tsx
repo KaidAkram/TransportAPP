@@ -49,6 +49,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
     control,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FactureFormValues>({
     resolver: zodResolver(factureSchema),
@@ -88,6 +89,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
 
 
       reset({
+        numero: "FAC-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString(),
         client_id: "",
         date_emission: new Date().toISOString().split("T")[0],
         date_echeance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],

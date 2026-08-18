@@ -121,6 +121,7 @@ class EmployeRead(EmployeBase):
   type_mecanicien: Optional[str] = None
   experience: Optional[str] = None
   est_responsable: Optional[bool] = None
+  dossier_complet: Optional[bool] = False
   created_at: datetime
   updated_at: datetime
   archived_at: Optional[datetime] = None

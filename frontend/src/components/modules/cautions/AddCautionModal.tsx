@@ -14,11 +14,10 @@ import { GlassSelect } from "@/components/ui/GlassSelect";
 import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 
 const cautionSchema = z.object({
-  numero: z.string().min(2, "Le numéro de caution est requis (ex: CAU-2026-002)"),
   type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
   client_id: z.string().min(1, "Veuillez sélectionner le client bénéficiaire"),
   contrat_id: z.string().optional().nullable(),
-  montant: z.number().min(1, "Le montant cautionné doit être supérieur à zéro"),
+  montant: z.coerce.number().min(1, "Le montant cautionné doit être supérieur à zéro"),
   devise: z.string(),
   reference_type: z.string().optional().nullable(),
   reference_numero: z.string().min(1, "La référence de l'AO ou du contrat est requise"),
@@ -278,6 +277,7 @@ export function AddCautionModal({
                         value={field.value}
                         onChange={field.onChange}
                         min={0}
+                        step="any"
                         placeholder="Ex: 500000"
                         suffix="DZD"
                       />
@@ -296,17 +296,8 @@ export function AddCautionModal({
                 </div>
               </div>
 
-              {/* Dates & N° Caution */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className={labelClass}>N° Caution</label>
-                  <input
-                    {...register("numero")}
-                    placeholder="N° Acte"
-                    className={inputClass}
-                  />
-                  {errors.numero && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.numero.message}</p>}
-                </div>
+              {/* Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Date d'émission</label>
                   <input
