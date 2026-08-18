@@ -1,11 +1,10 @@
 import os
-import sqlite3
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base, is_sqlite
-import app.models # Ensure all models are registered with Base.metadata
+import app.models
 from app.api.v1.router import api_v1_router
 from app.api.v1.health import router as health_router
 
@@ -14,40 +13,25 @@ from app.api.v1.health import router as health_router
 async def lifespan(app: FastAPI):
   print(f"[STARTUP] {settings.PROJECT_NAME} v{settings.VERSION} starting up...")
 
-  # For SQLite: drop all tables and recreate to guarantee schema is up-to-date.
-  # create_all() only creates missing tables, it does NOT add missing columns.
   if is_sqlite:
-    # Extract the actual file path from the URL
-    db_url = settings.DATABASE_URL
-    if db_url.startswith("sqlite:////"):
-      db_path = db_url[len("sqlite:///"):]  # sqlite:////app/x -> /app/x
-    elif db_url.startswith("sqlite:///"):
-      db_path = db_url[len("sqlite:///"):]
-    else:
-      db_path = db_url
-
-    print(f"[STARTUP] SQLite database path: {db_path}")
-
-    # Use SQLAlchemy to drop all tables (works even if engine already opened the file)
-    print("[STARTUP] Dropping all existing tables...")
-    with engine.connect() as conn:
-      if os.path.exists(db_path):
-        # Get all table names and drop them
-        from sqlalchemy import inspect, text
-        inspector = inspect(engine)
+    from sqlalchemy import text, inspect as sqla_inspect
+    try:
+      with engine.connect() as conn:
+        inspector = sqla_inspect(engine)
         tables = inspector.get_table_names()
         if tables:
-          # Use CASCADE for SQLite
           for table in tables:
             try:
               conn.execute(text(f"DROP TABLE IF EXISTS [{table}]"))
-            except Exception as e:
-              print(f"[STARTUP] Warning dropping {table}: {e}")
+            except Exception:
+              pass
           conn.commit()
-          print(f"[STARTUP] Dropped {len(tables)} tables.")
+          print(f"[STARTUP] Dropped {len(tables)} stale tables.")
+    except Exception as e:
+      print(f"[STARTUP] Drop tables warning: {e}")
 
   Base.metadata.create_all(bind=engine)
-  print("[STARTUP] All database tables verified and synchronized.")
+  print("[STARTUP] All database tables created fresh.")
   yield
   print(f"[SHUTDOWN] {settings.PROJECT_NAME} shutting down...")
 
@@ -62,7 +46,6 @@ app = FastAPI(
   lifespan=lifespan,
 )
 
-# CORS Middleware Configuration
 app.add_middleware(
   CORSMiddleware,
   allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -71,10 +54,7 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-# Direct root-level /health endpoint (for load balancers, docker healthchecks, and quick pings)
 app.include_router(health_router, prefix="")
-
-# Versioned API routes under /api/v1
 app.include_router(api_v1_router, prefix=settings.API_V1_STR)
 
 
