@@ -19,6 +19,7 @@ const devisLigneSchema = z.object({
 });
 
 const devisSchema = z.object({
+  numero: z.string().optional(),
   client_id: z.string().min(1, "Le client est requis"),
   objet: z.string().min(1, "L'objet est requis"),
   date_emission: z.string().min(1, "Date requise"),

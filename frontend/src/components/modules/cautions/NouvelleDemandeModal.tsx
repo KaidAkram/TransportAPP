@@ -190,7 +190,7 @@ export function NouvelleDemandeModal({
                         { value: "", label: "Sélectionner..." },
                         ...clients.map((c) => ({
                           value: c.id,
-                          label: c.nom_comercial || c.id,
+                          label: c.nom_commercial || c.id,
                         })),
                       ]}
                     />

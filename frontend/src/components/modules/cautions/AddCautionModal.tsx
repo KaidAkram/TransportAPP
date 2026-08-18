@@ -14,6 +14,7 @@ import { GlassSelect } from "@/components/ui/GlassSelect";
 import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 
 const cautionSchema = z.object({
+  numero: z.string().optional(),
   type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
   client_id: z.string().min(1, "Veuillez sélectionner le client bénéficiaire"),
   contrat_id: z.string().optional().nullable(),

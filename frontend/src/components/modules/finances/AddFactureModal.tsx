@@ -19,6 +19,7 @@ const factureLigneSchema = z.object({
 });
 
 const factureSchema = z.object({
+  numero: z.string().optional(),
   client_id: z.string().min(1, "Le client est requis"),
   devis_id: z.string().optional(),
   contrat_id: z.string().optional(),
