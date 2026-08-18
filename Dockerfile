@@ -37,7 +37,6 @@ RUN pip install --no-cache-dir -r requirements.txt uvicorn
 
 # Copy backend
 COPY backend/ ./backend/
-COPY etransport.db .
 
 # Install frontend dependencies and build
 COPY frontend/ ./frontend/
