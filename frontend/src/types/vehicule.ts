@@ -4,10 +4,12 @@ export interface DocumentSummary {
  id: string;
  nom: string;
  type: string;
+ document_type?: string;
  url_fichier: string;
  date_emission?: string | null;
  date_expiration?: string | null;
  statut_validite?: "Valide"| "Expire bientôt"| "Expiré"| null;
+ created_at?: string;
 }
 
 export interface ConstatSummary {

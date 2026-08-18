@@ -297,7 +297,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
               // Get all docs for this category, sorted by created_at desc (newest first)
               const catDocs = vehicule.documents
                 .filter((d) => d.type === catType || d.document_type === catType)
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                .sort((a, b) => new Date(b.created_at || new Date().toISOString()).getTime() - new Date(a.created_at || new Date().toISOString()).getTime());
               
               const activeDoc = catDocs[0];
               const historyDocs = catDocs.slice(1);
@@ -327,7 +327,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                       <div className="flex items-start justify-between mb-3">
                         <div className="overflow-hidden pr-2">
                           <p className="text-xs font-bold text-white truncate">{activeDoc.nom}</p>
-                          <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at).toLocaleDateString("fr-FR")}</p>
+                          <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at || new Date()).toLocaleDateString("fr-FR")}</p>
                         </div>
                         <span
                           className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-accent font-bold uppercase tracking-wider ${
@@ -418,8 +418,8 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
             {(() => {
               const otherDocs = vehicule.documents.filter(
                 (d) => !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.type) &&
-                       !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.document_type)
-              ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                       !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.document_type || "")
+              ).sort((a, b) => new Date(b.created_at || new Date().toISOString()).getTime() - new Date(a.created_at || new Date().toISOString()).getTime());
 
               if (otherDocs.length === 0) {
                 return (
