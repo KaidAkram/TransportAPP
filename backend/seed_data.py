@@ -282,7 +282,7 @@ def seed_database(db_url: str):
                     societe_nom=c.societe_nom,
                     client_societe_nom=c.client_societe_nom,
                 )
-                c.url_caution_pdf = pdf_url
+                c.url_caution_pdf = f"/api/v1/cautions/{c.id}/pdf"
             except Exception as e:
                 print(f"[seed] PDF generation failed for {c.numero}: {e}")
         db.flush()
