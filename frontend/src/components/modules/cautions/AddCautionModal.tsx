@@ -64,6 +64,7 @@ export function AddCautionModal({
     register,
     control,
     handleSubmit,
+    watch,
     setValue,
     reset,
     formState: { errors },
@@ -165,6 +166,8 @@ export function AddCautionModal({
 
   const selectedClient = formData ? clients.find(c => c.id === formData.client_id) : null;
   const selectedContract = formData && formData.contrat_id ? contracts.find(c => c.id === formData.contrat_id) : null;
+  const formType = watch("type");
+  const isSoumission = formType === "SOUMISSION";
 
   const inputClass = "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-white/30 focus:border-[var(--color-electric-violet)] focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:outline-none transition-all";
   const labelClass = "block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold";
@@ -247,41 +250,21 @@ export function AddCautionModal({
                 </div>
               </div>
 
-              {/* Réf & Contrat */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Référence Contrat / AO</label>
-                  <input
-                    {...register("reference_numero")}
-                    placeholder="Ex: CTR-2026-004 ou AO 05/2026"
-                    className={inputClass}
-                  />
-                  {errors.reference_numero && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.reference_numero.message}</p>}
-                </div>
-                
-                <div>
-                  <label className={labelClass}>Contrat Associé (Optionnel)</label>
-                  <Controller
-                    name="contrat_id"
-                    control={control}
-                    render={({ field }) => (
-                      <GlassSelect
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        options={[
-                          { value: "", label: "Aucun contrat lié" },
-                          ...contracts.map(c => ({ value: c.id, label: c.reference }))
-                        ]}
-                      />
-                    )}
-                  />
-                </div>
+              {/* Référence */}
+              <div>
+                <label className={labelClass}>{isSoumission ? "Référence de l'appel d'offres" : "Référence du contrat"}</label>
+                <input
+                  {...register("reference_numero")}
+                  placeholder={isSoumission ? "Ex: AO 05/2026" : "Ex: CTR-2026-001"}
+                  className={inputClass}
+                />
+                {errors.reference_numero && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.reference_numero.message}</p>}
               </div>
 
               {/* Montant & Banque */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                <div className="sm:col-span-4">
-                  <label className={labelClass}>Montant Garanti</label>
+                <div className="sm:col-span-5">
+                  <label className={labelClass}>{isSoumission ? "Montant de la caution" : "Montant du contrat"}</label>
                   <Controller
                     name="montant"
                     control={control}
@@ -299,7 +282,7 @@ export function AddCautionModal({
                   {errors.montant && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.montant.message}</p>}
                 </div>
 
-                <div className="sm:col-span-8">
+                <div className="sm:col-span-7">
                   <label className={labelClass}>Banque Émettrice</label>
                   <input
                     {...register("banque_emetteur")}
@@ -309,29 +292,21 @@ export function AddCautionModal({
                 </div>
               </div>
 
-              {/* Extra info for PDF */}
+              {/* Compte bancaire + Lieu */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Lieu (Pour la lettre)</label>
+                  <label className={labelClass}>{isSoumission ? "Notre compte bancaire" : "Compte bancaire"}</label>
+                  <input
+                    {...register("numero_compte_bancaire")}
+                    placeholder="Ex: 001 00954 0300 101763 41"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Lieu</label>
                   <input
                     {...register("lieu_demande")}
                     placeholder="Ex: Alger"
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Nom de notre Société</label>
-                  <input
-                    {...register("societe_nom")}
-                    placeholder="Nom de l'entreprise..."
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Nom de la Société du Client</label>
-                  <input
-                    {...register("client_societe_nom")}
-                    placeholder="Ex: SONATRACH"
                     className={inputClass}
                   />
                 </div>
@@ -360,10 +335,10 @@ export function AddCautionModal({
 
               {/* Objet */}
               <div>
-                <label className={labelClass}>Objet de la garantie</label>
+                <label className={labelClass}>{isSoumission ? "Objet de l'appel d'offres" : "Objet du contrat"}</label>
                 <textarea
                   {...register("objet")}
-                  placeholder="Garantie bancaire de soumission pour le projet..."
+                  placeholder={isSoumission ? "Objet de l'appel d'offres..." : "Objet du contrat..."}
                   rows={2}
                   className={`${inputClass} resize-none`}
                 />

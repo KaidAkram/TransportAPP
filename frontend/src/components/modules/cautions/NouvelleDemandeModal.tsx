@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FileText, X, AlertCircle, CheckCircle2, UploadCloud } from "lucide-react";
+import { FileText, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Caution } from "@/types/caution";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
@@ -19,12 +19,11 @@ const demandeSchema = z.object({
   montant: z.coerce.number().min(1, "Le montant doit être supérieur à zéro"),
   banque_emetteur: z.string().min(1, "La banque émettrice est requise"),
   date_emission: z.string().min(1, "La date d'émission est requise"),
-  reference_numero: z.string().min(1, "La référence AO / contrat est requise"),
-  objet: z.string().min(5, "L'objet de la garantie est requis"),
+  reference_numero: z.string().min(1, "La référence est requise"),
+  objet: z.string().min(5, "L'objet est requis"),
   lieu_demande: z.string().optional(),
   lieu_soumission: z.string().optional(),
   numero_compte_bancaire: z.string().optional(),
-  societe_nom: z.string().optional(),
   client_societe_nom: z.string().optional(),
 });
 
@@ -52,6 +51,8 @@ export function NouvelleDemandeModal({
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<DemandeFormValues>({
     resolver: zodResolver(demandeSchema),
@@ -66,10 +67,13 @@ export function NouvelleDemandeModal({
       lieu_demande: "",
       lieu_soumission: "",
       numero_compte_bancaire: "",
-      societe_nom: "",
       client_societe_nom: "",
     },
   });
+
+  const selectedType = watch("type");
+  const selectedClientId = watch("client_id");
+  const isSoumission = selectedType === "SOUMISSION";
 
   useEffect(() => {
     setMounted(true);
@@ -93,6 +97,15 @@ export function NouvelleDemandeModal({
     };
   }, [isOpen, reset]);
 
+  useEffect(() => {
+    if (selectedClientId) {
+      const client = clients.find(c => c.id === selectedClientId);
+      if (client) {
+        setValue("client_societe_nom", client.nom_commercial || "");
+      }
+    }
+  }, [selectedClientId, clients, setValue]);
+
   if (!mounted || !isOpen) return null;
 
   const onSubmit = async (data: DemandeFormValues) => {
@@ -109,14 +122,12 @@ export function NouvelleDemandeModal({
         lieu_demande: data.lieu_demande || null,
         lieu_soumission: data.lieu_soumission || null,
         numero_compte_bancaire: data.numero_compte_bancaire || null,
-        societe_nom: data.societe_nom || null,
         client_societe_nom: data.client_societe_nom || null,
       };
 
       const res = await api.post<Caution>("/cautions", payload);
       const newCaution = res.data;
 
-      // Upload attached files
       if (files.length > 0) {
         for (const file of files) {
           try {
@@ -134,7 +145,6 @@ export function NouvelleDemandeModal({
         }
       }
 
-      // Auto-generate PDF
       let finalCaution = newCaution;
       try {
         const pdfRes = await api.post<Caution>(`/cautions/${newCaution.id}/generate-pdf`, {});
@@ -162,10 +172,8 @@ export function NouvelleDemandeModal({
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative max-h-[90vh] flex flex-col">
-        {/* Glow */}
         <div className="absolute top-0 right-0 w-48 h-48 blur-[80px] pointer-events-none rounded-full bg-[var(--color-electric-violet)]/10" />
 
-        {/* Header */}
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--color-electric-violet)]/20 bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)]">
@@ -188,81 +196,113 @@ export function NouvelleDemandeModal({
           </button>
         </div>
 
-        {/* Form */}
         <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
           <form id="demande-caution-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Type + Client */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Type de Garantie</label>
-                <Controller
-                  name="type"
-                  control={control}
-                  render={({ field }) => (
-                    <GlassSelect
-                      value={field.value}
-                      onChange={field.onChange}
-                      options={[
-                        { value: "SOUMISSION", label: "Soumission" },
-                        { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
-                      ]}
-                    />
-                  )}
-                />
-                {errors.type && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.type.message}</p>
+            {/* Type */}
+            <div>
+              <label className={labelClass}>Type de Garantie</label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[
+                      { value: "SOUMISSION", label: "Soumission (Appel d'Offres)" },
+                      { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+                    ]}
+                  />
                 )}
-              </div>
-
-              <div>
-                <label className={labelClass}>Bénéficiaire</label>
-                <Controller
-                  name="client_id"
-                  control={control}
-                  render={({ field }) => (
-                    <GlassSelect
-                      value={field.value}
-                      onChange={field.onChange}
-                      options={[
-                        { value: "", label: "Sélectionner..." },
-                        ...clients.map((c) => ({
-                          value: c.id,
-                          label: c.nom_commercial || c.id,
-                        })),
-                      ]}
-                    />
-                  )}
-                />
-                {errors.client_id && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.client_id.message}</p>
-                )}
-              </div>
+              />
+              {errors.type && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.type.message}</p>
+              )}
             </div>
 
-            {/* Montant + Banque */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-              <div className="sm:col-span-5">
-                <label className={labelClass}>Montant Garanti</label>
-                <Controller
-                  name="montant"
-                  control={control}
-                  render={({ field }) => (
-                    <GlassNumberInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      min={0}
-                      step="any"
-                      placeholder="Ex: 500000"
-                      suffix="DZD"
-                    />
-                  )}
-                />
-                {errors.montant && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.montant.message}</p>
+            {/* Bénéficiaire */}
+            <div>
+              <label className={labelClass}>Bénéficiaire</label>
+              <Controller
+                name="client_id"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[
+                      { value: "", label: "Sélectionner..." },
+                      ...clients.map((c) => ({
+                        value: c.id,
+                        label: c.nom_commercial || c.id,
+                      })),
+                    ]}
+                  />
                 )}
-              </div>
+              />
+              {errors.client_id && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.client_id.message}</p>
+              )}
+            </div>
 
-              <div className="sm:col-span-7">
+            {/* Référence */}
+            <div>
+              <label className={labelClass}>
+                {isSoumission ? "Référence de l'appel d'offres" : "Référence du contrat"}
+              </label>
+              <input
+                {...register("reference_numero")}
+                placeholder={isSoumission ? "Ex: AO 05/2026" : "Ex: CTR-2026-001"}
+                className={inputClass}
+              />
+              {errors.reference_numero && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.reference_numero.message}</p>
+              )}
+            </div>
+
+            {/* Objet */}
+            <div>
+              <label className={labelClass}>
+                {isSoumission ? "Objet de l'appel d'offres" : "Objet du contrat"}
+              </label>
+              <textarea
+                {...register("objet")}
+                placeholder={isSoumission ? "Objet de l'appel d'offres..." : "Objet du contrat..."}
+                rows={2}
+                className={`${inputClass} resize-none`}
+              />
+              {errors.objet && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.objet.message}</p>
+              )}
+            </div>
+
+            {/* Montant */}
+            <div>
+              <label className={labelClass}>
+                {isSoumission ? "Montant de la caution" : "Montant du contrat"}
+              </label>
+              <Controller
+                name="montant"
+                control={control}
+                render={({ field }) => (
+                  <GlassNumberInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    min={0}
+                    step="any"
+                    placeholder="Ex: 500000"
+                    suffix="DZD"
+                  />
+                )}
+              />
+              {errors.montant && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.montant.message}</p>
+              )}
+            </div>
+
+            {/* Banque + Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
                 <label className={labelClass}>Banque Émettrice</label>
                 <input
                   {...register("banque_emetteur")}
@@ -273,10 +313,6 @@ export function NouvelleDemandeModal({
                   <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.banque_emetteur.message}</p>
                 )}
               </div>
-            </div>
-
-            {/* Date + Référence */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Date d'Émission</label>
                 <input type="date" {...register("date_emission")} className={inputClass} />
@@ -284,57 +320,13 @@ export function NouvelleDemandeModal({
                   <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.date_emission.message}</p>
                 )}
               </div>
-
-              <div>
-                <label className={labelClass}>Référence AO / Contrat</label>
-                <input
-                  {...register("reference_numero")}
-                  placeholder="Ex: AO 05/2026"
-                  className={inputClass}
-                />
-                {errors.reference_numero && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.reference_numero.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Objet */}
-            <div>
-              <label className={labelClass}>Objet de la Garantie</label>
-              <textarea
-                {...register("objet")}
-                placeholder="Garantie bancaire de soumission pour le projet..."
-                rows={2}
-                className={`${inputClass} resize-none`}
-              />
-              {errors.objet && (
-                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.objet.message}</p>
-              )}
-            </div>
-
-            {/* Société + Compte bancaire */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Nom de la Société</label>
-                <input
-                  {...register("societe_nom")}
-                  placeholder="Ex: ENGTP DIRECTION REGIONALE ARZEW"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Nom de la Société du Client</label>
-                <input
-                  {...register("client_societe_nom")}
-                  placeholder="Ex: SONATRACH"
-                  className={inputClass}
-                />
-              </div>
             </div>
 
             {/* Compte bancaire */}
             <div>
-              <label className={labelClass}>N° Compte Bancaire</label>
+              <label className={labelClass}>
+                {isSoumission ? "Notre compte bancaire" : "Compte bancaire"}
+              </label>
               <input
                 {...register("numero_compte_bancaire")}
                 placeholder="Ex: 001 00954 0300 101763 41"
@@ -342,24 +334,14 @@ export function NouvelleDemandeModal({
               />
             </div>
 
-            {/* Lieu de demande / Lieu de soumission */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Lieu de la Demande</label>
-                <input
-                  {...register("lieu_demande")}
-                  placeholder="Ex: Arzew"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Lieu de Soumission</label>
-                <input
-                  {...register("lieu_soumission")}
-                  placeholder="Ex: Alger"
-                  className={inputClass}
-                />
-              </div>
+            {/* Lieu */}
+            <div>
+              <label className={labelClass}>Lieu</label>
+              <input
+                {...register("lieu_demande")}
+                placeholder="Ex: Alger"
+                className={inputClass}
+              />
             </div>
 
             {/* Documents */}
@@ -381,7 +363,6 @@ export function NouvelleDemandeModal({
           </form>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-end gap-3 shrink-0">
           <button
             type="button"
