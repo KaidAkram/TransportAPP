@@ -36,6 +36,7 @@ def generate_caution_pdf(
     lieu_soumission: str = None,
     numero_compte_bancaire: str = None,
     societe_nom: str = None,
+    client_societe_nom: str = None,
 ) -> str:
     output_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
@@ -55,12 +56,14 @@ def generate_caution_pdf(
         story = _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                                        client_address, objet, date_emission, date_echeance,
                                        ref_contrat, banque_name, lieu_demande,
-                                       numero_compte_bancaire, societe_nom)
+                                       numero_compte_bancaire, societe_nom,
+                                       client_societe_nom)
     else:
         story = _build_soumission(doc, caution_number, amount, devise, client_name,
                                   client_address, objet, date_emission, date_echeance,
                                   ref_contrat, banque_name, lieu_soumission,
-                                  numero_compte_bancaire, societe_nom)
+                                  numero_compte_bancaire, societe_nom,
+                                  client_societe_nom)
 
     doc.build(story)
     return f"/assets/documents/cautions/{filename}"
@@ -72,7 +75,8 @@ def generate_caution_pdf(
 def _build_soumission(doc, caution_number, amount, devise, client_name,
                       client_address, objet, date_emission, date_echeance,
                       ref_contrat, banque_name, lieu_soumission,
-                      numero_compte_bancaire, societe_nom):
+                      numero_compte_bancaire, societe_nom,
+                      client_societe_nom=None):
     styles = getSampleStyleSheet()
     societe = societe_nom or "Notre Société"
     lieu_s = lieu_soumission or "..."
@@ -89,6 +93,8 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1)
     bold_body = ParagraphStyle("BoldBody", parent=body, fontName="Helvetica-Bold")
     small = ParagraphStyle("Small", parent=body, fontSize=9, leading=13)
+
+    client_soc = client_societe_nom or societe or client_name or "Notre Société"
 
     story = []
 
@@ -110,7 +116,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
 
     # ── Body paragraph 1 ──
     story.append(Paragraph(
-        f"Nous vous prions de fournir à <b>{societe}</b> sous notre pleine et entière "
+        f"Nous vous prions de fournir à <b>{client_soc}</b> sous notre pleine et entière "
         f"responsabilité à votre égard une caution personnelle et solidaire de "
         f"<b>{montant_chiffres}</b> ({montant_lettres}).",
         body,
@@ -128,7 +134,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
         f"Déclarons nous porter caution personnelle et solidaire de :",
         body,
     ))
-    story.append(Paragraph(f"<b>{societe}</b>", body))
+    story.append(Paragraph(f"<b>{client_soc}</b>", body))
     story.append(Spacer(1, 8))
 
     story.append(Paragraph(
@@ -213,7 +219,8 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
 def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            client_address, objet, date_emission, date_echeance,
                            ref_contrat, banque_name, lieu_demande,
-                           numero_compte_bancaire, societe_nom):
+                           numero_compte_bancaire, societe_nom,
+                           client_societe_nom=None):
     styles = getSampleStyleSheet()
     societe = societe_nom or "Notre Société"
     lieu_d = lieu_demande or "..."
@@ -228,6 +235,8 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     body_j = ParagraphStyle("BodyJ", parent=body, alignment=4)
     body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     small = ParagraphStyle("Small", parent=body, fontSize=9, leading=13, alignment=0)
+
+    client_soc = client_societe_nom or societe or client_name or "Notre Société"
 
     story = []
 
@@ -245,7 +254,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
 
     # ── Request paragraph ──
     story.append(Paragraph(
-        f"Nous Vous Prions de fournir à la <b>{societe}</b> sous notre pleine et entière "
+        f"Nous Vous Prions de fournir à la <b>{client_soc}</b> sous notre pleine et entière "
         f"responsabilité à votre égard une caution personnelle et solidaire de "
         f"<b>{montant_chiffres}</b> ({montant_lettres}) "
         f"selon le texte repris ci après :",
@@ -288,7 +297,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
 
     # ── Caution emission ──
     story.append(Paragraph(
-        f"Emettons en faveur de <b>{societe}</b>",
+        f"Emettons en faveur de <b>{client_soc}</b>",
         body,
     ))
     story.append(Paragraph(
@@ -309,7 +318,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     # ── Legal commitments ──
     story.append(Paragraph(
         "Nous paierons, à sa première demande les sommes dont "
-        f"<b>{societe}</b> sera reconnu débiteur au titre du marché et à concurrence "
+        f"<b>{client_soc}</b> sera reconnu débiteur au titre du marché et à concurrence "
         "de la somme garantie ci-dessus",
         body,
     ))

@@ -24,6 +24,7 @@ class CautionBase(BaseModel):
   lieu_soumission: Optional[str] = Field(None, description="Lieu de soumission (ex: Alger)")
   numero_compte_bancaire: Optional[str] = Field(None, description="Numéro du compte bancaire de la société")
   societe_nom: Optional[str] = Field(None, description="Nom de la société émettrice (ex: ENGTP)")
+  client_societe_nom: Optional[str] = Field(None, description="Nom de la société du client bénéficiaire")
   url_caution_pdf: Optional[str] = Field(None, description="URL / chemin du document PDF officiel généré")
 
 
@@ -45,6 +46,7 @@ class CautionUpdate(BaseModel):
   lieu_soumission: Optional[str] = None
   numero_compte_bancaire: Optional[str] = None
   societe_nom: Optional[str] = None
+  client_societe_nom: Optional[str] = None
   url_caution_pdf: Optional[str] = None
 
 

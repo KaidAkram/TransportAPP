@@ -25,6 +25,7 @@ const demandeSchema = z.object({
   lieu_soumission: z.string().optional(),
   numero_compte_bancaire: z.string().optional(),
   societe_nom: z.string().optional(),
+  client_societe_nom: z.string().optional(),
 });
 
 type DemandeFormValues = z.infer<typeof demandeSchema>;
@@ -66,6 +67,7 @@ export function NouvelleDemandeModal({
       lieu_soumission: "",
       numero_compte_bancaire: "",
       societe_nom: "",
+      client_societe_nom: "",
     },
   });
 
@@ -108,6 +110,7 @@ export function NouvelleDemandeModal({
         lieu_soumission: data.lieu_soumission || null,
         numero_compte_bancaire: data.numero_compte_bancaire || null,
         societe_nom: data.societe_nom || null,
+        client_societe_nom: data.client_societe_nom || null,
       };
 
       const res = await api.post<Caution>("/cautions", payload);
@@ -320,13 +323,23 @@ export function NouvelleDemandeModal({
                 />
               </div>
               <div>
-                <label className={labelClass}>N° Compte Bancaire</label>
+                <label className={labelClass}>Nom de la Société du Client</label>
                 <input
-                  {...register("numero_compte_bancaire")}
-                  placeholder="Ex: 001 00954 0300 101763 41"
+                  {...register("client_societe_nom")}
+                  placeholder="Ex: SONATRACH"
                   className={inputClass}
                 />
               </div>
+            </div>
+
+            {/* Compte bancaire */}
+            <div>
+              <label className={labelClass}>N° Compte Bancaire</label>
+              <input
+                {...register("numero_compte_bancaire")}
+                placeholder="Ex: 001 00954 0300 101763 41"
+                className={inputClass}
+              />
             </div>
 
             {/* Lieu de demande / Lieu de soumission */}

@@ -30,6 +30,7 @@ const cautionSchema = z.object({
   lieu_demande: z.string().optional().nullable(),
   lieu_soumission: z.string().optional().nullable(),
   societe_nom: z.string().optional().nullable(),
+  client_societe_nom: z.string().optional().nullable(),
   numero_compte_bancaire: z.string().optional().nullable(),
 });
 
@@ -83,6 +84,7 @@ export function AddCautionModal({
       banque_emetteur: "Banque Nationale d'Algérie (BNA)",
       statut: "CREATION",
       societe_nom: "Notre Société",
+      client_societe_nom: "",
       lieu_demande: "Alger",
     },
   });
@@ -322,6 +324,14 @@ export function AddCautionModal({
                   <input
                     {...register("societe_nom")}
                     placeholder="Nom de l'entreprise..."
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Nom de la Société du Client</label>
+                  <input
+                    {...register("client_societe_nom")}
+                    placeholder="Ex: SONATRACH"
                     className={inputClass}
                   />
                 </div>

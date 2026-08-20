@@ -312,6 +312,7 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     lieu_soumission=caution.lieu_soumission,
     numero_compte_bancaire=caution.numero_compte_bancaire,
     societe_nom=caution.societe_nom,
+    client_societe_nom=caution.client_societe_nom,
   )
 
   serve_url = f"/api/v1/cautions/{caution_id}/pdf"

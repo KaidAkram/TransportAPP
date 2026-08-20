@@ -33,6 +33,7 @@ export interface Caution {
   lieu_soumission?: string | null;
   numero_compte_bancaire?: string | null;
   societe_nom?: string | null;
+  client_societe_nom?: string | null;
   url_caution_pdf?: string | null;
  url_main_levee_pdf?: string | null;
  created_at: string;
