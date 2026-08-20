@@ -85,6 +85,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     body = ParagraphStyle("Body", parent=styles["Normal"], fontSize=11, leading=16,
                           alignment=0, fontName="Helvetica")
     body_j = ParagraphStyle("BodyJ", parent=body, alignment=4)
+    body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1)
     bold_body = ParagraphStyle("BoldBody", parent=body, fontName="Helvetica-Bold")
     small = ParagraphStyle("Small", parent=body, fontSize=9, leading=13)
@@ -95,26 +96,12 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     story.append(Paragraph(f"<b>{societe}</b>", ParagraphStyle("H", parent=body, fontSize=13, alignment=1, fontName="Helvetica-Bold")))
     story.append(Spacer(1, 24))
 
-    # ── Addressee (left) + Date/lieu (right) on same row ──
-    addressee_text = (
-        "À l'attention de<br/>"
-        "<b>Monsieur Le Directeur</b><br/>"
-        f"De la Banque : {banque_name}"
-    )
-    date_text = lieu_date
-    header_data = [[
-        Paragraph(addressee_text, body),
-        Paragraph(date_text, body_j),
-    ]]
-    header_table = Table(header_data, colWidths=[11 * cm, 6 * cm])
-    header_table.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-    ]))
-    story.append(header_table)
+    # ── Addressee (right) + Date/lieu (right) — stacked vertically ──
+    story.append(Paragraph("À l'attention de", body_r))
+    story.append(Paragraph("<b>Monsieur Le Directeur</b>", body_r))
+    story.append(Paragraph(f"De la Banque : {banque_name}", body_r))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(lieu_date, body_r))
     story.append(Spacer(1, 16))
 
     # ── Subject ──
@@ -239,40 +226,24 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     body = ParagraphStyle("Body", parent=styles["Normal"], fontSize=11, leading=16,
                           alignment=0, fontName="Helvetica")
     body_j = ParagraphStyle("BodyJ", parent=body, alignment=4)
-    bold_body = ParagraphStyle("BoldBody", parent=body, fontName="Helvetica-Bold")
+    body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
+    small = ParagraphStyle("Small", parent=body, fontSize=9, leading=13, alignment=0)
 
     story = []
 
-    # ── Addressee (left) + Date/lieu (right) on same row ──
-    addressee_text = (
-        "À l'attention de<br/>"
-        f"<b>Monsieur le Directeur</b><br/>"
-        f"De la Banque : {banque_name}"
-    )
-    date_text = lieu_date
-    header_data = [[
-        Paragraph(addressee_text, body),
-        Paragraph(date_text, body_j),
-    ]]
-    header_table = Table(header_data, colWidths=[11 * cm, 6 * cm])
-    header_table.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-    ]))
-    story.append(header_table)
-    story.append(Spacer(1, 16))
+    # ── Date & lieu (right) ──
+    story.append(Paragraph(lieu_date, body_r))
+    story.append(Spacer(1, 20))
 
     # ── Subject ──
     story.append(Paragraph("<b>Objet : Demande d'une caution de bonne exécution.</b>", body))
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 12))
 
-    # ── Opening ──
+    # ── Opening greeting ──
     story.append(Paragraph("Monsieur le directeur,", body))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 8))
 
+    # ── Request paragraph ──
     story.append(Paragraph(
         f"Nous Vous Prions de fournir à la <b>{societe}</b> sous notre pleine et entière "
         f"responsabilité à votre égard une caution personnelle et solidaire de "
@@ -282,48 +253,74 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     ))
     story.append(Spacer(1, 10))
 
-    # ── Bank description (BNA text from the template) ──
+    # ── Bank legal identity (detailed, from the Word template) ──
     story.append(Paragraph(
-        f"Nous soussignés, <b>{banque_name}</b>, déclarons par la présente nous constituer "
-        f"caution solidaire et indivisible au profit du bénéficiaire désigné ci-dessous.",
+        f"Nous soussignés, <b>{banque_name}</b>, Société par actions au capital social "
+        f"de 150 000 000 000.00 DA dont le siège social est sis à Alger, "
+        f"08 Bd Ermesto Che Guevara, créée par Ordonnance N° 66.178 du 13 Juin 1966 "
+        f"et Transformée en EPE-SPA par acte notarié du 14.02.1999 enregistrée au niveau "
+        f"du CNRC Alger sous le N° 0012904B00.",
+        body,
+    ))
+    story.append(Spacer(1, 8))
+
+    # ── Bank representative ──
+    story.append(Paragraph(
+        f"Représentée par Mr <b>Directeur P/I</b> de la {banque_name} "
+        f"ayant pouvoirs nécessaires à l'effet de présente.",
         body,
     ))
     story.append(Spacer(1, 10))
 
     # ── Contract details ──
     story.append(Paragraph(
-        f"Connaissance prise du contrat <b>N°{ref_display}</b>, conclu entre : "
-        f"<b>{societe}</b> d'une part et <b>{client_name}</b> d'autre part.",
+        f"Connaissance prise du contrat <b>N°{ref_display}</b>, montant global, "
+        f"conclu entre : <b>{societe}</b> d'une part et <b>{client_name}</b> autre part",
         body,
     ))
     story.append(Spacer(1, 4))
 
-    story.append(Paragraph(f"<b>Ayant pour objet :</b> {objet}", body))
-    story.append(Spacer(1, 8))
-
     story.append(Paragraph(
-        f"Émettons en faveur de <b>{societe}</b> une caution de bonne exécution de "
-        f"<b>{montant_chiffres}</b> ({montant_lettres}) "
-        f"représentant 100% du montant du marché susvisé, qui couvre le risque "
-        f"d'inexécution ou d'exécution incomplète et/ou imparfaite de ses obligations "
-        f"contractuelles.",
+        f"<b>Ayant pour objet :</b> {objet}",
         body,
     ))
     story.append(Spacer(1, 10))
 
-    # ── Legal commitment ──
+    # ── Caution emission ──
     story.append(Paragraph(
-        "Nous paierons, à sa première demande les sommes dont le bénéficiaire sera "
-        "reconnu débiteur au titre du marché et à concurrence de la somme garantie ci-dessus.",
+        f"Emettons en faveur de <b>{societe}</b>",
+        body,
+    ))
+    story.append(Paragraph(
+        f"Une caution de bonne exécution de "
+        f"<b>{montant_chiffres}</b> ({montant_lettres})",
         body,
     ))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph(
-        "Sous réserve de prorogation qui demeure soumise à l'accord préalable de la banque, "
-        "cette caution de bonne exécution est transformée en caution de garantie à la réception "
-        "provisoire et demeure valable jusqu'à l'obtention de la main levée et en tout état de "
-        "cause 01 mois après la date de la réception définitive.",
+        f"Représentant 100% du montant global en hors taxe de la convention susvisée, "
+        f"qui couvre le risque d'inexécution ou exécution incomplète et/ou imparfaite "
+        f"de ses obligations contractuelles.",
+        body,
+    ))
+    story.append(Spacer(1, 10))
+
+    # ── Legal commitments ──
+    story.append(Paragraph(
+        "Nous paierons, à sa première demande les sommes dont "
+        f"<b>{societe}</b> sera reconnu débiteur au titre du marché et à concurrence "
+        "de la somme garantie ci-dessus",
+        body,
+    ))
+    story.append(Spacer(1, 6))
+
+    story.append(Paragraph(
+        f"Sous réserve de prorogation qui demeure soumise à l'accord préalable de la "
+        f"{banque_name}, cette caution de bonne exécution est transformée en caution "
+        f"de garantie à la réception provisoire et demeure valable jusqu'à l'obtention "
+        f"de la main levée et en tout état de cause 01 mois après la date de la réception "
+        f"définitive.",
         body,
     ))
     story.append(Spacer(1, 6))
@@ -352,35 +349,30 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
         story.append(Paragraph(
             f"Conformément à nos accords verbaux, nous vous autorisons à constituer par le "
             f"débit de notre compte N°<b>{numero_compte_bancaire}</b> ouvert sur vos livres "
-            f"une provision de garantie égale à 100% du Montant de la caution dont il s'agit.",
+            f"une provision de garantie égale à <b>100%</b> du Montant de la caution dont il s'agit.",
             body,
         ))
     else:
         story.append(Paragraph(
             "Conformément à nos accords verbaux, nous vous autorisons à constituer par le "
             "débit de notre compte N° ... ouvert sur vos livres une provision de garantie "
-            "égale à 100% du Montant de la caution dont il s'agit.",
+            "égale à <b>100%</b> du Montant de la caution dont il s'agit.",
             body,
         ))
     story.append(Spacer(1, 20))
 
     # ── Closing ──
     story.append(Paragraph(
-        "Veuillez agréer, Monsieur le Directeur, l'expression de nos meilleurs sentiments.",
+        "Veuillez agréer, Monsieur le Directeur l'expression de nos meilleurs sentiments.",
         body,
     ))
     story.append(Spacer(1, 30))
 
-    # ── Signature ──
-    sig_data = [[
-        Paragraph(f"<b>{client_name}</b><br/><font size=9 color='#6B7280'>Cachet et signature du client</font>", body),
-        Paragraph(f"<b>{banque_name}</b><br/><font size=9 color='#6B7280'>Signature et Cachet</font>", body),
-    ]]
-    sig_table = Table(sig_data, colWidths=[8.5 * cm, 8.5 * cm])
-    sig_table.setStyle(TableStyle([
-        ("TOPPADDING", (0, 0), (-1, -1), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 40),
-    ]))
-    story.append(sig_table)
+    # ── Single signature (client only) ──
+    story.append(Paragraph(
+        f"<b>{societe}</b><br/>"
+        f"<font size=9 color='#6B7280'>Cachet et signature du client</font>",
+        body,
+    ))
 
     return story
