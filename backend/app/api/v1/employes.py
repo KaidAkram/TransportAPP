@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -77,15 +77,21 @@ def list_employes(
     docs = db.query(Document).filter(Document.entity_type == "employe", Document.entity_id.in_(employe_ids), Document.archived_at.is_(None)).all()
     docs_by_emp = {e_id: [] for e_id in employe_ids}
     for d in docs:
-      docs_by_emp[d.entity_id].append(d.document_type)
+      docs_by_emp[d.entity_id].append(d)
 
     for e in items:
       emp_docs = docs_by_emp[e.id]
+
+      photo_doc = next((d for d in emp_docs if d.document_type == "Photo"), None)
+      if photo_doc and photo_doc.url_fichier:
+        e.photo = f"/api/v1/documents/{photo_doc.id}/view"
+
+      doc_types = [d.document_type for d in emp_docs]
       required = ["EXTRAIT DE NAISSANCE", "CNI", "JUSTIFICATIF DE RÉSIDENCE", "CARTE CHIFA", "CASIER JUDICIAIRE"]
       if e.type_employe == TypeEmploye.CHAUFFEUR:
         required.append("Permis conduire")
       
-      missing = [req for req in required if req not in emp_docs]
+      missing = [req for req in required if req not in doc_types]
       setattr(e, "dossier_complet", len(missing) == 0)
 
   return EmployeListResponse(
@@ -188,13 +194,38 @@ def get_employe(employe_id: UUID, db: Session = Depends(get_db)):
   )
 
 
+def _generate_matricule(db: Session, type_employe: TypeEmploye) -> str:
+  prefix_map = {
+    TypeEmploye.CHAUFFEUR: "CHF",
+    TypeEmploye.MECANICIEN: "MEC",
+    TypeEmploye.ADMINISTRATIF: "ADM",
+  }
+  prefix = prefix_map.get(type_employe, "EMP")
+  last = (
+    db.query(Employe.matricule)
+    .filter(Employe.matricule.like(f"{prefix}-%"))
+    .order_by(desc(Employe.matricule))
+    .first()
+  )
+  if last and last[0]:
+    try:
+      num = int(last[0].split("-")[1]) + 1
+    except (IndexError, ValueError):
+      num = 1
+  else:
+    num = 1
+  return f"{prefix}-{num:03d}"
+
+
 @router.post("", response_model=EmployeRead, status_code=status.HTTP_201_CREATED, summary="Create Employee", dependencies=[Depends(require_feature("create_chauffeur"))])
 def create_employe(data: EmployeCreate, db: Session = Depends(get_db)):
-  existing = db.query(Employe).filter(Employe.matricule == data.matricule.strip()).first()
+  matricule = data.matricule.strip() if data.matricule else _generate_matricule(db, data.type_employe)
+
+  existing = db.query(Employe).filter(Employe.matricule == matricule).first()
   if existing:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
-      detail=f"Un employé avec le matricule '{data.matricule}'existe déjà.",
+      detail=f"Un employé avec le matricule '{matricule}'existe déjà.",
     )
 
   photo_path = data.photo
@@ -207,7 +238,7 @@ def create_employe(data: EmployeCreate, db: Session = Depends(get_db)):
   if data.type_employe == TypeEmploye.CHAUFFEUR:
     employe = Chauffeur(
       id=uuid4(),
-      matricule=data.matricule.strip(),
+      matricule=matricule,
       nom=data.nom.strip(),
       prenom=data.prenom.strip(),
       photo=photo_path,
@@ -238,7 +269,7 @@ def create_employe(data: EmployeCreate, db: Session = Depends(get_db)):
   else:
     employe = Mecanicien(
       id=uuid4(),
-      matricule=data.matricule.strip(),
+      matricule=matricule,
       nom=data.nom.strip(),
       prenom=data.prenom.strip(),
       photo=photo_path,

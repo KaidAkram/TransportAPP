@@ -12,7 +12,7 @@ import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 
 const employeSchema = z.object({
-  matricule: z.string().min(3, "Matricule requis (ex: CH-002, MEC-003)"),
+  matricule: z.string().optional(),
   nom: z.string().min(2, "Le nom est requis"),
   prenom: z.string().min(2, "Le prénom est requis"),
   type_employe: z.enum(["CHAUFFEUR", "MECANICIEN", "ADMINISTRATIF"]),
@@ -91,7 +91,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
 
   useEffect(() => {
     if (isOpen) {
-      setValue("matricule", "EMP-" + Math.floor(1000 + Math.random() * 9000).toString());
+      setValue("matricule", "");
     }
   }, [isOpen, setValue]);
 
@@ -115,6 +115,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
 
       const payload = {
         ...data,
+        matricule: data.matricule?.trim() || undefined,
         photo: photoUrl,
         date_naissance: data.date_naissance || null,
         date_embauche: data.date_embauche || null,
@@ -232,11 +233,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={glassLabel}>
-                Matricule RH <span className="text-rose-400">*</span>
+                Matricule RH
               </label>
               <input
                 {...register("matricule")}
-                placeholder={selectedType === "CHAUFFEUR" ? "ex: CH-005" : "ex: MEC-004"}
+                placeholder={selectedType === "CHAUFFEUR" ? "Auto: CHF-XXX" : selectedType === "MECANICIEN" ? "Auto: MEC-XXX" : "Auto: ADM-XXX"}
                 className={glassInputMono}
               />
               {errors.matricule && <p className="text-[11px] text-rose-400 mt-1.5">{errors.matricule.message}</p>}

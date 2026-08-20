@@ -62,7 +62,7 @@ class MechanicInterventionSummary(BaseModel):
 # Base Employe Schemas
 # ----------------------------------------------------
 class EmployeBase(BaseModel):
-  matricule: str = Field(..., description="Matricule unique de l'employé (ex: CH-001, MEC-001)")
+  matricule: Optional[str] = Field(None, description="Matricule unique de l'employé — auto-généré si non fourni")
   nom: str = Field(..., description="Nom de famille")
   prenom: str = Field(..., description="Prénom")
   photo: Optional[str] = Field(None, description="URL de la photo de profil / avatar")
