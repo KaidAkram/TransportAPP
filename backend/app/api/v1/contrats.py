@@ -299,16 +299,33 @@ def update_contrat(contrat_id: UUID, data: ContratUpdate, db: Session = Depends(
   )
 
 
-@router.delete("/{contrat_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete / Archive Contract", dependencies=[Depends(require_feature("edit_contrat"))])
-def delete_contrat(contrat_id: UUID, db: Session = Depends(get_db)):
+@router.post("/{contrat_id}/archive", status_code=status.HTTP_200_OK, summary="Archive Contract", dependencies=[Depends(require_feature("edit_contrat"))])
+def archive_contrat(contrat_id: UUID, db: Session = Depends(get_db)):
   contrat = db.query(Contrat).filter(Contrat.id == contrat_id).first()
   if not contrat:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contrat introuvable.")
+  if contrat.archived_at:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ce contrat est déjà archivé.")
 
   contrat.archived_at = datetime.now(timezone.utc)
   contrat.statut = StatutContrat.EXPIRE
   db.commit()
-  return None
+  return {"message": f"Contrat {contrat.reference} archivé avec succès."}
+
+
+@router.post("/{contrat_id}/unarchive", status_code=status.HTTP_200_OK, summary="Unarchive Contract", dependencies=[Depends(require_feature("edit_contrat"))])
+def unarchive_contrat(contrat_id: UUID, db: Session = Depends(get_db)):
+  contrat = db.query(Contrat).filter(Contrat.id == contrat_id).first()
+  if not contrat:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contrat introuvable.")
+  if not contrat.archived_at:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ce contrat n'est pas archivé.")
+
+  contrat.archived_at = None
+  days_left, _ = calculate_contract_expiration(contrat.date_fin)
+  contrat.statut = StatutContrat.ACTIF if days_left >= 0 else StatutContrat.EXPIRE
+  db.commit()
+  return {"message": f"Contrat {contrat.reference} restauré avec succès."}
 
 
 # ============================================
