@@ -10,7 +10,7 @@ from app.api.v1.router import api_v1_router
 from app.api.v1.health import router as health_router
 
 ASSETS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets")
+    os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "assets")
 )
 
 
