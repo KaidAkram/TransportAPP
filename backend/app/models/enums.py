@@ -98,6 +98,14 @@ class ModePaiement(str, enum.Enum):
   CARTE = "CARTE"
 
 
+class ModeReglementReception(str, enum.Enum):
+  ESPECES = "ESPECES"
+  CHEQUE = "CHEQUE"
+  VIREMENT = "VIREMENT"
+  CREDIT = "CREDIT"
+  CCP = "CCP"
+
+
 class StatutPaiement(str, enum.Enum):
   EN_ATTENTE = "EN_ATTENTE"
   VALIDE = "VALIDE"

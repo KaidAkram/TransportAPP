@@ -149,6 +149,13 @@ export default function StockPage() {
             <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Actualiser
           </button>
+          <Link
+            href="/stock/receptions"
+            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors border border-white/10"
+          >
+            <History className="h-4 w-4 text-[var(--color-electric-violet)]" />
+            Historique
+          </Link>
           <button
             onClick={() => handleOpenEntry()}
             className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors border border-emerald-500/30"
@@ -408,6 +415,7 @@ export default function StockPage() {
         onClose={() => setIsEntryModalOpen(false)}
         onSuccess={() => fetchStock()}
         defaultPiece={selectedPiece}
+        piecesList={pieces}
       />
       {selectedPiece && (
         <InventoryAuditModal

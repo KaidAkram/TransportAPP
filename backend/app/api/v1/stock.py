@@ -1,17 +1,20 @@
 from datetime import datetime, timezone, date as dt_date
 import math
+import os
 from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import FileResponse
 from sqlalchemy import or_, desc
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.core.security import require_feature
-from app.models.stock import Piece, MouvementStock
+from app.models.stock import Piece, MouvementStock, Reception, ReceptionLigne
 from app.models.partenaire import Partenaire
 from app.models.intervention import Intervention
+from app.models.settings import SystemSettings
 from app.models.enums import TypeMouvement
 from app.schemas.stock import (
   PieceCreate,
@@ -24,7 +27,13 @@ from app.schemas.stock import (
   StockEntryCreate,
   StockExitCreate,
   InventoryAuditCreate,
+  ReceptionCreate,
+  ReceptionRead,
+  ReceptionDetail,
+  ReceptionListResponse,
 )
+from app.api.v1.settings import get_or_create_settings
+from app.services.pdf_stock_service import generate_reception_pdf
 
 router = APIRouter(prefix="/stock", tags=["Module 5 — Gestion du Stock & Pièces"])
 
@@ -470,3 +479,240 @@ def list_mouvements(
     per_page=per_page,
     total_pages=total_pages,
   )
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  RECEPTIONS — Supplier Delivery Records
+# ═══════════════════════════════════════════════════════════════════
+
+@router.post("/receptions", response_model=ReceptionRead, status_code=status.HTTP_201_CREATED,
+             summary="Create Reception (Bon de Réception)", dependencies=[Depends(require_feature("create_stock_entry"))])
+def create_reception(data: ReceptionCreate, db: Session = Depends(get_db)):
+  numero = f"REC-{datetime.now().year}-{uuid4().hex[:6].upper()}"
+
+  total = 0.0
+  for ligne in data.lignes:
+    total += ligne.quantite * ligne.prix_unitaire
+
+  reception = Reception(
+    id=uuid4(),
+    numero=numero,
+    fournisseur_id=data.fournisseur_id,
+    date=data.date,
+    lieu=data.lieu,
+    montant_total=total,
+    mode_reglement=data.mode_reglement,
+    motif=data.motif,
+    reference_document=data.reference_document,
+  )
+  db.add(reception)
+  db.flush()
+
+  for ligne_data in data.lignes:
+    piece = db.query(Piece).filter(Piece.id == ligne_data.piece_id).first()
+    if not piece:
+      db.rollback()
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Pièce {ligne_data.piece_id} introuvable.")
+
+    montant_ligne = ligne_data.quantite * ligne_data.prix_unitaire
+
+    ligne = ReceptionLigne(
+      id=uuid4(),
+      reception_id=reception.id,
+      piece_id=ligne_data.piece_id,
+      quantite=ligne_data.quantite,
+      prix_unitaire=ligne_data.prix_unitaire,
+      montant_ligne=montant_ligne,
+    )
+    db.add(ligne)
+
+    piece.stock_actuel += ligne_data.quantite
+
+    mv = MouvementStock(
+      id=uuid4(),
+      piece_id=ligne_data.piece_id,
+      type=TypeMouvement.ENTREE,
+      quantite=ligne_data.quantite,
+      date=data.date,
+      motif=data.motif or f"Réception {numero}",
+      fournisseur_id=data.fournisseur_id,
+      reference_document=data.reference_document or numero,
+      reception_id=reception.id,
+    )
+    db.add(mv)
+
+  db.commit()
+  db.refresh(reception)
+
+  try:
+    settings = get_or_create_settings(db)
+    lignes_full = (
+      db.query(ReceptionLigne)
+      .options(joinedload(ReceptionLigne.piece))
+      .filter(ReceptionLigne.reception_id == reception.id)
+      .all()
+    )
+    pdf_url = generate_reception_pdf(reception, lignes_full, settings)
+    reception.url_pdf = pdf_url
+    db.commit()
+    db.refresh(reception)
+  except Exception as e:
+    print(f"[PDF] Failed to generate reception PDF: {e}")
+
+  fournisseur_nom = reception.fournisseur.nom_commercial if reception.fournisseur else None
+  lignes_read = []
+  for l in reception.lignes:
+    lignes_read.append({
+      "id": l.id,
+      "piece_id": l.piece_id,
+      "piece_reference": l.piece.reference if l.piece else None,
+      "piece_designation": l.piece.designation if l.piece else None,
+      "quantite": l.quantite,
+      "prix_unitaire": l.prix_unitaire,
+      "montant_ligne": l.montant_ligne,
+    })
+
+  return ReceptionRead(
+    id=reception.id,
+    numero=reception.numero,
+    fournisseur_id=reception.fournisseur_id,
+    fournisseur_nom=fournisseur_nom,
+    date=reception.date,
+    lieu=reception.lieu,
+    montant_total=reception.montant_total,
+    mode_reglement=reception.mode_reglement,
+    motif=reception.motif,
+    reference_document=reception.reference_document,
+    url_pdf=reception.url_pdf,
+    created_at=reception.created_at,
+    updated_at=reception.updated_at,
+  )
+
+
+@router.get("/receptions", response_model=ReceptionListResponse, summary="List Receptions",
+            dependencies=[Depends(require_feature("view_stock"))])
+def list_receptions(
+  search: Optional[str] = Query(None),
+  fournisseur_id: Optional[UUID] = Query(None),
+  date_from: Optional[dt_date] = Query(None),
+  date_to: Optional[dt_date] = Query(None),
+  page: int = Query(1, ge=1),
+  per_page: int = Query(10, ge=1, le=100),
+  db: Session = Depends(get_db),
+):
+  query = db.query(Reception)
+
+  if search:
+    pattern = f"%{search}%"
+    query = query.join(Partenaire, Reception.fournisseur_id == Partenaire.id, isouter=True).filter(
+      or_(Reception.numero.ilike(pattern), Reception.reference_document.ilike(pattern), Partenaire.nom_commercial.ilike(pattern))
+    )
+  if fournisseur_id:
+    query = query.filter(Reception.fournisseur_id == fournisseur_id)
+  if date_from:
+    query = query.filter(Reception.date >= date_from)
+  if date_to:
+    query = query.filter(Reception.date <= date_to)
+
+  total = query.count()
+  total_pages = math.ceil(total / per_page) if total > 0 else 1
+
+  receptions = query.order_by(desc(Reception.date), desc(Reception.created_at)).offset((page - 1) * per_page).limit(per_page).all()
+
+  items = []
+  for r in receptions:
+    items.append(ReceptionRead(
+      id=r.id,
+      numero=r.numero,
+      fournisseur_id=r.fournisseur_id,
+      fournisseur_nom=r.fournisseur.nom_commercial if r.fournisseur else None,
+      date=r.date,
+      lieu=r.lieu,
+      montant_total=r.montant_total,
+      mode_reglement=r.mode_reglement,
+      motif=r.motif,
+      reference_document=r.reference_document,
+      url_pdf=r.url_pdf,
+      created_at=r.created_at,
+      updated_at=r.updated_at,
+    ))
+
+  return ReceptionListResponse(items=items, total=total, page=page, per_page=per_page, total_pages=total_pages)
+
+
+@router.get("/receptions/{reception_id}", response_model=ReceptionDetail, summary="Get Reception Detail",
+            dependencies=[Depends(require_feature("view_stock"))])
+def get_reception(reception_id: UUID, db: Session = Depends(get_db)):
+  r = db.query(Reception).filter(Reception.id == reception_id).first()
+  if not r:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Réception introuvable.")
+
+  lignes_read = []
+  for l in r.lignes:
+    lignes_read.append({
+      "id": l.id,
+      "piece_id": l.piece_id,
+      "piece_reference": l.piece.reference if l.piece else None,
+      "piece_designation": l.piece.designation if l.piece else None,
+      "quantite": l.quantite,
+      "prix_unitaire": l.prix_unitaire,
+      "montant_ligne": l.montant_ligne,
+    })
+
+  return ReceptionDetail(
+    id=r.id,
+    numero=r.numero,
+    fournisseur_id=r.fournisseur_id,
+    fournisseur_nom=r.fournisseur.nom_commercial if r.fournisseur else None,
+    date=r.date,
+    lieu=r.lieu,
+    montant_total=r.montant_total,
+    mode_reglement=r.mode_reglement,
+    motif=r.motif,
+    reference_document=r.reference_document,
+    url_pdf=r.url_pdf,
+    created_at=r.created_at,
+    updated_at=r.updated_at,
+    lignes=lignes_read,
+  )
+
+
+@router.get("/receptions/{reception_id}/pdf", summary="Download Reception PDF")
+def download_reception_pdf(reception_id: UUID, db: Session = Depends(get_db)):
+  reception = db.query(Reception).filter(Reception.id == reception_id).first()
+  if not reception:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Réception introuvable.")
+
+  sanitized = reception.numero.replace("/", "_").replace("\\", "_")
+  filename = f"reception_{sanitized}.pdf"
+  filepath = os.path.join(
+    os.path.abspath(
+      os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "frontend", "public", "assets", "documents", "receptions")
+    ),
+    filename,
+  )
+
+  if os.path.exists(filepath):
+    return FileResponse(filepath, media_type="application/pdf", filename=filename, content_disposition_type="inline")
+
+  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Le fichier PDF n'a pas été généré.")
+
+
+@router.delete("/receptions/{reception_id}", status_code=status.HTTP_204_NO_CONTENT,
+               summary="Delete Reception", dependencies=[Depends(require_feature("create_stock_entry"))])
+def delete_reception(reception_id: UUID, db: Session = Depends(get_db)):
+  reception = db.query(Reception).filter(Reception.id == reception_id).first()
+  if not reception:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Réception introuvable.")
+
+  for l in reception.lignes:
+    piece = db.query(Piece).filter(Piece.id == l.piece_id).first()
+    if piece:
+      piece.stock_actuel = max(0, piece.stock_actuel - l.quantite)
+
+  for m in reception.mouvements:
+    db.delete(m)
+
+  db.delete(reception)
+  db.commit()
+  return None

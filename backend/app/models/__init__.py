@@ -16,12 +16,13 @@ from app.models.enums import (
   ModePaiement,
   StatutPaiement,
   CategorieDepenseVehicule,
+  ModeReglementReception,
 )
 from app.models.document import Document
 from app.models.employe import Employe, Chauffeur, Mecanicien, Permis
 from app.models.partenaire import Partenaire, Client, Fournisseur, Contact, CRMNote
 from app.models.contrat import Contrat, Avenant, Caution
-from app.models.stock import Piece, MouvementStock
+from app.models.stock import Piece, MouvementStock, Reception, ReceptionLigne
 from app.models.vehicule import Vehicule, Constat
 from app.models.intervention import Intervention
 from app.models.finance import Devis, DevisLigne, Facture, FactureLigne, Paiement, DepenseVehicule
@@ -48,6 +49,7 @@ __all__ = [
   "ModePaiement",
   "StatutPaiement",
   "CategorieDepenseVehicule",
+  "ModeReglementReception",
   # Models
   "Document",
   "Employe",
@@ -64,6 +66,8 @@ __all__ = [
   "Caution",
   "Piece",
   "MouvementStock",
+  "Reception",
+  "ReceptionLigne",
   "Vehicule",
   "Constat",
   "Intervention",

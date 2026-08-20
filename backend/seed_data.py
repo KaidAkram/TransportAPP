@@ -15,7 +15,7 @@ from app.models import (
     Employe, Vehicule, Chauffeur, Mecanicien, Permis,
     Partenaire, Client, Fournisseur, Contact, CRMNote,
     Contrat, Avenant, Caution,
-    Piece, MouvementStock, Intervention,
+    Piece, MouvementStock, Reception, ReceptionLigne, Intervention,
     Devis, DevisLigne, Facture, FactureLigne, Paiement,
     DepenseVehicule, Constat, Document,
 )
@@ -451,6 +451,41 @@ def seed_database(db_url: str):
             db.add(Document(id=_u(),nom=f"Rapport {iv.numero}",document_type="Rapport d'intervention",
                 url_fichier="/assets/documents/sample.pdf",mime_type="application/pdf",
                 entity_type="intervention",entity_id=iv.id))
+        db.flush()
+
+        # ── RECEPTIONS ──────────────────────────────────────────
+        modes = list(ModeReglementReception)
+        for idx in range(5):
+            f = random.choice(fournisseurs[:5])
+            qty1 = random.randint(5, 30)
+            qty2 = random.randint(3, 15)
+            pu1 = round(random.uniform(15000, 120000), 2)
+            pu2 = round(random.uniform(15000, 120000), 2)
+            p1, p2 = random.sample(pieces, 2)
+            montant = round(qty1 * pu1 + qty2 * pu2, 2)
+            rec = Reception(
+                id=_u(),
+                numero=f"REC-2026-{idx+1:04d}",
+                fournisseur_id=f.id,
+                date=_dp(random.randint(5, 60)),
+                lieu=f"Entrepôt {f.nom or 'Principal'}",
+                montant_total=montant,
+                mode_reglement=random.choice(modes).name,
+                motif=random.choice([
+                    "Réapprovisionnement trimestriel",
+                    "Commande spéciale pièces détachées",
+                    "Remplacement stocks usure",
+                    "Commande urgente",
+                    None,
+                ]),
+                reference_document=f"BC-{random.randint(1000,9999)}",
+                url_pdf=None,
+            )
+            db.add(rec)
+            db.add(ReceptionLigne(id=_u(), reception_id=rec.id, piece_id=p1.id,
+                quantite=qty1, prix_unitaire=pu1, montant_ligne=round(qty1 * pu1, 2)))
+            db.add(ReceptionLigne(id=_u(), reception_id=rec.id, piece_id=p2.id,
+                quantite=qty2, prix_unitaire=pu2, montant_ligne=round(qty2 * pu2, 2)))
         db.flush()
 
         db.commit()

@@ -2,7 +2,7 @@ from datetime import date as dt_date, datetime
 from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
-from app.models.enums import TypeMouvement
+from app.models.enums import TypeMouvement, ModeReglementReception
 
 
 # ----------------------------------------------------
@@ -130,3 +130,64 @@ class PieceListResponse(BaseModel):
   total_stock_normal: int = 0
   total_stock_faible: int = 0
   total_rupture: int = 0
+
+
+# ----------------------------------------------------
+# Reception Schemas
+# ----------------------------------------------------
+class ReceptionLigneCreate(BaseModel):
+  piece_id: UUID = Field(..., description="ID de la pièce")
+  quantite: int = Field(..., gt=0, description="Quantité reçue (>0)")
+  prix_unitaire: float = Field(..., gt=0, description="Prix unitaire d'achat")
+
+
+class ReceptionLigneRead(BaseModel):
+  id: UUID
+  piece_id: UUID
+  piece_reference: Optional[str] = None
+  piece_designation: Optional[str] = None
+  quantite: int
+  prix_unitaire: float
+  montant_ligne: float
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class ReceptionCreate(BaseModel):
+  fournisseur_id: Optional[UUID] = Field(None, description="Fournisseur ayant livré")
+  date: dt_date = Field(default_factory=dt_date.today, description="Date de réception")
+  lieu: Optional[str] = Field(None, description="Lieu de réception")
+  mode_reglement: ModeReglementReception = Field(..., description="Mode de règlement")
+  motif: Optional[str] = Field(None, description="Motif / remarque")
+  reference_document: Optional[str] = Field(None, description="N° Bon de Livraison (BL)")
+  lignes: List[ReceptionLigneCreate] = Field(..., min_length=1, description="Articles reçus")
+
+
+class ReceptionRead(BaseModel):
+  id: UUID
+  numero: str
+  fournisseur_id: Optional[UUID] = None
+  fournisseur_nom: Optional[str] = None
+  date: dt_date
+  lieu: Optional[str] = None
+  montant_total: float
+  mode_reglement: ModeReglementReception
+  motif: Optional[str] = None
+  reference_document: Optional[str] = None
+  url_pdf: Optional[str] = None
+  created_at: datetime
+  updated_at: datetime
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class ReceptionDetail(ReceptionRead):
+  lignes: List[ReceptionLigneRead] = []
+
+
+class ReceptionListResponse(BaseModel):
+  items: List[ReceptionRead]
+  total: int
+  page: int
+  per_page: int
+  total_pages: int

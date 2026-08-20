@@ -63,3 +63,43 @@ export interface MouvementStockListResponse {
  per_page: number;
  total_pages: number;
 }
+
+export type ModeReglementReception = "ESPECES" | "CHEQUE" | "VIREMENT" | "CREDIT" | "CCP";
+
+export interface ReceptionLigne {
+ id: string;
+ piece_id: string;
+ piece_reference?: string | null;
+ piece_designation?: string | null;
+ quantite: number;
+ prix_unitaire: number;
+ montant_ligne: number;
+}
+
+export interface Reception {
+ id: string;
+ numero: string;
+ fournisseur_id?: string | null;
+ fournisseur_nom?: string | null;
+ date: string;
+ lieu?: string | null;
+ montant_total: number;
+ mode_reglement: ModeReglementReception;
+ motif?: string | null;
+ reference_document?: string | null;
+ url_pdf?: string | null;
+ created_at: string;
+ updated_at: string;
+}
+
+export interface ReceptionDetail extends Reception {
+ lignes: ReceptionLigne[];
+}
+
+export interface ReceptionListResponse {
+ items: Reception[];
+ total: number;
+ page: number;
+ per_page: number;
+ total_pages: number;
+}
