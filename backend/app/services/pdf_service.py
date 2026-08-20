@@ -58,14 +58,16 @@ def generate_caution_pdf(
         story = _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                                        client_address, objet, date_emission, date_echeance,
                                        ref_contrat, banque_name, lieu_demande,
-                                       client_societe_nom, company_name, company_nif,
-                                       company_nis, company_rc, company_ai)
+                                       numero_compte_bancaire, client_societe_nom,
+                                       company_name, company_nif, company_nis,
+                                       company_rc, company_ai)
     else:
         story = _build_soumission(doc, caution_number, amount, devise, client_name,
                                   client_address, objet, date_emission, date_echeance,
                                   ref_contrat, banque_name, lieu_soumission,
-                                  client_societe_nom, company_name, company_nif,
-                                  company_nis, company_rc, company_ai)
+                                  numero_compte_bancaire, client_societe_nom,
+                                  company_name, company_nif, company_nis,
+                                  company_rc, company_ai)
 
     doc.build(story)
     return f"/assets/documents/cautions/{filename}"
@@ -77,14 +79,16 @@ def generate_caution_pdf(
 def _build_soumission(doc, caution_number, amount, devise, client_name,
                       client_address, objet, date_emission, date_echeance,
                       ref_contrat, banque_name, lieu_soumission,
-                      client_societe_nom, company_name, company_nif,
-                      company_nis, company_rc, company_ai):
+                      numero_compte_bancaire, client_societe_nom,
+                      company_name, company_nif, company_nis,
+                      company_rc, company_ai):
     styles = getSampleStyleSheet()
     lieu_s = lieu_soumission or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
     montant_chiffres = f"{amount:,.2f} {devise}".replace(",", " ")
     montant_lettres = _amount_in_letters(amount, devise)
     ref_display = ref_contrat or caution_number or "..."
+    num_compte = numero_compte_bancaire or "........"
 
     ent = company_name or "Notre Société"
     nif = company_nif or "..."
@@ -109,7 +113,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
 
     # ── Addressee + Date (right-aligned) ──
     story.append(Paragraph("À l'attention de", body_r))
-    story.append(Paragraph("<b>Monsieur Le Directeur</b>", body_r))
+    story.append(Paragraph("<b>Monsieur le Directeur</b>", body_r))
     story.append(Paragraph(f"De la Banque : {banque_name}", body_r))
     story.append(Spacer(1, 8))
     story.append(Paragraph(f"{lieu_s}, le {date_str}", body_r))
@@ -120,33 +124,43 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     story.append(Spacer(1, 12))
 
     # ── Body ──
+    story.append(Paragraph("Monsieur le Directeur,", body))
+    story.append(Spacer(1, 8))
+
     story.append(Paragraph(
         "Nous avons l'honneur de vous demander de bien vouloir procéder à l'émission, "
-        "en notre faveur, d'une <b>caution de soumission</b> destinée à être remise au "
-        "bénéficiaire ci-après désigné, dans le cadre de la participation à l'appel "
+        "pour notre compte et au profit du bénéficiaire ci-après désigné, d'une "
+        "<b>caution de soumission</b>, dans le cadre de notre participation à l'appel "
         "d'offres suivant :",
         body,
     ))
     story.append(Spacer(1, 12))
 
     story.append(Paragraph(f"<b>Bénéficiaire :</b> {client_societe_nom or client_name}", body))
-    story.append(Paragraph(f"<b>Référence du marché / appel d'offres :</b> {ref_display}", body))
-    story.append(Paragraph(f"<b>Objet du marché / appel d'offres :</b> {objet}", body))
+    story.append(Paragraph(f"<b>Référence de l'appel d'offres :</b> {ref_display}", body))
+    story.append(Paragraph(f"<b>Objet de l'appel d'offres :</b> {objet}", body))
     story.append(Paragraph(f"<b>Montant de la caution :</b> {montant_chiffres} ({montant_lettres})", body))
     story.append(Spacer(1, 10))
 
     story.append(Paragraph(
         "Nous vous prions de bien vouloir établir ladite caution conformément aux "
-        "conditions et exigences prévues dans le dossier de consultation / cahier des "
+        "conditions et exigences prévues dans le dossier d'appel d'offres / cahier des "
         "charges concerné.",
         body,
     ))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph(
+        f"La présente demande est effectuée sur la base de notre compte bancaire "
+        f"n° <b>{num_compte}</b>, ouvert auprès de votre établissement.",
+        body,
+    ))
+    story.append(Spacer(1, 6))
+
+    story.append(Paragraph(
         "À cet effet, nous nous engageons à respecter l'ensemble des conditions "
-        "applicables à cette opération et à vous fournir, le cas échéant, toute pièce "
-        "ou information complémentaire nécessaire à l'établissement de la caution.",
+        "applicables à cette opération et à vous fournir toute pièce "
+        "ou information complémentaire nécessaire à l'établissement de ladite caution.",
         body,
     ))
     story.append(Spacer(1, 6))
@@ -181,14 +195,16 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
 def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            client_address, objet, date_emission, date_echeance,
                            ref_contrat, banque_name, lieu_demande,
-                           client_societe_nom, company_name, company_nif,
-                           company_nis, company_rc, company_ai):
+                           numero_compte_bancaire, client_societe_nom,
+                           company_name, company_nif, company_nis,
+                           company_rc, company_ai):
     styles = getSampleStyleSheet()
     lieu_d = lieu_demande or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
     montant_chiffres = f"{amount:,.2f} {devise}".replace(",", " ")
     montant_lettres = _amount_in_letters(amount, devise)
     ref_display = ref_contrat or caution_number or "..."
+    num_compte = numero_compte_bancaire or "........"
 
     ent = company_name or "Notre Société"
     nif = company_nif or "..."
@@ -213,7 +229,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
 
     # ── Addressee + Date (right-aligned) ──
     story.append(Paragraph("À l'attention de", body_r))
-    story.append(Paragraph("<b>Monsieur Le Directeur</b>", body_r))
+    story.append(Paragraph("<b>Monsieur le Directeur</b>", body_r))
     story.append(Paragraph(f"De la Banque : {banque_name}", body_r))
     story.append(Spacer(1, 8))
     story.append(Paragraph(f"{lieu_d}, le {date_str}", body_r))
@@ -224,39 +240,52 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     story.append(Spacer(1, 12))
 
     # ── Body ──
+    story.append(Paragraph("Monsieur le Directeur,", body))
+    story.append(Spacer(1, 8))
+
     story.append(Paragraph(
         "Nous avons l'honneur de vous demander de bien vouloir procéder à l'émission, "
-        "en notre faveur, d'une <b>caution de bonne exécution</b>, destinée à garantir "
-        "la bonne exécution de nos obligations contractuelles au titre du marché suivant :",
+        "pour notre compte et au profit du bénéficiaire ci-après désigné, d'une "
+        "<b>caution de bonne exécution</b>, destinée à garantir la bonne exécution de "
+        "nos obligations contractuelles dans le cadre du marché suivant :",
         body,
     ))
     story.append(Spacer(1, 12))
 
     story.append(Paragraph(f"<b>Bénéficiaire :</b> {client_societe_nom or client_name}", body))
-    story.append(Paragraph(f"<b>Référence du marché / contrat :</b> {ref_display}", body))
-    story.append(Paragraph(f"<b>Objet du marché / contrat :</b> {objet}", body))
-    story.append(Paragraph(f"<b>Montant du marché :</b> {montant_chiffres} ({montant_lettres})", body))
+    story.append(Paragraph(f"<b>Référence du contrat :</b> {ref_display}", body))
+    story.append(Paragraph(f"<b>Objet du contrat :</b> {objet}", body))
+    story.append(Paragraph(f"<b>Montant du contrat :</b> {montant_chiffres} ({montant_lettres})", body))
     story.append(Paragraph(f"<b>Montant de la caution :</b> {montant_chiffres} ({montant_lettres})", body))
     story.append(Spacer(1, 10))
 
     story.append(Paragraph(
         "Nous vous prions de bien vouloir établir ladite caution conformément aux "
-        "dispositions du contrat concerné et aux exigences du bénéficiaire.",
+        "clauses et exigences prévues dans le contrat concerné ainsi qu'aux conditions "
+        "applicables à ce type de garantie bancaire.",
         body,
     ))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph(
-        "Nous nous engageons à vous fournir l'ensemble des documents et informations "
-        "nécessaires à l'établissement de cette garantie, ainsi qu'à accomplir toutes "
-        "les formalités requises à cet effet.",
+        f"La présente demande est effectuée sur la base de notre compte bancaire "
+        f"n° <b>{num_compte}</b>, ouvert auprès de votre établissement.",
+        body,
+    ))
+    story.append(Spacer(1, 6))
+
+    story.append(Paragraph(
+        "À cet effet, nous nous engageons à respecter l'ensemble des conditions "
+        "applicables à cette opération et à vous fournir toute pièce "
+        "ou information complémentaire nécessaire à l'établissement de ladite caution.",
         body,
     ))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph(
         "Nous vous remercions de bien vouloir donner suite à la présente demande dans "
-        "les meilleurs délais.",
+        "les meilleurs délais et de nous informer de la disponibilité de la caution pour "
+        "retrait.",
         body,
     ))
     story.append(Spacer(1, 6))
