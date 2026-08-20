@@ -259,6 +259,8 @@ def seed_database(db_url: str):
 
         # ── Generate PDFs for cautions ──
         from app.services.pdf_service import generate_caution_pdf
+        from app.models.settings import SystemSettings
+        settings = db.query(SystemSettings).filter(SystemSettings.singleton_id == "global").first()
         for c in cautions:
             try:
                 client_nom = c.client.nom_commercial if c.client else "Client"
@@ -281,6 +283,11 @@ def seed_database(db_url: str):
                     numero_compte_bancaire=c.numero_compte_bancaire,
                     societe_nom=c.societe_nom,
                     client_societe_nom=c.client_societe_nom,
+                    company_name=settings.company_name if settings else None,
+                    company_nif=settings.company_nif if settings else None,
+                    company_nis=settings.company_nis if settings else None,
+                    company_rc=settings.company_rc if settings else None,
+                    company_ai=settings.company_ai if settings else None,
                 )
                 c.url_caution_pdf = f"/api/v1/cautions/{c.id}/pdf"
             except Exception as e:

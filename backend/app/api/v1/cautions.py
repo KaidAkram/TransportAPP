@@ -25,6 +25,7 @@ from app.schemas.caution import (
 from app.schemas.document import DocumentSummary
 from app.services.pdf_service import generate_caution_pdf
 from app.services.document_service import compute_validity_status
+from app.models.settings import SystemSettings
 
 router = APIRouter(prefix="/cautions", tags=["Module 4 — Gestion des Cautions Bancaires"])
 
@@ -296,6 +297,8 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
   client_adresse = caution.client.adresse if caution.client else "Algérie"
   ref_contrat = caution.contrat.reference if caution.contrat else caution.reference_numero
 
+  settings = db.query(SystemSettings).filter(SystemSettings.singleton_id == "global").first()
+
   pdf_url = generate_caution_pdf(
     caution_number=caution.numero,
     caution_type=caution.type.value if hasattr(caution.type, "value") else str(caution.type),
@@ -313,6 +316,11 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     numero_compte_bancaire=caution.numero_compte_bancaire,
     societe_nom=caution.societe_nom,
     client_societe_nom=caution.client_societe_nom,
+    company_name=settings.company_name if settings else None,
+    company_nif=settings.company_nif if settings else None,
+    company_nis=settings.company_nis if settings else None,
+    company_rc=settings.company_rc if settings else None,
+    company_ai=settings.company_ai if settings else None,
   )
 
   serve_url = f"/api/v1/cautions/{caution_id}/pdf"
