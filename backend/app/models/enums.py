@@ -74,20 +74,10 @@ class TypeMouvement(str, enum.Enum):
   INVENTAIRE = "INVENTAIRE"
 
 
-# Phase 2 Enums: Financials, Missions & Expenses
-class StatutDevis(str, enum.Enum):
-  BROUILLON = "BROUILLON"
-  ENVOYE = "ENVOYE"
-  ACCEPTE = "ACCEPTE"
-  REFUSE = "REFUSE"
-  EXPIRE = "EXPIRE"
-
-
 class StatutFacture(str, enum.Enum):
   EN_ATTENTE = "EN_ATTENTE"
-  PARTIEL = "PARTIEL"
-  PAYE = "PAYE"
-  RETARD = "RETARD"
+  PAYEE = "PAYEE"
+  EN_RETARD = "EN_RETARD"
   ANNULEE = "ANNULEE"
 
 
@@ -104,12 +94,6 @@ class ModeReglementReception(str, enum.Enum):
   VIREMENT = "VIREMENT"
   CREDIT = "CREDIT"
   CCP = "CCP"
-
-
-class StatutPaiement(str, enum.Enum):
-  EN_ATTENTE = "EN_ATTENTE"
-  VALIDE = "VALIDE"
-  REJETE = "REJETE"
 
 
 class CategorieDepenseVehicule(str, enum.Enum):

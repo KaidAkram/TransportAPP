@@ -26,9 +26,9 @@ def db_stats():
   try:
     tables = [
       "vehicules", "employes", "partenaires", "contrats", "cautions",
-      "pieces", "interventions", "devis", "factures", "documents",
+      "pieces", "interventions", "factures", "documents",
       "depenses_vehicules", "constats", "contacts", "crm_notes",
-      "mouvements_stock", "paiements", "avenants", "permis",
+      "mouvements_stock", "receptions", "avenants", "permis",
     ]
     counts = {}
     for t in tables:

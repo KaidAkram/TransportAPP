@@ -15,7 +15,7 @@ from app.models.contrat import Contrat, Caution
 from app.models.stock import Piece, MouvementStock
 from app.models.intervention import Intervention
 from app.models.document import Document
-from app.models.finance import Facture, Devis, DepenseVehicule
+from app.models.finance import Facture, DepenseVehicule
 from app.models.enums import (
   StatutVehicule,
   StatutEmploye,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, CreditCard, Calendar, FileText, Building, Link } from "lucide-react";
+import { X, CreditCard, Calendar, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,29 +9,24 @@ import { z } from "zod";
 
 import { Facture } from "@/types/finance";
 import { api } from "@/lib/api";
-import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
-const paiementSchema = z.object({
-  date: z.string().min(1, "La date est requise"),
-  montant: z.number().positive("Le montant doit être supérieur à 0"),
-  mode: z.enum(["ESPECE", "VIREMENT", "CHEQUE", "CARTE"]),
-  reference: z.string().min(1, "La référence est requise"),
-  banque: z.string().optional(),
-  notes: z.string().optional(),
+const encaissementSchema = z.object({
+  mode_reglement: z.enum(["ESPECE", "VIREMENT", "CHEQUE", "CARTE"]),
+  date_reglement: z.string().min(1, "La date est requise"),
 });
 
-type PaiementFormValues = z.infer<typeof paiementSchema>;
+type EncaissementFormValues = z.infer<typeof encaissementSchema>;
 
-interface AddPaiementModalProps {
+interface EncaisserModalProps {
   facture: Facture | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPaiementModalProps) {
+export function EncaisserModal({ facture, isOpen, onClose, onSuccess }: EncaisserModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -41,70 +36,50 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
     handleSubmit,
     control,
     reset,
-    setValue,
-    watch,
     formState: { errors },
-  } = useForm<PaiementFormValues>({
-    resolver: zodResolver(paiementSchema),
+  } = useForm<EncaissementFormValues>({
+    resolver: zodResolver(encaissementSchema),
     defaultValues: {
-      date: new Date().toISOString().split("T")[0],
-      montant: 0,
-      mode: "VIREMENT",
-      reference: "",
-      banque: "",
-      notes: "",
+      mode_reglement: "VIREMENT",
+      date_reglement: new Date().toISOString().split("T")[0],
     },
   });
-
-  const selectedMode = watch("mode");
 
   useEffect(() => {
     if (isOpen && facture) {
       reset({
-        date: new Date().toISOString().split("T")[0],
-        montant: facture.montant_restant,
-        mode: "VIREMENT",
-        reference: "",
-        banque: "",
-        notes: "",
+        mode_reglement: "VIREMENT",
+        date_reglement: new Date().toISOString().split("T")[0],
       });
       setError(null);
+      setPendingFiles([]);
     }
   }, [isOpen, facture, reset]);
 
   if (!isOpen || !facture) return null;
 
-  const onSubmit = async (data: PaiementFormValues) => {
+  const onSubmit = async (data: EncaissementFormValues) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await api.post(`/factures/${facture.id}/paiements`, data);
+      const formData = new FormData();
+      formData.append("mode_reglement", data.mode_reglement);
+      formData.append("date_reglement", data.date_reglement);
 
-      // Upload pending files to the facture
       if (pendingFiles.length > 0) {
-        for (const file of pendingFiles) {
-          const uploadData = new FormData();
-          uploadData.append("file", file);
-          uploadData.append("entity_type", "facture");
-          uploadData.append("entity_id", facture.id);
-          uploadData.append("document_type", "Preuve de Paiement");
-          uploadData.append("nom", `Preuve de Paiement - ${data.reference}`);
-          try {
-            await api.post("/upload", uploadData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
-          } catch (uploadErr) {
-            console.error("Failed to upload payment proof:", file.name, uploadErr);
-          }
-        }
+        formData.append("document", pendingFiles[0]);
       }
+
+      await api.post(`/factures/${facture.id}/encaisser`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setPendingFiles([]);
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.detail || err.message || "Erreur lors de l'enregistrement du paiement");
+      setError(err.detail || err.message || "Erreur lors de l'encaissement");
     } finally {
       setIsSubmitting(false);
     }
@@ -128,18 +103,18 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
           transition={{ type: "spring", duration: 0.4 }}
           className="relative w-full max-w-xl glass-panel p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
         >
-          {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50" />
 
-          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <CreditCard className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <h2 className="text-xl font-heading font-bold text-white">Encaisser Règlements</h2>
-                <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 mt-1">Facture {facture.numero}</p>
+                <h2 className="text-xl font-heading font-bold text-white">Encaisser la Facture</h2>
+                <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 mt-1">
+                  {facture.numero} — {facture.montant_facture.toLocaleString("fr-FR")} DZD
+                </p>
               </div>
             </div>
             <button
@@ -152,7 +127,7 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto custom-scrollbar">
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
                   {error}
@@ -161,55 +136,13 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
 
               <div className="p-4 rounded-xl bg-black/20 border border-white/5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-accent uppercase tracking-widest text-white/40 mb-1">Total TTC</p>
-                  <p className="text-sm font-mono font-bold text-white">{facture.total_ttc.toLocaleString("fr-FR")} DZD</p>
+                  <p className="text-[10px] font-accent uppercase tracking-widest text-white/40 mb-1">Client</p>
+                  <p className="text-sm font-medium text-white">{facture.client_nom || "Client"}</p>
                 </div>
-                <div className="h-8 w-px bg-white/10 mx-2" />
-                <div>
-                  <p className="text-[10px] font-accent uppercase tracking-widest text-white/40 mb-1">Déjà Payé</p>
-                  <p className="text-sm font-mono font-bold text-emerald-400">{facture.montant_paye.toLocaleString("fr-FR")} DZD</p>
-                </div>
-                <div className="h-8 w-px bg-white/10 mx-2" />
+                <div className="h-8 w-px bg-white/10 mx-4" />
                 <div className="text-right">
-                  <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] mb-1">Reste Dû</p>
-                  <p className="text-sm font-mono font-bold text-[var(--color-turbo)]">{facture.montant_restant.toLocaleString("fr-FR")} DZD</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
-                    Date du paiement *
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                    <input
-                      type="date"
-                      {...register("date")}
-                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-colors text-sm [color-scheme:dark]"
-                    />
-                  </div>
-                  {errors.date && <p className="text-xs text-red-400 ml-1">{errors.date.message}</p>}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
-                    Montant Encaissé (DZD) *
-                  </label>
-                  <Controller
-                    name="montant"
-                    control={control}
-                    render={({ field }) => (
-                      <GlassNumberInput
-                        {...field}
-                        placeholder="0.00"
-                        min={0.01}
-                        max={facture.montant_restant}
-                        step={0.01}
-                      />
-                    )}
-                  />
-                  {errors.montant && <p className="text-xs text-red-400 ml-1">{errors.montant.message}</p>}
+                  <p className="text-[10px] font-accent uppercase tracking-widest text-white/40 mb-1">Montant à Encaisser</p>
+                  <p className="text-lg font-heading font-bold text-emerald-400">{facture.montant_facture.toLocaleString("fr-FR")} DZD</p>
                 </div>
               </div>
 
@@ -219,7 +152,7 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
                     Mode de Règlement *
                   </label>
                   <Controller
-                    name="mode"
+                    name="mode_reglement"
                     control={control}
                     render={({ field }) => (
                       <GlassSelect
@@ -235,72 +168,37 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
                       />
                     )}
                   />
-                  {errors.mode && <p className="text-xs text-red-400 ml-1">{errors.mode.message}</p>}
+                  {errors.mode_reglement && <p className="text-xs text-red-400 ml-1">{errors.mode_reglement.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
-                    N° de Référence / Preuve *
+                    Date de Règlement *
                   </label>
                   <div className="relative">
-                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                     <input
-                      type="text"
-                      {...register("reference")}
-                      placeholder="Ex: TR-09384729"
-                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-colors text-sm"
+                      type="date"
+                      {...register("date_reglement")}
+                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm [color-scheme:dark]"
                     />
                   </div>
-                  {errors.reference && <p className="text-xs text-red-400 ml-1">{errors.reference.message}</p>}
+                  {errors.date_reglement && <p className="text-xs text-red-400 ml-1">{errors.date_reglement.message}</p>}
                 </div>
               </div>
 
-              {(selectedMode === "VIREMENT" || selectedMode === "CHEQUE" || selectedMode === "CARTE") && (
-                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
-                    Banque (Optionnel)
-                  </label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                    <input
-                      type="text"
-                      {...register("banque")}
-                      placeholder="Nom de la banque"
-                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-colors text-sm"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
-                  Notes (Optionnel)
-                </label>
-                <div className="relative">
-                  <FileText className="absolute left-3 top-3 w-4 h-4 text-white/40" />
-                  <textarea
-                    {...register("notes")}
-                    placeholder="Commentaire additionnel..."
-                    rows={2}
-                    className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-colors text-sm resize-none custom-scrollbar"
-                  />
-                </div>
-              </div>
-
-              {/* File Upload Zone */}
-              <div className="pt-2 border-t border-white/5 mt-2">
+              <div className="pt-2 border-t border-white/5">
                 <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1 mb-2 block">
-                  Bordereau / Preuve de paiement (Optionnel)
+                  Document justificatif (Optionnel)
                 </label>
                 <CreationFileUploader
                   files={pendingFiles}
                   onFilesChange={setPendingFiles}
-                  maxFiles={3}
+                  maxFiles={1}
                 />
               </div>
             </div>
 
-            {/* Footer */}
             <div className="p-6 border-t border-white/5 bg-black/20 flex justify-end gap-3 shrink-0">
               <button
                 type="button"
@@ -313,7 +211,7 @@ export function AddPaiementModal({ facture, isOpen, onClose, onSuccess }: AddPai
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold text-white bg-emerald-500/80 border border-emerald-500 hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />

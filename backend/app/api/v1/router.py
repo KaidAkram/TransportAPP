@@ -10,7 +10,6 @@ from app.api.v1.cautions import router as cautions_router
 from app.api.v1.stock import router as stock_router
 from app.api.v1.interventions import router as interventions_router
 from app.api.v1.dashboard import router as dashboard_router
-from app.api.v1.devis import router as devis_router
 from app.api.v1.factures import router as factures_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.documents import router as documents_router
@@ -31,7 +30,6 @@ api_v1_router.include_router(contrats_router)
 api_v1_router.include_router(cautions_router)
 api_v1_router.include_router(stock_router)
 api_v1_router.include_router(interventions_router)
-api_v1_router.include_router(devis_router)
 api_v1_router.include_router(factures_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(documents_router)

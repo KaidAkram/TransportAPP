@@ -11,10 +11,8 @@ from app.models.enums import (
   CategorieIntervention,
   StatutIntervention,
   TypeMouvement,
-  StatutDevis,
   StatutFacture,
   ModePaiement,
-  StatutPaiement,
   CategorieDepenseVehicule,
   ModeReglementReception,
 )
@@ -25,7 +23,7 @@ from app.models.contrat import Contrat, Avenant, Caution
 from app.models.stock import Piece, MouvementStock, Reception, ReceptionLigne
 from app.models.vehicule import Vehicule, Constat
 from app.models.intervention import Intervention
-from app.models.finance import Devis, DevisLigne, Facture, FactureLigne, Paiement, DepenseVehicule
+from app.models.finance import Facture, DepenseVehicule
 from app.models.feature_toggle import FeatureToggle
 from app.models.settings import SystemSettings
 
@@ -44,10 +42,8 @@ __all__ = [
   "CategorieIntervention",
   "StatutIntervention",
   "TypeMouvement",
-  "StatutDevis",
   "StatutFacture",
   "ModePaiement",
-  "StatutPaiement",
   "CategorieDepenseVehicule",
   "ModeReglementReception",
   # Models
@@ -71,11 +67,7 @@ __all__ = [
   "Vehicule",
   "Constat",
   "Intervention",
-  "Devis",
-  "DevisLigne",
   "Facture",
-  "FactureLigne",
-  "Paiement",
   "DepenseVehicule",
   "FeatureToggle",
   "SystemSettings",

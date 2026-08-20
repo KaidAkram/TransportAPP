@@ -63,17 +63,11 @@ DEFAULT_FEATURES = [
   {"feature_name": "edit_mission", "description": "Modifier ou réguler le statut d'un trajet", "categorie": "Missions"},
   {"feature_name": "view_mission", "description": "Accéder au planning et calendrier des départs", "categorie": "Missions"},
 
-  # Finances & Devis
-  {"feature_name": "create_devis", "description": "Établir un devis commercial chiffré", "categorie": "Finances & Factures"},
-  {"feature_name": "edit_devis", "description": "Modifier les prestations et remises d'un devis", "categorie": "Finances & Factures"},
-  {"feature_name": "view_devis", "description": "Consulter les devis émis", "categorie": "Finances & Factures"},
-  {"feature_name": "convert_devis_to_contrat", "description": "Convertir un devis accepté en contrat actif", "categorie": "Finances & Factures"},
-
-  # Facturation & Règlements
-  {"feature_name": "create_facture", "description": "Émettre une facture officielle client", "categorie": "Finances & Factures"},
-  {"feature_name": "edit_facture", "description": "Ajuster ou annuler une facture", "categorie": "Finances & Factures"},
-  {"feature_name": "view_facture", "description": "Consulter le journal des ventes et créances", "categorie": "Finances & Factures"},
-  {"feature_name": "record_paiement", "description": "Enregistrer un encaissement (virement/chèque)", "categorie": "Finances & Factures"},
+  # Finances & Facturation
+  {"feature_name": "create_facture", "description": "Émettre une facture client", "categorie": "Finances & Factures"},
+  {"feature_name": "edit_facture", "description": "Annuler ou modifier une facture", "categorie": "Finances & Factures"},
+  {"feature_name": "view_facture", "description": "Consulter le journal des factures et créances", "categorie": "Finances & Factures"},
+  {"feature_name": "record_paiement", "description": "Encaisser une facture (mode de règlement)", "categorie": "Finances & Factures"},
 
   # Analyses & Décisionnel (BI)
   {"feature_name": "view_analytics", "description": "Consulter les tableaux de bord décisionnels et KPIs TCO", "categorie": "Analyses & BI"},

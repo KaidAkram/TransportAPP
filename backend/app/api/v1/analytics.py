@@ -9,7 +9,7 @@ from sqlalchemy import desc, func
 from app.core.database import get_db
 from app.core.security import require_feature
 from app.models.vehicule import Vehicule
-from app.models.finance import Facture, Devis, DepenseVehicule
+from app.models.finance import Facture, DepenseVehicule
 from app.models.contrat import Contrat
 from app.models.partenaire import Partenaire
 from app.models.stock import Piece
@@ -33,30 +33,23 @@ router = APIRouter(prefix="/analytics", tags=["Business Intelligence & Exports"]
 
 @router.get("/kpis", response_model=StrategicBIKpiResponse, summary="Get Executive Strategic BI KPIs", dependencies=[Depends(require_feature("view_analytics"))])
 def get_strategic_kpis(db: Session = Depends(get_db)):
-  # 1. Fleet & Availability
   vehicules = db.query(Vehicule).filter(Vehicule.archived_at.is_(None)).all()
   flotte_totale = len(vehicules)
   vehicules_dispo = sum(1 for v in vehicules if v.statut in (StatutVehicule.DISPONIBLE, StatutVehicule.EN_MISSION))
   taux_dispo = (vehicules_dispo / flotte_totale * 100.0) if flotte_totale >0 else 100.0
-
-  # 2. Missions & Occupation
   taux_occupation = 78.5
 
-  # 3. Invoices & Revenue
   factures = db.query(Facture).filter(Facture.archived_at.is_(None)).all()
-  ca_annuel = sum(f.total_ttc for f in factures)
-  total_encaisse = sum(f.montant_paye for f in factures)
-  total_creances = sum(f.montant_restant for f in factures)
+  ca_annuel = sum(f.montant_facture for f in factures)
+  total_encaisse = sum(f.montant_facture for f in factures if f.statut == StatutFacture.PAYEE)
+  total_creances = sum(f.montant_facture for f in factures if f.statut in (StatutFacture.EN_ATTENTE, StatutFacture.EN_RETARD))
 
-  # 4. Global TCO & Expenses Breakdown
   depenses = db.query(DepenseVehicule).all()
   cout_tco_global = sum(d.montant for d in depenses)
   interventions = db.query(Intervention).all()
   cout_tco_global += sum(i.cout_total for i in interventions)
-
   marge_nette = ca_annuel - cout_tco_global
 
-  # Expenses Breakdown
   depenses_par_categorie = {}
   for d in depenses:
     cat = d.categorie.value if hasattr(d.categorie, "value") else str(d.categorie)
@@ -76,10 +69,9 @@ def get_strategic_kpis(db: Session = Depends(get_db)):
     }
     cout_tco_global = sum(depenses_par_categorie.values())
     if ca_annuel == 0:
-        ca_annuel = 4500000.0 # Mock CA if no data
+        ca_annuel = 4500000.0
     marge_nette = ca_annuel - cout_tco_global
 
-  # 5. Top Clients
   top_clients_dict = {}
   for f in factures:
     cid = str(f.client_id)
@@ -92,7 +84,7 @@ def get_strategic_kpis(db: Session = Depends(get_db)):
         "nombre_contrats": 0,
         "chiffre_affaires_dzd": 0.0,
       }
-    top_clients_dict[cid]["chiffre_affaires_dzd"] += f.total_ttc
+    top_clients_dict[cid]["chiffre_affaires_dzd"] += f.montant_facture
 
   top_clients_list = [TopClientRevenue(**v) for v in top_clients_dict.values()]
   top_clients_list.sort(key=lambda x: x.chiffre_affaires_dzd, reverse=True)
@@ -106,14 +98,12 @@ def get_strategic_kpis(db: Session = Depends(get_db)):
       TopClientRevenue(client_id="5", client_nom="Air Algérie Tours", nombre_missions=5, nombre_contrats=1, chiffre_affaires_dzd=650000.0),
     ]
 
-  # 6. Vehicle Profitability
   rentabilite_list = []
   for v in vehicules:
-    rev_v = 0.0 # Without missions, calculate via contracts or default
+    rev_v = 0.0
     cost_v = sum(d.montant for d in depenses if d.vehicule_id == v.id) + sum(i.cout_total for i in interventions if i.vehicule_id == v.id)
     marge = rev_v - cost_v
     rentabilite = ((marge / rev_v) * 100.0) if rev_v >0 else 0.0
-
     rentabilite_list.append(
       VehicleProfitability(
         vehicule_id=str(v.id),
@@ -125,7 +115,6 @@ def get_strategic_kpis(db: Session = Depends(get_db)):
       )
     )
 
-  # 7. Monthly Evolution
   evolution_mensuelle = [
     MonthlyRevenueItem(mois="2026-03", chiffre_affaires=1250000.0, depenses_maintenance=180000.0, depenses_exploitation=320000.0, marge_nette=750000.0),
     MonthlyRevenueItem(mois="2026-04", chiffre_affaires=1450000.0, depenses_maintenance=210000.0, depenses_exploitation=340000.0, marge_nette=900000.0),
@@ -235,22 +224,20 @@ def export_entity_data(
     title = "Parc Automobile"
 
   elif entity_type == "factures":
-    headers = ["N° Facture", "Client", "Date Émission", "Échéance", "Total TTC (DZD)", "Montant Payé (DZD)", "Reste à Payer (DZD)", "Statut"]
+    headers = ["N° Facture", "Client", "Date Facture", "Mois Réalisation", "Montant (DZD)", "Statut"]
     items = db.query(Facture).filter(Facture.archived_at.is_(None)).all()
     rows = [
       [
         f.numero,
         f.client.nom_commercial if f.client else "Client",
-        f.date_emission.strftime("%d/%m/%Y"),
-        f.date_echeance.strftime("%d/%m/%Y"),
-        f.total_ttc,
-        f.montant_paye,
-        f.montant_restant,
+        f.date_facture.strftime("%d/%m/%Y"),
+        f.mois_realisation,
+        f.montant_facture,
         f.statut.value if hasattr(f.statut, 'value') else f.statut,
       ]
       for f in items
     ]
-    title = "Facturation & Règlements"
+    title = "Facturation"
 
   elif entity_type == "stock":
     headers = ["Référence", "Désignation", "Catégorie", "Emplacement", "Stock Actuel", "Stock Min", "Unité", "Statut"]

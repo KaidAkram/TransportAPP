@@ -16,8 +16,7 @@ from app.models import (
     Partenaire, Client, Fournisseur, Contact, CRMNote,
     Contrat, Avenant, Caution,
     Piece, MouvementStock, Reception, ReceptionLigne, Intervention,
-    Devis, DevisLigne, Facture, FactureLigne, Paiement,
-    DepenseVehicule, Constat, Document,
+    Facture, DepenseVehicule, Constat, Document,
 )
 from app.models.enums import *
 
@@ -337,69 +336,39 @@ def seed_database(db_url: str):
                 ecart_inventaire=random.choice([-2,-1,0,0,1])))
         db.flush()
 
-        # ── DEVIS ──────────────────────────────────────────────────
-        devis_list = []
-        for ci,obj,st in [
-            (0,"Transport personnel Juin 2026","BROUILLON"),
-            (1,"Location minibars T2 2026","ENVOYE"),
-            (2,"Transport interurbain Aout 2026","ACCEPTE"),
-            (3,"Transport chantier materiel lourd","REFUSE"),
-            (4,"Messagerie mensuelle Juillet 2026","EXPIRE"),
-            (5,"Transport voyageurs ete 2026","ACCEPTE"),
-            (6,"Shuttle hotel aeroport Sept 2026","ENVOYE"),
-            (7,"Transport materiaux de construction","BROUILLON"),
-            (0,"Devis supplementaire SONATRACH","ACCEPTE"),
-            (9,"Transport syndical Q3 2026","ENVOYE"),
-            (11,"Transport verre fragile","ACCEPTE"),
-            (14,"Transport general Dahmani","REFUSE"),
-        ]:
-            tht=round(random.uniform(300000,3000000),2); tva=round(tht*19/100,2)
-            dev = Devis(id=_u(),numero=f"DEV-2026-{len(devis_list)+1:04d}",client_id=clients[ci].id,
-                date_emission=_dp(random.randint(5,90)),date_validite=_dr(random.randint(-30,60)),
-                statut=StatutDevis[st],objet=obj,conditions_reglement="Virement 30 jours",
-                total_ht=tht,taux_tva=19.0,montant_tva=tva,total_ttc=round(tht+tva,2))
-            db.add(dev); devis_list.append(dev)
-        db.flush()
-        for dev in devis_list:
-            for _ in range(random.randint(1,3)):
-                q=random.randint(1,10); pu=round(random.uniform(15000,150000),2)
-                db.add(DevisLigne(id=_u(),devis_id=dev.id,service="Transport",
-                    description=f"Prestation - {dev.objet[:40]}",quantite=q,prix_unitaire=pu,total_ligne=round(q*pu,2)))
-        db.flush()
-
         # ── FACTURES ──────────────────────────────────────────────
+        mois_options = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"]
+        modes = list(ModePaiement)
         factures_list = []
-        for ci,mode,mpay,st in [
-            (0,"VIREMENT",1850000,"PAYE"),(1,"VIREMENT",0,"EN_ATTENTE"),
-            (2,"CHEQUE",1200000,"PARTIEL"),(4,"VIREMENT",0,"RETARD"),
-            (0,"VIREMENT",920000,"PAYE"),(3,"ESPECE",0,"ANNULEE"),
-            (5,"CARTE",500000,"PARTIEL"),(6,"VIREMENT",0,"EN_ATTENTE"),
-            (7,"CHEQUE",0,"EN_ATTENTE"),(0,"ESPECE",400000,"PAYE"),
-            (8,"VIREMENT",0,"RETARD"),(9,"CARTE",250000,"PARTIEL"),
+        for ci, st, mode in [
+            (0, "PAYEE", "VIREMENT"),
+            (1, "EN_ATTENTE", "CHEQUE"),
+            (2, "PAYEE", "ESPECE"),
+            (3, "EN_ATTENTE", "VIREMENT"),
+            (4, "EN_RETARD", "VIREMENT"),
+            (0, "PAYEE", "CARTE"),
+            (5, "ANNULEE", "ESPECE"),
+            (6, "EN_ATTENTE", "CHEQUE"),
+            (7, "PAYEE", "VIREMENT"),
+            (0, "EN_ATTENTE", "ESPECE"),
+            (8, "EN_RETARD", "VIREMENT"),
+            (9, "PAYEE", "CARTE"),
         ]:
-            tht=round(random.uniform(200000,2500000),2); tva=round(tht*19/100,2); ttc=round(tht+tva,2)
-            fc = Facture(id=_u(),numero=f"FAC-2026-{len(factures_list)+1:04d}",client_id=clients[ci].id,
-                contrat_id=random.choice(contrats[:8]).id,
-                date_emission=_dp(random.randint(10,90)),date_echeance=_dr(random.randint(-20,30)),
-                statut=StatutFacture[st],mode_reglement=ModePaiement[mode],
-                total_ht=tht,taux_tva=19.0,montant_tva=tva,total_ttc=ttc,
-                montant_paye=min(mpay,ttc),montant_restant=round(max(ttc-mpay,0),2),
-                notes=random.choice([None,"Reglement en attente de validation","Facture rectificative",None]))
-            db.add(fc); factures_list.append(fc)
-        db.flush()
-        for fc in factures_list:
-            for _ in range(random.randint(1,2)):
-                q=random.randint(1,5); pu=round(random.uniform(20000,200000),2)
-                db.add(FactureLigne(id=_u(),facture_id=fc.id,service="Transport",
-                    description=f"Prestation - {fc.numero}",quantite=q,prix_unitaire=pu,total_ligne=round(q*pu,2)))
-        for fc in factures_list:
-            if fc.montant_paye>0:
-                db.add(Paiement(id=_u(),facture_id=fc.id,
-                    date=fc.date_emission+timedelta(days=random.randint(5,25)),
-                    montant=fc.montant_paye,mode=fc.mode_reglement,
-                    reference=f"{'VIR' if fc.mode_reglement==ModePaiement.VIREMENT else 'CHQ'}-{random.randint(100000,999999)}",
-                    banque=random.choice(["BNA","CPA","BADR","BEA"]),
-                    statut=random.choice([StatutPaiement.VALIDE,StatutPaiement.VALIDE,StatutPaiement.EN_ATTENTE])))
+            montant = round(random.uniform(200000, 2500000), 2)
+            fc = Facture(
+                id=_u(),
+                numero=f"INV-2026-{len(factures_list)+1:03d}",
+                client_id=clients[ci].id,
+                date_facture=_dp(random.randint(10, 90)),
+                mois_realisation=random.choice(mois_options),
+                montant_facture=montant,
+                statut=StatutFacture[st],
+                mode_reglement=ModePaiement[mode] if st == "PAYEE" else None,
+                date_reglement=_dp(random.randint(1, 10)) if st == "PAYEE" else None,
+                remarques=random.choice([None, "Facture en attente de régularisation", "Paiement reçu - clôturé", None]),
+            )
+            db.add(fc)
+            factures_list.append(fc)
         db.flush()
 
         # ── DEPENSES VEHICULES ────────────────────────────────────

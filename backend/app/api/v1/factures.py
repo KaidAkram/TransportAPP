@@ -1,29 +1,32 @@
 from datetime import datetime, date, timezone
 from typing import Optional
 from uuid import UUID, uuid4
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_
+import os
 
 from app.core.database import get_db
 from app.core.security import require_feature
-from app.models.finance import Facture, FactureLigne, Paiement
+from app.models.finance import Facture
 from app.models.partenaire import Partenaire
-from app.models.enums import StatutFacture, ModePaiement, StatutPaiement
+from app.models.enums import StatutFacture, ModePaiement
 from app.schemas.finance import (
   FactureCreate,
-  FactureUpdate,
   FactureResponse,
   FactureListResponse,
-  PaiementCreate,
-  PaiementResponse,
+  EncaissementFacture,
 )
-from app.services.pdf_finance_service import generate_facture_pdf
 
-router = APIRouter(prefix="/factures", tags=["Finances — Facturation & Règlements"])
+router = APIRouter(prefix="/factures", tags=["Finances — Facturation"])
+
+STATIC_DOCS = os.path.join(
+  os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents"
+)
 
 
-@router.get("", response_model=FactureListResponse, summary="List Invoices with Financial Totals", dependencies=[Depends(require_feature("view_facture"))])
+@router.get("", response_model=FactureListResponse, summary="List Invoices", dependencies=[Depends(require_feature("view_facture"))])
 def list_factures(
   search: Optional[str] = Query(None),
   statut: Optional[StatutFacture] = Query(None),
@@ -44,15 +47,15 @@ def list_factures(
     query = query.outerjoin(Partenaire, Facture.client_id == Partenaire.id).filter(
       or_(
         Facture.numero.ilike(search_pattern),
-        Partenaire.nom_commercial.ilike(search_pattern)
+        Partenaire.nom_commercial.ilike(search_pattern),
       )
     )
 
   factures = query.order_by(desc(Facture.created_at)).all()
 
-  total_ca = sum(f.total_ttc for f in factures)
-  total_encaisse = sum(f.montant_paye for f in factures)
-  total_creances = sum(f.montant_restant for f in factures)
+  total_montant = sum(f.montant_facture for f in factures)
+  total_encaisse = sum(f.montant_facture for f in factures if f.statut == StatutFacture.PAYEE)
+  total_en_attente = sum(f.montant_facture for f in factures if f.statut == StatutFacture.EN_ATTENTE)
 
   items = []
   for f in factures:
@@ -64,13 +67,13 @@ def list_factures(
   return FactureListResponse(
     items=items,
     total=len(items),
-    total_chiffre_affaires=total_ca,
+    total_montant=total_montant,
     total_encaisse=total_encaisse,
-    total_creances=total_creances,
+    total_en_attente=total_en_attente,
   )
 
 
-@router.get("/{id}", response_model=FactureResponse, summary="Get Invoice Detail & Payment Ledger", dependencies=[Depends(require_feature("view_facture"))])
+@router.get("/{id}", response_model=FactureResponse, summary="Get Invoice Detail", dependencies=[Depends(require_feature("view_facture"))])
 def get_facture_detail(id: str, db: Session = Depends(get_db)):
   try:
     u_id = UUID(id)
@@ -90,7 +93,7 @@ def get_facture_detail(id: str, db: Session = Depends(get_db)):
 @router.post("", response_model=FactureResponse, status_code=status.HTTP_201_CREATED, summary="Create Invoice", dependencies=[Depends(require_feature("create_facture"))])
 def create_facture(payload: FactureCreate, db: Session = Depends(get_db)):
   try:
-    client_uuid = UUID(payload.client_id)
+    client_uuid = UUID(str(payload.client_id))
   except Exception:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Identifiant client invalide")
 
@@ -98,72 +101,37 @@ def create_facture(payload: FactureCreate, db: Session = Depends(get_db)):
   if not client:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client spécifié introuvable")
 
-  if not payload.numero:
-    count = db.query(Facture).count() + 1
-    numero = f"INV-{datetime.now().year}-{count:03d}"
-  else:
-    numero = payload.numero
+  count = db.query(Facture).count() + 1
+  numero = f"INV-{datetime.now().year}-{count:03d}"
 
-  total_ht = 0.0
-  ligne_objects = []
-  for lig in payload.lignes:
-    tot = lig.quantite * lig.prix_unitaire
-    total_ht += tot
-    ligne_objects.append(
-      FactureLigne(
-        id=uuid4(),
-        service=lig.service,
-        description=lig.description,
-        quantite=lig.quantite,
-        prix_unitaire=lig.prix_unitaire,
-        total_ligne=tot,
-      )
-    )
-
-  tva_montant = total_ht * (payload.taux_tva / 100.0)
-  total_ttc = total_ht + tva_montant
-
-  contrat_u = UUID(payload.contrat_id) if payload.contrat_id else None
-  devis_u = UUID(payload.devis_id) if payload.devis_id else None
   facture = Facture(
     id=uuid4(),
     numero=numero,
     client_id=client_uuid,
-    contrat_id=contrat_u,
-    devis_id=devis_u,
-    date_emission=payload.date_emission,
-    date_echeance=payload.date_echeance,
-    mode_reglement=payload.mode_reglement,
+    date_facture=payload.date_facture,
+    mois_realisation=payload.mois_realisation,
+    montant_facture=payload.montant_facture,
     statut=StatutFacture.EN_ATTENTE,
-    total_ht=total_ht,
-    taux_tva=payload.taux_tva,
-    montant_tva=tva_montant,
-    total_ttc=total_ttc,
-    montant_paye=0.0,
-    montant_restant=total_ttc,
-    notes=payload.notes,
-    lignes=ligne_objects,
+    remarques=payload.remarques,
   )
 
   db.add(facture)
   db.commit()
   db.refresh(facture)
 
-  try:
-    pdf_url = generate_facture_pdf(facture, client)
-    facture.url_pdf = pdf_url
-    db.commit()
-    db.refresh(facture)
-  except Exception as e:
-    print(f"Warning: PDF generation failed: {e}")
-
   resp = FactureResponse.model_validate(facture)
   resp.client_nom = client.nom_commercial
   return resp
 
 
-@router.post("/{id}/paiements", response_model=PaiementResponse, summary="Record Payment on Invoice", dependencies=[Depends(require_feature("record_paiement"))])
-def record_payment(id: str, payload: PaiementCreate, db: Session = Depends(get_db)):
+@router.post("/{id}/encaisser", response_model=FactureResponse, summary="Encaisser une Facture (Passer au statut PAYEE)", dependencies=[Depends(require_feature("record_paiement"))])
+def encaisser_facture(
+  id: str,
+  mode_reglement: ModePaiement = Form(...),
+  date_reglement: str = Form(...),
+  document: Optional[UploadFile] = File(None),
+  db: Session = Depends(get_db),
+):
   try:
     u_id = UUID(id)
   except Exception:
@@ -173,52 +141,46 @@ def record_payment(id: str, payload: PaiementCreate, db: Session = Depends(get_d
   if not facture:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Facture non trouvée")
 
-  if payload.montant <= 0:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Le montant du paiement doit être supérieur à 0.")
+  if facture.statut == StatutFacture.PAYEE:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cette facture est déjà payée.")
 
-  if payload.montant >(facture.montant_restant + 0.01):
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=f"Le montant saisi ({payload.montant:,.2f} DZD) dépasse le reste à payer ({facture.montant_restant:,.2f} DZD).",
-    )
+  if facture.statut == StatutFacture.ANNULEE:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Impossible d'encaisser une facture annulée.")
 
-  paiement = Paiement(
-    id=uuid4(),
-    facture_id=facture.id,
-    date=payload.date,
-    montant=payload.montant,
-    mode=payload.mode,
-    reference=payload.reference,
-    banque=payload.banque,
-    statut=StatutPaiement.VALIDE,
-    notes=payload.notes,
-  )
-  db.add(paiement)
+  facture.mode_reglement = mode_reglement
+  try:
+    facture.date_reglement = datetime.strptime(date_reglement, "%Y-%m-%d").date()
+  except ValueError:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Format de date invalide (attendu: YYYY-MM-DD)")
 
-  facture.montant_paye += payload.montant
-  facture.montant_restant = max(0.0, facture.total_ttc - facture.montant_paye)
+  if document and document.filename:
+    try:
+      doc_dir = os.path.join(STATIC_DOCS, "reglements")
+      os.makedirs(doc_dir, exist_ok=True)
+      safe_name = f"reglement_{facture.numero}_{document.filename.replace(' ', '_')}"
+      file_path = os.path.join(doc_dir, safe_name)
+      content = await_document_read(document)
+      with open(file_path, "wb") as f:
+        f.write(content)
+      facture.url_document_reglement = f"/assets/documents/reglements/{safe_name}"
+    except Exception as e:
+      print(f"Warning: document upload failed: {e}")
 
-  if facture.montant_restant <= 0.01:
-    facture.statut = StatutFacture.PAYE
-  else:
-    facture.statut = StatutFacture.PARTIEL
-
+  facture.statut = StatutFacture.PAYEE
   db.commit()
-  db.refresh(paiement)
   db.refresh(facture)
 
-  try:
-    pdf_url = generate_facture_pdf(facture, facture.client)
-    facture.url_pdf = pdf_url
-    db.commit()
-  except Exception:
-    pass
-
-  return PaiementResponse.model_validate(paiement)
+  resp = FactureResponse.model_validate(facture)
+  resp.client_nom = facture.client.nom_commercial if facture.client else "Client"
+  return resp
 
 
-@router.post("/{id}/generate-pdf", summary="Generate or Regenerate Invoice PDF")
-def generate_pdf_endpoint(id: str, db: Session = Depends(get_db)):
+async def await_document_read(document: UploadFile) -> bytes:
+  return await document.read()
+
+
+@router.post("/{id}/annuler", response_model=FactureResponse, summary="Annuler une Facture", dependencies=[Depends(require_feature("edit_facture"))])
+def annuler_facture(id: str, db: Session = Depends(get_db)):
   try:
     u_id = UUID(id)
   except Exception:
@@ -228,11 +190,16 @@ def generate_pdf_endpoint(id: str, db: Session = Depends(get_db)):
   if not facture:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Facture non trouvée")
 
-  pdf_url = generate_facture_pdf(facture, facture.client)
-  facture.url_pdf = pdf_url
-  db.commit()
+  if facture.statut == StatutFacture.PAYEE:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Impossible d'annuler une facture déjà payée.")
 
-  return {"url_pdf": pdf_url, "message": "Document PDF de la facture généré avec succès."}
+  facture.statut = StatutFacture.ANNULEE
+  db.commit()
+  db.refresh(facture)
+
+  resp = FactureResponse.model_validate(facture)
+  resp.client_nom = facture.client.nom_commercial if facture.client else "Client"
+  return resp
 
 
 @router.delete("/{id}", summary="Archive Invoice", dependencies=[Depends(require_feature("edit_facture"))])
