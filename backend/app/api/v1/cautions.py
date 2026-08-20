@@ -385,14 +385,44 @@ def download_caution_pdf(caution_id: UUID, db: Session = Depends(get_db)):
 
   sanitized = caution.numero.replace("/", "_").replace("\\", "_")
   filename = f"caution_{sanitized}.pdf"
-  filepath = os.path.join(
-    os.path.abspath(
-      os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
-    ),
-    filename,
+  cautions_dir = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
   )
+  filepath = os.path.join(cautions_dir, filename)
+
+  if not os.path.exists(filepath):
+    client_nom = caution.client.nom_commercial if caution.client else "Client Bénéficiaire"
+    client_adresse = caution.client.adresse if caution.client else "Algérie"
+    ref_contrat = caution.contrat.reference if caution.contrat else caution.reference_numero
+    settings = db.query(SystemSettings).filter(SystemSettings.singleton_id == "global").first()
+    try:
+      generate_caution_pdf(
+        caution_number=caution.numero,
+        caution_type=caution.type.value if hasattr(caution.type, "value") else str(caution.type),
+        amount=caution.montant,
+        devise=caution.devise or "DZD",
+        client_name=client_nom,
+        client_address=client_adresse,
+        objet=caution.objet,
+        date_emission=caution.date_emission,
+        date_echeance=caution.date_echeance,
+        ref_contrat=ref_contrat,
+        banque_name=caution.banque_emetteur or "Banque Nationale d'Algérie (BNA)",
+        lieu_demande=caution.lieu_demande,
+        lieu_soumission=caution.lieu_soumission,
+        numero_compte_bancaire=caution.numero_compte_bancaire,
+        societe_nom=caution.societe_nom,
+        client_societe_nom=caution.client_societe_nom,
+        company_name=settings.company_name if settings else None,
+        company_nif=settings.company_nif if settings else None,
+        company_nis=settings.company_nis if settings else None,
+        company_rc=settings.company_rc if settings else None,
+        company_ai=settings.company_ai if settings else None,
+      )
+    except Exception as e:
+      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur génération PDF: {str(e)}")
 
   if os.path.exists(filepath):
     return FileResponse(filepath, media_type="application/pdf", filename=filename, content_disposition_type="inline")
 
-  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Le fichier PDF n'a pas été généré.")
+  raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="La génération du PDF a échoué.")
