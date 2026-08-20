@@ -103,7 +103,7 @@ export function NouvelleDemandeModal({
       const payload = {
         ...data,
         montant: Number(data.montant),
-        type: "DEMANDE" as const,
+        type: data.type,
         statut: "CREATION" as const,
         devise: "DZD",
         lieu_demande: data.lieu_demande || null,
