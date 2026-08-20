@@ -83,7 +83,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
                       company_name, company_nif, company_nis,
                       company_rc, company_ai):
     styles = getSampleStyleSheet()
-    lieu_s = lieu_soumission or "..."
+    lieu_s = lieu_soumission or lieu_demande or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
     montant_chiffres = f"{amount:,.2f} {devise}".replace(",", " ")
     montant_lettres = _amount_in_letters(amount, devise)
@@ -199,7 +199,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            company_name, company_nif, company_nis,
                            company_rc, company_ai):
     styles = getSampleStyleSheet()
-    lieu_d = lieu_demande or "..."
+    lieu_d = lieu_demande or lieu_soumission or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
     montant_chiffres = f"{amount:,.2f} {devise}".replace(",", " ")
     montant_lettres = _amount_in_letters(amount, devise)
