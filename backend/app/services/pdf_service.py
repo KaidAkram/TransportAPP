@@ -39,6 +39,7 @@ def generate_caution_pdf(
     company_nis: str = None,
     company_rc: str = None,
     company_ai: str = None,
+    montant_contrat: float = None,
 ) -> str:
     output_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
@@ -60,7 +61,8 @@ def generate_caution_pdf(
                                        ref_contrat, banque_name, lieu_demande,
                                        numero_compte_bancaire, client_societe_nom,
                                        company_name, company_nif, company_nis,
-                                       company_rc, company_ai, lieu_soumission=lieu_soumission)
+                                       company_rc, company_ai, lieu_soumission=lieu_soumission,
+                                       montant_contrat=montant_contrat)
     else:
         story = _build_soumission(doc, caution_number, amount, devise, client_name,
                                   client_address, objet, date_emission, date_echeance,
@@ -197,7 +199,8 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            ref_contrat, banque_name, lieu_demande,
                            numero_compte_bancaire, client_societe_nom,
                            company_name, company_nif, company_nis,
-                           company_rc, company_ai, lieu_soumission=None):
+                           company_rc, company_ai, lieu_soumission=None,
+                           montant_contrat=None):
     styles = getSampleStyleSheet()
     lieu_d = lieu_demande or lieu_soumission or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
@@ -205,6 +208,9 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     montant_lettres = _amount_in_letters(amount, devise)
     ref_display = ref_contrat or caution_number or "..."
     num_compte = numero_compte_bancaire or "........"
+
+    mc_chiffres = f"{montant_contrat:,.2f} {devise}".replace(",", " ") if montant_contrat else montant_chiffres
+    mc_lettres = _amount_in_letters(montant_contrat, devise) if montant_contrat else montant_lettres
 
     ent = company_name or "Notre Société"
     nif = company_nif or "..."
@@ -255,7 +261,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     story.append(Paragraph(f"<b>Bénéficiaire :</b> {client_societe_nom or client_name}", body))
     story.append(Paragraph(f"<b>Référence du contrat :</b> {ref_display}", body))
     story.append(Paragraph(f"<b>Objet du contrat :</b> {objet}", body))
-    story.append(Paragraph(f"<b>Montant du contrat :</b> {montant_chiffres} ({montant_lettres})", body))
+    story.append(Paragraph(f"<b>Montant du contrat :</b> {mc_chiffres} ({mc_lettres})", body))
     story.append(Paragraph(f"<b>Montant de la caution :</b> {montant_chiffres} ({montant_lettres})", body))
     story.append(Spacer(1, 10))
 

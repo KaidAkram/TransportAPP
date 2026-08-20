@@ -19,7 +19,8 @@ export interface Caution {
  client_nom?: string | null;
  contrat_id?: string | null;
  contrat_reference?: string | null;
- montant: number;
+  montant: number;
+  montant_contrat?: number | null;
  devise: string;
  reference_type?: string | null;
  reference_numero: string;

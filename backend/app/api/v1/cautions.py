@@ -91,6 +91,7 @@ def list_cautions(
       contrat_id=c.contrat_id,
       contrat_reference=c.contrat.reference if c.contrat else c.reference_numero,
       montant=c.montant,
+      montant_contrat=c.montant_contrat,
       devise=c.devise or "DZD",
       reference_type=c.reference_type,
       reference_numero=c.reference_numero,
@@ -142,6 +143,7 @@ def get_caution(caution_id: UUID, db: Session = Depends(get_db)):
     contrat_id=c.contrat_id,
     contrat_reference=c.contrat.reference if c.contrat else c.reference_numero,
     montant=c.montant,
+    montant_contrat=c.montant_contrat,
     devise=c.devise or "DZD",
     reference_type=c.reference_type,
     reference_numero=c.reference_numero,
@@ -189,6 +191,7 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
     client_id=data.client_id,
     contrat_id=data.contrat_id,
     montant=data.montant,
+    montant_contrat=data.montant_contrat,
     devise=data.devise.strip() if data.devise else "DZD",
     reference_type=data.reference_type,
     reference_numero=data.reference_numero,
@@ -216,6 +219,7 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
     contrat_id=caution.contrat_id,
     contrat_reference=data.reference_numero,
     montant=caution.montant,
+    montant_contrat=caution.montant_contrat,
     devise=caution.devise,
     reference_type=caution.reference_type,
     reference_numero=caution.reference_numero,
@@ -257,6 +261,7 @@ def update_caution(caution_id: UUID, data: CautionUpdate, db: Session = Depends(
     contrat_id=caution.contrat_id,
     contrat_reference=caution.contrat.reference if caution.contrat else caution.reference_numero,
     montant=caution.montant,
+    montant_contrat=caution.montant_contrat,
     devise=caution.devise,
     reference_type=caution.reference_type,
     reference_numero=caution.reference_numero,
@@ -321,6 +326,7 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     company_nis=settings.company_nis if settings else None,
     company_rc=settings.company_rc if settings else None,
     company_ai=settings.company_ai if settings else None,
+    montant_contrat=caution.montant_contrat,
   )
 
   serve_url = f"/api/v1/cautions/{caution_id}/pdf"
@@ -359,6 +365,7 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     contrat_id=caution.contrat_id,
     contrat_reference=ref_contrat,
     montant=caution.montant,
+    montant_contrat=caution.montant_contrat,
     devise=caution.devise,
     reference_type=caution.reference_type,
     reference_numero=caution.reference_numero,
@@ -418,6 +425,7 @@ def download_caution_pdf(caution_id: UUID, db: Session = Depends(get_db)):
         company_nis=settings.company_nis if settings else None,
         company_rc=settings.company_rc if settings else None,
         company_ai=settings.company_ai if settings else None,
+        montant_contrat=caution.montant_contrat,
       )
     except Exception as e:
       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur génération PDF: {str(e)}")

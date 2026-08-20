@@ -63,6 +63,7 @@ class Caution(Base, BaseModelMixin):
   client_id = Column(UUID(as_uuid=True), ForeignKey("partenaires.id", ondelete="RESTRICT"), nullable=False)
   contrat_id = Column(UUID(as_uuid=True), ForeignKey("contrats.id", ondelete="SET NULL"), nullable=True)
   montant = Column(Float, nullable=False)
+  montant_contrat = Column(Float, nullable=True)
   devise = Column(String(10), default="DZD", nullable=False)
   reference_type = Column(String(50), default="Contrat", nullable=False) # Contrat, Appel d'offre
   reference_numero = Column(String(100), nullable=False)

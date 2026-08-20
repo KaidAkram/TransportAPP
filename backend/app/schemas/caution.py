@@ -12,6 +12,7 @@ class CautionBase(BaseModel):
   client_id: UUID = Field(..., description="ID du client bénéficiaire")
   contrat_id: Optional[UUID] = Field(None, description="ID du contrat rattaché (optionnel pour Soumission)")
   montant: float = Field(..., ge=0.0, description="Montant cautionné (garantie financière)")
+  montant_contrat: Optional[float] = Field(None, description="Montant total du contrat (pour Bonne Exécution)")
   devise: str = Field("DZD", description="Devise de la caution")
   reference_type: Optional[str] = Field("Contrat", description="Type de référence (Appel d'offres, Contrat, Consultation)")
   reference_numero: Optional[str] = Field(None, description="Numéro de l'AO ou du contrat")
@@ -35,6 +36,7 @@ class CautionCreate(CautionBase):
 class CautionUpdate(BaseModel):
   type: Optional[TypeCaution] = None
   montant: Optional[float] = Field(None, ge=0.0)
+  montant_contrat: Optional[float] = Field(None, description="Montant total du contrat (pour Bonne Exécution)")
   devise: Optional[str] = None
   reference_type: Optional[str] = None
   reference_numero: Optional[str] = None

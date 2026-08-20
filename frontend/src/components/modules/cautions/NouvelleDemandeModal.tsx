@@ -17,6 +17,7 @@ const demandeSchema = z.object({
   type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
   client_id: z.string().min(1, "Veuillez sélectionner le bénéficiaire"),
   montant: z.coerce.number().min(1, "Le montant doit être supérieur à zéro"),
+  montant_contrat: z.coerce.number().optional(),
   banque_emetteur: z.string().min(1, "La banque émettrice est requise"),
   date_emission: z.string().min(1, "La date d'émission est requise"),
   reference_numero: z.string().min(1, "La référence est requise"),
@@ -57,6 +58,7 @@ export function NouvelleDemandeModal({
       type: "SOUMISSION",
       client_id: "",
       montant: 0,
+      montant_contrat: undefined,
       banque_emetteur: "Banque Nationale d'Algérie (BNA)",
       date_emission: new Date().toISOString().split("T")[0],
       reference_numero: "",
@@ -102,6 +104,7 @@ export function NouvelleDemandeModal({
         type: data.type,
         client_id: data.client_id,
         montant: Number(data.montant),
+        montant_contrat: data.montant_contrat ? Number(data.montant_contrat) : null,
         statut: "CREATION" as const,
         devise: "DZD",
         banque_emetteur: data.banque_emetteur,
@@ -284,6 +287,27 @@ export function NouvelleDemandeModal({
                 <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.montant.message}</p>
               )}
             </div>
+
+            {/* Montant du contrat (BONNE_EXECUTION only) */}
+            {!isSoumission && (
+              <div>
+                <label className={labelClass}>Montant du contrat</label>
+                <Controller
+                  name="montant_contrat"
+                  control={control}
+                  render={({ field }) => (
+                    <GlassNumberInput
+                      value={field.value ?? 0}
+                      onChange={field.onChange}
+                      min={0}
+                      step="any"
+                      placeholder="Ex: 2000000"
+                      suffix="DZD"
+                    />
+                  )}
+                />
+              </div>
+            )}
 
             {/* Banque + Date */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
