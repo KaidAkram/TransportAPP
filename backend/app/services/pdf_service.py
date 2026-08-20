@@ -115,6 +115,10 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     story.append(Paragraph(f"{lieu_s}, le {date_str}", body_r))
     story.append(Spacer(1, 16))
 
+    # ── Objet ──
+    story.append(Paragraph("<b>Objet : Demande d'émission d'une caution de soumission</b>", body))
+    story.append(Spacer(1, 12))
+
     # ── Body ──
     story.append(Paragraph(
         "Nous avons l'honneur de vous demander de bien vouloir procéder à l'émission, "
@@ -214,6 +218,10 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     story.append(Spacer(1, 8))
     story.append(Paragraph(f"{lieu_d}, le {date_str}", body_r))
     story.append(Spacer(1, 16))
+
+    # ── Objet ──
+    story.append(Paragraph("<b>Objet : Demande d'émission d'une caution de bonne exécution</b>", body))
+    story.append(Spacer(1, 12))
 
     # ── Body ──
     story.append(Paragraph(
