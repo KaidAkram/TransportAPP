@@ -378,7 +378,7 @@ def download_caution_pdf(caution_id: UUID, db: Session = Depends(get_db)):
   filename = f"caution_{sanitized}.pdf"
   filepath = os.path.join(
     os.path.abspath(
-      os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
+      os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
     ),
     filename,
   )
