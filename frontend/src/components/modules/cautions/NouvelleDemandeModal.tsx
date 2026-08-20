@@ -14,7 +14,6 @@ import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const demandeSchema = z.object({
-  type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
   client_id: z.string().min(1, "Veuillez sélectionner le bénéficiaire"),
   montant: z.coerce.number().min(1, "Le montant doit être supérieur à zéro"),
   banque_emetteur: z.string().min(1, "La banque émettrice est requise"),
@@ -22,9 +21,7 @@ const demandeSchema = z.object({
   reference_numero: z.string().min(1, "La référence est requise"),
   objet: z.string().min(5, "L'objet est requis"),
   lieu_demande: z.string().optional(),
-  lieu_soumission: z.string().optional(),
   numero_compte_bancaire: z.string().optional(),
-  client_societe_nom: z.string().optional(),
 });
 
 type DemandeFormValues = z.infer<typeof demandeSchema>;
@@ -51,13 +48,10 @@ export function NouvelleDemandeModal({
     control,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm<DemandeFormValues>({
     resolver: zodResolver(demandeSchema),
     defaultValues: {
-      type: "SOUMISSION",
       client_id: "",
       montant: 0,
       banque_emetteur: "Banque Nationale d'Algérie (BNA)",
@@ -65,15 +59,9 @@ export function NouvelleDemandeModal({
       reference_numero: "",
       objet: "",
       lieu_demande: "",
-      lieu_soumission: "",
       numero_compte_bancaire: "",
-      client_societe_nom: "",
     },
   });
-
-  const selectedType = watch("type");
-  const selectedClientId = watch("client_id");
-  const isSoumission = selectedType === "SOUMISSION";
 
   useEffect(() => {
     setMounted(true);
@@ -97,15 +85,6 @@ export function NouvelleDemandeModal({
     };
   }, [isOpen, reset]);
 
-  useEffect(() => {
-    if (selectedClientId) {
-      const client = clients.find(c => c.id === selectedClientId);
-      if (client) {
-        setValue("client_societe_nom", client.nom_commercial || "");
-      }
-    }
-  }, [selectedClientId, clients, setValue]);
-
   if (!mounted || !isOpen) return null;
 
   const onSubmit = async (data: DemandeFormValues) => {
@@ -114,15 +93,17 @@ export function NouvelleDemandeModal({
       setServerError(null);
 
       const payload = {
-        ...data,
+        type: "DEMANDE" as const,
+        client_id: data.client_id,
         montant: Number(data.montant),
-        type: data.type,
         statut: "CREATION" as const,
         devise: "DZD",
+        banque_emetteur: data.banque_emetteur,
+        date_emission: data.date_emission,
+        reference_numero: data.reference_numero,
+        objet: data.objet,
         lieu_demande: data.lieu_demande || null,
-        lieu_soumission: data.lieu_soumission || null,
         numero_compte_bancaire: data.numero_compte_bancaire || null,
-        client_societe_nom: data.client_societe_nom || null,
       };
 
       const res = await api.post<Caution>("/cautions", payload);
@@ -181,10 +162,10 @@ export function NouvelleDemandeModal({
             </div>
             <div>
               <h2 className="text-lg font-heading font-extrabold text-white">
-                Nouvelle Demande
+                Nouvelle Demande de Caution
               </h2>
               <p className="text-xs text-white/50 mt-0.5">
-                Génération rapide d'une demande de caution bancaire
+                Génération de la demande de caution bancaire (PDF)
               </p>
             </div>
           </div>
@@ -198,28 +179,6 @@ export function NouvelleDemandeModal({
 
         <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
           <form id="demande-caution-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Type */}
-            <div>
-              <label className={labelClass}>Type de Garantie</label>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <GlassSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                    options={[
-                      { value: "SOUMISSION", label: "Soumission (Appel d'Offres)" },
-                      { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
-                    ]}
-                  />
-                )}
-              />
-              {errors.type && (
-                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.type.message}</p>
-              )}
-            </div>
-
             {/* Bénéficiaire */}
             <div>
               <label className={labelClass}>Bénéficiaire</label>
@@ -245,14 +204,12 @@ export function NouvelleDemandeModal({
               )}
             </div>
 
-            {/* Référence */}
+            {/* Référence de l'appel d'offres */}
             <div>
-              <label className={labelClass}>
-                {isSoumission ? "Référence de l'appel d'offres" : "Référence du contrat"}
-              </label>
+              <label className={labelClass}>Référence de l'appel d'offres</label>
               <input
                 {...register("reference_numero")}
-                placeholder={isSoumission ? "Ex: AO 05/2026" : "Ex: CTR-2026-001"}
+                placeholder="Ex: AO 05/2026"
                 className={inputClass}
               />
               {errors.reference_numero && (
@@ -260,14 +217,12 @@ export function NouvelleDemandeModal({
               )}
             </div>
 
-            {/* Objet */}
+            {/* Objet de l'appel d'offres */}
             <div>
-              <label className={labelClass}>
-                {isSoumission ? "Objet de l'appel d'offres" : "Objet du contrat"}
-              </label>
+              <label className={labelClass}>Objet de l'appel d'offres</label>
               <textarea
                 {...register("objet")}
-                placeholder={isSoumission ? "Objet de l'appel d'offres..." : "Objet du contrat..."}
+                placeholder="Objet de l'appel d'offres..."
                 rows={2}
                 className={`${inputClass} resize-none`}
               />
@@ -278,9 +233,7 @@ export function NouvelleDemandeModal({
 
             {/* Montant */}
             <div>
-              <label className={labelClass}>
-                {isSoumission ? "Montant de la caution" : "Montant du contrat"}
-              </label>
+              <label className={labelClass}>Montant de la caution</label>
               <Controller
                 name="montant"
                 control={control}
@@ -322,11 +275,9 @@ export function NouvelleDemandeModal({
               </div>
             </div>
 
-            {/* Compte bancaire */}
+            {/* Notre compte bancaire */}
             <div>
-              <label className={labelClass}>
-                {isSoumission ? "Notre compte bancaire" : "Compte bancaire"}
-              </label>
+              <label className={labelClass}>Notre compte bancaire</label>
               <input
                 {...register("numero_compte_bancaire")}
                 placeholder="Ex: 001 00954 0300 101763 41"

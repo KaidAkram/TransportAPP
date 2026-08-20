@@ -12,11 +12,13 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
+  Upload,
+  ArrowRight,
 } from "lucide-react";
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { GlassSelect } from "@/components/ui/GlassSelect";
-import { AddCautionModal } from "@/components/modules/cautions/AddCautionModal";
 import { NouvelleDemandeModal } from "@/components/modules/cautions/NouvelleDemandeModal";
+import { UploadCautionModal } from "@/components/modules/cautions/UploadCautionModal";
 import { api } from "@/lib/api";
 import { Caution, CautionListResponse } from "@/types/caution";
 import { GlassPagination } from "@/components/ui/GlassPagination";
@@ -33,10 +35,8 @@ export default function CautionsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDemandeModalOpen, setIsDemandeModalOpen] = useState(false);
 
-  // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     cautionId: string | null;
@@ -47,6 +47,16 @@ export default function CautionsPage() {
     cautionId: null,
     cautionNum: "",
     isLoading: false,
+  });
+
+  const [uploadModal, setUploadModal] = useState<{
+    isOpen: boolean;
+    caution: Caution | null;
+    step: "ORIGINALE" | "PREUVE";
+  }>({
+    isOpen: false,
+    caution: null,
+    step: "ORIGINALE",
   });
 
   const fetchCautions = useCallback(async () => {
@@ -69,7 +79,6 @@ export default function CautionsPage() {
     }
   }, [search, typeFilter, statusFilter, page]);
 
-  
   useEffect(() => {
     setPage(1);
   }, [search, typeFilter, statusFilter]);
@@ -77,15 +86,6 @@ export default function CautionsPage() {
   useEffect(() => {
     fetchCautions();
   }, [fetchCautions]);
-
-  const handleGeneratePdf = async (id: string) => {
-    try {
-      await api.post(`/cautions/${id}/generate-pdf`, {});
-      fetchCautions();
-    } catch (err) {
-      alert("Erreur lors de la génération du document PDF de la caution.");
-    }
-  };
 
   const handleDeleteClick = (id: string, num: string) => {
     setConfirmModal({ isOpen: true, cautionId: id, cautionNum: num, isLoading: false });
@@ -104,8 +104,8 @@ export default function CautionsPage() {
     }
   };
 
-  // KPI Calculations
   const totalCount = cautions.length;
+  const creationCount = cautions.filter((c) => c.statut === "CREATION").length;
   const chezClientCount = cautions.filter((c) => c.statut === "CHEZ_CLIENT").length;
   const retourneeCount = cautions.filter((c) => c.statut === "RETOURNEE" || c.statut === "MAIN_LEVEE").length;
   const totalGarantiDZD = cautions.reduce((acc, c) => acc + (c.montant || 0), 0);
@@ -123,7 +123,7 @@ export default function CautionsPage() {
             Gestion des Cautions Bancaires
           </h1>
           <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
-            Suivi des garanties (Soumission & Bonne Exécution) et génération d'actes
+            Suivi des garanties et génération d'actes
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -136,17 +136,10 @@ export default function CautionsPage() {
           </button>
           <button
             onClick={() => setIsDemandeModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-bold text-white border border-white/10 hover:bg-white/10 transition-colors shadow-sm"
-          >
-            <FileText className="h-4 w-4" />
-            Nouvelle Demande
-          </button>
-          <button
-            onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
             <Plus className="h-4 w-4" />
-            Nouvelle Caution
+            Nouvelle Demande
           </button>
         </div>
       </div>
@@ -168,27 +161,27 @@ export default function CautionsPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Chez le Client</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Création</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{chezClientCount}</span>
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] drop-shadow-[0_0_10px_rgba(131,77,251,0.3)]">{creationCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">En cours de rétention</p>
+            <p className="text-[10px] text-white/40 mt-1">En attente caution originale</p>
           </div>
-          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
-            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
+          <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
+            <FileText className="h-5 w-5 text-[var(--color-electric-violet)]" />
           </div>
         </div>
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Retournées</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Chez le Client</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{retourneeCount}</span>
+              <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{chezClientCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Fonds libérés / Mainlevée</p>
+            <p className="text-[10px] text-white/40 mt-1">En attente preuve client</p>
           </div>
-          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
+            <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
           </div>
         </div>
 
@@ -196,7 +189,7 @@ export default function CautionsPage() {
           <div>
             <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Encours Cautionné</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalGarantiDZD.toLocaleString("fr-FR")}</span>
+              <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalGarantiDZD.toLocaleString("fr-DZ")}</span>
               <span className="text-[10px] font-bold text-white/40 shrink-0">DZD</span>
             </div>
             <p className="text-[10px] text-white/40 mt-1">Garanties globales</p>
@@ -218,16 +211,16 @@ export default function CautionsPage() {
             className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
-        
+
         <div className="w-full sm:w-[220px]">
           <GlassSelect
             value={typeFilter}
             onChange={setTypeFilter}
             options={[
               { value: "", label: "Tous les types de caution" },
-              { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
-              { value: "SOUMISSION", label: "Soumission (AO)" },
               { value: "DEMANDE", label: "Demande" },
+              { value: "SOUMISSION", label: "Soumission (AO)" },
+              { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
             ]}
           />
         </div>
@@ -238,9 +231,9 @@ export default function CautionsPage() {
             onChange={setStatusFilter}
             options={[
               { value: "", label: "Tous les statuts" },
-              { value: "CHEZ_CLIENT", label: "Chez le Client" },
               { value: "CREATION", label: "En Création" },
-              { value: "RETOURNEE", label: "Retournée" },
+              { value: "CHEZ_CLIENT", label: "Chez le Client" },
+              { value: "RETOURNEE", label: "Récupéré" },
               { value: "MAIN_LEVEE", label: "Mainlevée Accordée" },
             ]}
           />
@@ -249,15 +242,14 @@ export default function CautionsPage() {
 
       {/* Cautions Table */}
       <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
-        <div className="w-full min-w-0">
+        <div className="w-full min-w-0 overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Caution</th>
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Client / Bénéficiaire</th>
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Objet</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant Garanti</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Émission / Échéance</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant</th>
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut</th>
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
               </tr>
@@ -265,24 +257,27 @@ export default function CautionsPage() {
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-0">
+                  <td colSpan={6} className="p-0">
                     <TableSkeleton rows={5} />
                   </td>
                 </tr>
               ) : cautions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-0">
-                    <EmptyState 
-                      title="Aucune caution" 
-                      message="Aucune caution enregistrée ne correspond à vos filtres." 
-                      icon={ShieldCheck} 
+                  <td colSpan={6} className="p-0">
+                    <EmptyState
+                      title="Aucune caution"
+                      message="Aucune caution enregistrée ne correspond à vos filtres."
+                      icon={ShieldCheck}
                     />
                   </td>
                 </tr>
               ) : (
                 cautions.map((c) => {
-                  const isBonneExec = c.type === "BONNE_EXECUTION";
                   const isDemande = c.type === "DEMANDE";
+                  const isBonneExec = c.type === "BONNE_EXECUTION";
+                  const isCreation = c.statut === "CREATION";
+                  const isChezClient = c.statut === "CHEZ_CLIENT";
+                  const isRetournee = c.statut === "RETOURNEE" || c.statut === "MAIN_LEVEE";
 
                   return (
                     <tr
@@ -325,41 +320,50 @@ export default function CautionsPage() {
                       </td>
                       <td className="py-4 px-5">
                         <span className="font-mono text-xs font-bold text-white block">
-                          {c.montant.toLocaleString("fr-DZ")} {c.devise}
+                          {c.montant.toLocaleString("fr-FR")} {c.devise}
                         </span>
-                      </td>
-                      <td className="py-4 px-5">
-                        <div className="text-xs text-white/80 font-mono">
-                          {new Date(c.date_emission).toLocaleDateString("fr-FR")}
-                        </div>
-                        {c.date_echeance && (
-                          <div className="text-[10px] text-[var(--color-turbo)] font-mono mt-0.5">
-                            Échéance: {new Date(c.date_echeance).toLocaleDateString("fr-FR")}
-                          </div>
-                        )}
                       </td>
                       <td className="py-4 px-5">
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                            c.statut === "CHEZ_CLIENT"
+                            isChezClient
                               ? "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
-                              : c.statut === "RETOURNEE" || c.statut === "MAIN_LEVEE"
+                              : isRetournee
                               ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
                               : "bg-white/5 text-white/50 border-white/10"
                           }`}
                         >
-                          {c.statut === "CHEZ_CLIENT"
+                          {isChezClient
                             ? "Chez le Client"
-                            : c.statut === "RETOURNEE"
-                            ? "Retournée"
-                            : c.statut === "MAIN_LEVEE"
-                            ? "Mainlevée"
+                            : isRetournee
+                            ? "Récupéré"
                             : "Création"}
                         </span>
                       </td>
                       <td className="py-4 px-5 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {c.url_caution_pdf ? (
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Workflow actions */}
+                          {isCreation && (
+                            <button
+                              onClick={() => setUploadModal({ isOpen: true, caution: c, step: "ORIGINALE" })}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--color-turbo)]/30 bg-[var(--color-turbo)]/10 px-3 py-1.5 text-xs text-[var(--color-turbo)] font-medium hover:bg-[var(--color-turbo)]/20 transition-colors shadow-sm whitespace-nowrap"
+                              title="Téléverser la caution originale de la banque"
+                            >
+                              <Upload className="h-3 w-3" /> Caution Originale
+                            </button>
+                          )}
+                          {isChezClient && (
+                            <button
+                              onClick={() => setUploadModal({ isOpen: true, caution: c, step: "PREUVE" })}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors shadow-sm whitespace-nowrap"
+                              title="Téléverser la preuve client"
+                            >
+                              <Upload className="h-3 w-3" /> Preuve Client
+                            </button>
+                          )}
+
+                          {/* PDF */}
+                          {c.url_caution_pdf && (
                             <a
                               href={c.url_caution_pdf}
                               target="_blank"
@@ -368,14 +372,9 @@ export default function CautionsPage() {
                             >
                               <Download className="h-3.5 w-3.5" /> PDF
                             </a>
-                          ) : (
-                            <button
-                              onClick={() => handleGeneratePdf(c.id)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--color-electric-violet)]/30 bg-[var(--color-electric-violet)]/10 px-3 py-1.5 text-xs text-[var(--color-electric-violet)] font-medium hover:bg-[var(--color-electric-violet)]/20 transition-colors shadow-sm"
-                            >
-                              <FileText className="h-3 w-3" /> Générer
-                            </button>
                           )}
+
+                          {/* Delete */}
                           <button
                             onClick={() => handleDeleteClick(c.id, c.numero)}
                             className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
@@ -400,36 +399,36 @@ export default function CautionsPage() {
         />
       </div>
 
-            {/* Modals */}
+      {/* Modals */}
       <Portal>
-{/* Add Caution Modal */}
-      <AddCautionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => fetchCautions()}
-      />
+        <NouvelleDemandeModal
+          isOpen={isDemandeModalOpen}
+          onClose={() => setIsDemandeModalOpen(false)}
+          onSuccess={() => fetchCautions()}
+        />
 
-      {/* Nouvelle Demande Modal */}
-      <NouvelleDemandeModal
-        isOpen={isDemandeModalOpen}
-        onClose={() => setIsDemandeModalOpen(false)}
-        onSuccess={() => fetchCautions()}
-      />
+        {uploadModal.caution && (
+          <UploadCautionModal
+            isOpen={uploadModal.isOpen}
+            onClose={() => setUploadModal({ isOpen: false, caution: null, step: "ORIGINALE" })}
+            onSuccess={() => fetchCautions()}
+            caution={uploadModal.caution}
+            step={uploadModal.step}
+          />
+        )}
 
-      {/* Confirm Archiving Modal */}
-      <GlassConfirmModal
-        isOpen={confirmModal.isOpen}
-        onCancel={() => setConfirmModal({ isOpen: false, cautionId: null, cautionNum: "", isLoading: false })}
-        onConfirm={handleDeleteConfirm}
-        title="Archiver la caution"
-        message={`Êtes-vous sûr de vouloir archiver la caution ${confirmModal.cautionNum} ? Cette action la masquera des listes actives.`}
-        confirmText="Archiver"
-        cancelText="Annuler"
-        isLoading={confirmModal.isLoading}
-        type="danger"
-      />
+        <GlassConfirmModal
+          isOpen={confirmModal.isOpen}
+          onCancel={() => setConfirmModal({ isOpen: false, cautionId: null, cautionNum: "", isLoading: false })}
+          onConfirm={handleDeleteConfirm}
+          title="Archiver la caution"
+          message={`Êtes-vous sûr de vouloir archiver la caution ${confirmModal.cautionNum} ? Cette action la masquera des listes actives.`}
+          confirmText="Archiver"
+          cancelText="Annuler"
+          isLoading={confirmModal.isLoading}
+          type="danger"
+        />
       </Portal>
     </div>
   );
 }
-

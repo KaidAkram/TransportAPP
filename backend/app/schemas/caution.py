@@ -8,7 +8,7 @@ from app.schemas.document import DocumentSummary
 
 class CautionBase(BaseModel):
   numero: Optional[str] = Field(None, description="Numéro unique de la caution bancaire (ex: CAU-2026-001)")
-  type: TypeCaution = Field(..., description="Type de caution (SOUMISSION ou BONNE_EXECUTION)")
+  type: TypeCaution = Field(..., description="Type de caution (DEMANDE, SOUMISSION ou BONNE_EXECUTION)")
   client_id: UUID = Field(..., description="ID du client bénéficiaire")
   contrat_id: Optional[UUID] = Field(None, description="ID du contrat rattaché (optionnel pour Soumission)")
   montant: float = Field(..., ge=0.0, description="Montant cautionné (garantie financière)")
@@ -33,6 +33,7 @@ class CautionCreate(CautionBase):
 
 
 class CautionUpdate(BaseModel):
+  type: Optional[TypeCaution] = None
   montant: Optional[float] = Field(None, ge=0.0)
   devise: Optional[str] = None
   reference_type: Optional[str] = None
