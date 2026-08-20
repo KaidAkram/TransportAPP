@@ -45,6 +45,12 @@ class Constat(Base, BaseModelMixin):
   dommages = Column(Text, nullable=False)
   tiers_implique = Column(Boolean, default=False, nullable=False)
   infos_tiers = Column(Text, nullable=True)
+  
+  # New fields for insurance tracking and documents
+  statut_assurance = Column(String(50), default="En attente", nullable=False)
+  montant_rembourse = Column(Float, nullable=True)
+  url_document = Column(String(255), nullable=True) # the uploaded constat form
+  url_justificatif_assurance = Column(String(255), nullable=True) # proof of reimbursement/refusal
 
   vehicule = relationship("Vehicule", back_populates="constats")
   chauffeur = relationship("Employe", foreign_keys=[chauffeur_id])

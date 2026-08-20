@@ -28,7 +28,8 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddDocumentModal } from "@/components/modules/vehicules/AddDocumentModal";
 import { AddConstatModal } from "@/components/modules/vehicules/AddConstatModal";
 import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
-import { GlassDocumentManager } from "@/components/shared/GlassDocumentManager";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
+
 import { api } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/constants";
 import { VehiculeDetail } from "@/types/vehicule";
@@ -44,6 +45,15 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
   const [isConstatModalOpen, setIsConstatModalOpen] = useState(false);
   const [isInterventionModalOpen, setIsInterventionModalOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
+  
+  const [updateConstatModal, setUpdateConstatModal] = useState<{
+    isOpen: boolean;
+    constatId: string;
+    status: "Payée" | "Refusée";
+    montant?: string;
+    urlJustificatif?: string;
+    pendingFiles: File[];
+  } | null>(null);
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -60,6 +70,43 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
+
+  const handleUpdateConstatStatus = async () => {
+    if (!updateConstatModal || !vehicule) return;
+    try {
+      let urlJustificatif = updateConstatModal.urlJustificatif;
+
+      if (updateConstatModal.pendingFiles && updateConstatModal.pendingFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("file", updateConstatModal.pendingFiles[0]);
+        formData.append("entity_type", "vehicule");
+        formData.append("entity_id", vehicule.id);
+        formData.append("document_type", "Justificatif Assurance");
+        formData.append("nom", `Justificatif Constat - ${updateConstatModal.status}`);
+        
+        const uploadRes = await api.post<any>("/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        urlJustificatif = uploadRes.data.url_fichier;
+      }
+
+      const payload: any = {
+        statut_assurance: updateConstatModal.status,
+      };
+      if (updateConstatModal.status === "Payée" && updateConstatModal.montant) {
+        payload.montant_rembourse = parseFloat(updateConstatModal.montant);
+      }
+      if (urlJustificatif) {
+        payload.url_justificatif_assurance = urlJustificatif;
+      }
+      await api.put(`/vehicules/${vehicule.id}/constats/${updateConstatModal.constatId}`, payload);
+      setUpdateConstatModal(null);
+      fetchDetail();
+    } catch (err) {
+      console.error("Failed to update constat status:", err);
+      alert("Erreur lors de la mise à jour du statut.");
+    }
+  };
 
   if (loading) {
     return (
@@ -297,7 +344,11 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
               // Get all docs for this category, sorted by created_at desc (newest first)
               const catDocs = vehicule.documents
                 .filter((d) => d.type === catType || d.document_type === catType)
-                .sort((a, b) => new Date(b.created_at || new Date().toISOString()).getTime() - new Date(a.created_at || new Date().toISOString()).getTime());
+                .sort((a, b) => {
+                  const dateA = new Date(a.created_at || new Date().toISOString()).getTime();
+                  const dateB = new Date(b.created_at || new Date().toISOString()).getTime();
+                  return dateB - dateA;
+                });
               
               const activeDoc = catDocs[0];
               const historyDocs = catDocs.slice(1);
@@ -410,16 +461,31 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
 
           {/* Other Documents Section */}
           <div className="glass-panel p-5 mt-6 border border-white/10">
-            <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2 mb-4">
-              <FileText className="h-4 w-4 text-[var(--color-electric-violet)]" />
-              Autres documents
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2">
+                <FileText className="h-4 w-4 text-[var(--color-electric-violet)]" />
+                Autres documents
+              </h3>
+              <button
+                onClick={() => {
+                  setDocModalDefaultType("Autre");
+                  setIsDocModalOpen(true);
+                }}
+                className="text-[10px] font-bold text-[var(--color-turbo)] hover:text-[#ffe133] px-3 py-1.5 rounded-lg bg-[var(--color-turbo)]/10 hover:bg-[var(--color-turbo)]/20 transition-all flex items-center gap-1.5"
+              >
+                <Plus className="h-3 w-3" /> Ajouter document
+              </button>
+            </div>
             
             {(() => {
               const otherDocs = vehicule.documents.filter(
                 (d) => !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.type) &&
                        !["Carte grise", "Assurance", "Contrôle technique", "Agrément de transport"].includes(d.document_type || "")
-              ).sort((a, b) => new Date(b.created_at || new Date().toISOString()).getTime() - new Date(a.created_at || new Date().toISOString()).getTime());
+              ).sort((a, b) => {
+                const dateA = new Date(a.created_at || new Date().toISOString()).getTime();
+                const dateB = new Date(b.created_at || new Date().toISOString()).getTime();
+                return dateB - dateA;
+              });
 
               if (otherDocs.length === 0) {
                 return (
@@ -481,42 +547,112 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {vehicule.constats.map((c) => (
-                <div key={c.id} className="glass-panel overflow-hidden">
-                  <div className="p-4 border-b border-white/5 bg-rose-500/5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                        <AlertTriangle className="h-4 w-4 text-rose-400" />
-                      </div>
-                      <h4 className="text-xs font-heading font-bold text-rose-300">
-                        Sinistre du {new Date(c.date).toLocaleDateString("fr-FR")} {c.heure ? `à ${c.heure}` : ""}
-                      </h4>
-                    </div>
-                    <span className="text-[10px] font-mono text-white/40">{c.lieu}</span>
-                  </div>
-                  <div className="p-4 space-y-3 text-xs">
-                    <div>
-                      <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Circonstances</p>
-                      <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">
-                        {c.circonstances}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Dommages constatés</p>
-                      <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">
-                        {c.dommages}
-                      </p>
-                    </div>
-                    {c.tiers_implique && (
-                      <div className="p-3 rounded-xl bg-[var(--color-turbo)]/5 border border-[var(--color-turbo)]/20">
-                        <p className="font-accent text-[10px] uppercase tracking-widest text-[var(--color-turbo)] mb-1">Tiers impliqué</p>
-                        <p className="text-white/80 text-xs">{c.infos_tiers || "Informations non détaillées"}</p>
+            <div className="space-y-6">
+              {(() => {
+                const activeConstats = vehicule.constats.filter(c => !c.statut_assurance || c.statut_assurance === "En attente");
+                const archivedConstats = vehicule.constats.filter(c => c.statut_assurance === "Payée" || c.statut_assurance === "Refusée");
+
+                return (
+                  <>
+                    {/* Active Constats */}
+                    {activeConstats.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-accent uppercase tracking-widest text-white/50 mb-2">Constats en attente</h4>
+                        {activeConstats.map((c) => (
+                          <div key={c.id} className="glass-panel overflow-hidden relative">
+                            <div className="p-4 border-b border-white/5 bg-rose-500/5 flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                                  <AlertTriangle className="h-4 w-4 text-rose-400" />
+                                </div>
+                                <div>
+                                  <h4 className="text-xs font-heading font-bold text-rose-300">
+                                    Sinistre du {new Date(c.date).toLocaleDateString("fr-FR")} {c.heure ? `à ${c.heure}` : ""}
+                                  </h4>
+                                  <span className="text-[10px] font-mono text-white/40">{c.lieu}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/70">
+                                  En attente
+                                </span>
+                                <div className="flex bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+                                  <button onClick={() => setUpdateConstatModal({ isOpen: true, constatId: c.id, status: "Payée", pendingFiles: [] })} className="px-3 py-1.5 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 transition-colors border-r border-white/5">
+                                    Marquer Payée
+                                  </button>
+                                  <button onClick={() => setUpdateConstatModal({ isOpen: true, constatId: c.id, status: "Refusée", pendingFiles: [] })} className="px-3 py-1.5 text-[10px] font-bold text-rose-400 hover:bg-rose-500/10 transition-colors">
+                                    Refusée
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="p-4 space-y-3 text-xs">
+                              {c.url_document && (
+                                <a href={c.url_document} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-bold text-[var(--color-turbo)] bg-[var(--color-turbo)]/10 px-3 py-1.5 rounded-lg hover:bg-[var(--color-turbo)]/20 transition-colors border border-[var(--color-turbo)]/20">
+                                  <FileText className="h-3 w-3" /> Voir le document scanné
+                                </a>
+                              )}
+                              <div>
+                                <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Circonstances</p>
+                                <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">{c.circonstances}</p>
+                              </div>
+                              <div>
+                                <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Dommages constatés</p>
+                                <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">{c.dommages}</p>
+                              </div>
+                              {c.tiers_implique && (
+                                <div className="p-3 rounded-xl bg-[var(--color-turbo)]/5 border border-[var(--color-turbo)]/20">
+                                  <p className="font-accent text-[10px] uppercase tracking-widest text-[var(--color-turbo)] mb-1">Tiers impliqué</p>
+                                  <p className="text-white/80 text-xs">{c.infos_tiers || "Informations non détaillées"}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
-                  </div>
-                </div>
-              ))}
+
+                    {/* Archived Constats */}
+                    {archivedConstats.length > 0 && (
+                      <div className="space-y-3 mt-8">
+                        <h4 className="text-xs font-accent uppercase tracking-widest text-white/50 mb-2">Historique / Archives</h4>
+                        {archivedConstats.map((c) => (
+                          <div key={c.id} className="glass-panel overflow-hidden relative opacity-75 hover:opacity-100 transition-opacity">
+                            <div className="p-3 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                                  <AlertTriangle className="h-3 w-3 text-white/40" />
+                                </div>
+                                <div>
+                                  <h4 className="text-[11px] font-heading font-bold text-white/70">
+                                    Sinistre du {new Date(c.date).toLocaleDateString("fr-FR")}
+                                  </h4>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {c.statut_assurance === "Payée" ? (
+                                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                                    Payée {c.montant_rembourse ? `(${c.montant_rembourse.toLocaleString("fr-DZ")} DZD)` : ""}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-400 border border-rose-500/20">
+                                    Refusée
+                                  </span>
+                                )}
+                                {c.url_justificatif_assurance && (
+                                  <a href={c.url_justificatif_assurance} target="_blank" rel="noreferrer" className="text-[10px] text-white/50 hover:text-white underline">
+                                    Justificatif
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -632,15 +768,55 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         onSuccess={() => fetchDetail()}
       />
 
-      {/* Global File Upload */}
-      <div className="mt-2 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.4s' }}>
-        <GlassDocumentManager
-          entityType="vehicule"
-          entityId={vehicule.id}
-          title="Fichiers & Documents Joints"
-          subtitle="Gérez les copies scannées (Carte Grise, Assurance, Photos, etc.)"
-        />
-      </div>
+      {/* Constat Update Status Modal */}
+      {updateConstatModal && updateConstatModal.isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[var(--color-haiti)]/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white">
+                Marquer comme {updateConstatModal.status}
+              </h3>
+              <button onClick={() => setUpdateConstatModal(null)} className="text-white/40 hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              {updateConstatModal.status === "Payée" && (
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1.5">
+                    Montant remboursé (DZD)
+                  </label>
+                  <input
+                    type="number"
+                    value={updateConstatModal.montant || ""}
+                    onChange={(e) => setUpdateConstatModal({ ...updateConstatModal, montant: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                    placeholder="ex: 150000"
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1.5">
+                  Justificatif (Optionnel)
+                </label>
+                <CreationFileUploader
+                  files={updateConstatModal.pendingFiles}
+                  onFilesChange={(files) => setUpdateConstatModal({ ...updateConstatModal, pendingFiles: files })}
+                  maxFiles={1}
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t border-white/10 flex justify-end gap-2 bg-white/[0.02]">
+              <button onClick={() => setUpdateConstatModal(null)} className="px-4 py-2 text-xs font-bold text-white/60 hover:text-white">
+                Annuler
+              </button>
+              <button onClick={handleUpdateConstatStatus} className={`px-4 py-2 text-xs font-bold rounded-xl text-white ${updateConstatModal.status === "Payée" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-rose-500 hover:bg-rose-600"}`}>
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* File Preview Lightbox */}
       <AnimatePresence>

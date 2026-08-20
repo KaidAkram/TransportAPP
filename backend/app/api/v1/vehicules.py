@@ -24,7 +24,7 @@ from app.schemas.vehicule import (
   InterventionSummary,
 )
 from app.schemas.document import DocumentCreate, DocumentRead
-from app.schemas.constat import ConstatCreate, ConstatRead
+from app.schemas.constat import ConstatCreate, ConstatRead, ConstatUpdate
 from app.services.document_service import compute_validity_status
 
 router = APIRouter(prefix="/vehicules", tags=["Module 1 — Gestion des Véhicules"])
@@ -299,6 +299,21 @@ def create_vehicule_constat(vehicule_id: UUID, data: ConstatCreate, db: Session 
     infos_tiers=data.infos_tiers,
   )
   db.add(constat)
+  db.commit()
+  db.refresh(constat)
+  return constat
+
+
+@router.put("/{vehicule_id}/constats/{constat_id}", response_model=ConstatRead, summary="Update Constat Status / Assurance")
+def update_vehicule_constat(vehicule_id: UUID, constat_id: UUID, data: ConstatUpdate, db: Session = Depends(get_db)):
+  constat = db.query(Constat).filter(Constat.id == constat_id, Constat.vehicule_id == vehicule_id).first()
+  if not constat:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Constat introuvable.")
+
+  update_data = data.model_dump(exclude_unset=True)
+  for key, value in update_data.items():
+    setattr(constat, key, value)
+
   db.commit()
   db.refresh(constat)
   return constat

@@ -21,6 +21,10 @@ export interface ConstatSummary {
  dommages: string;
  tiers_implique: boolean;
  infos_tiers?: string | null;
+ statut_assurance: string;
+ montant_rembourse?: number | null;
+ url_document?: string | null;
+ url_justificatif_assurance?: string | null;
 }
 
 export interface InterventionSummary {

@@ -27,6 +27,10 @@ const cautionSchema = z.object({
   date_echeance: z.string().optional().nullable(),
   banque_emetteur: z.string().optional().nullable(),
   statut: z.enum(["CREATION", "CHEZ_CLIENT", "RETOURNEE", "MAIN_LEVEE"]),
+  lieu_demande: z.string().optional().nullable(),
+  lieu_soumission: z.string().optional().nullable(),
+  societe_nom: z.string().optional().nullable(),
+  numero_compte_bancaire: z.string().optional().nullable(),
 });
 
 type CautionFormValues = z.infer<typeof cautionSchema>;
@@ -65,15 +69,21 @@ export function AddCautionModal({
   } = useForm<CautionFormValues>({
     resolver: zodResolver(cautionSchema),
     defaultValues: {
-      type: "BONNE_EXECUTION",
-      devise: "DZD",
-      reference_type: "Contrat",
-      banque_emetteur: "Banque Nationale d'Algérie (BNA Agence 612)",
-      statut: "CHEZ_CLIENT",
-      date_emission: new Date().toISOString().split("T")[0],
+      numero: "CAU-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString(),
+      type: "SOUMISSION",
       client_id: defaultClientId || "",
       contrat_id: defaultContratId || "",
       montant: 0,
+      devise: "DZD",
+      reference_type: "Contrat",
+      reference_numero: "",
+      objet: "",
+      date_emission: new Date().toISOString().split("T")[0],
+      date_echeance: "",
+      banque_emetteur: "Banque Nationale d'Algérie (BNA)",
+      statut: "CREATION",
+      societe_nom: "Notre Société",
+      lieu_demande: "Alger",
     },
   });
 
@@ -291,7 +301,27 @@ export function AddCautionModal({
                   <label className={labelClass}>Banque Émettrice</label>
                   <input
                     {...register("banque_emetteur")}
-                    placeholder="Banque..."
+                    placeholder="Banque Nationale d'Algérie..."
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Extra info for PDF */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Lieu (Pour la lettre)</label>
+                  <input
+                    {...register("lieu_demande")}
+                    placeholder="Ex: Alger"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Nom de notre Société</label>
+                  <input
+                    {...register("societe_nom")}
+                    placeholder="Nom de l'entreprise..."
                     className={inputClass}
                   />
                 </div>
@@ -400,9 +430,9 @@ export function AddCautionModal({
                 />
                 <div>
                   <p className="text-xs font-bold text-[var(--color-turbo)] flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5" /> Générer l'attestation PDF immédiatement
+                    <FileText className="h-3.5 w-3.5" /> Générer la lettre de demande de caution (PDF)
                   </p>
-                  <p className="text-[10px] text-[var(--color-turbo)]/70">Un document officiel sera créé et rattaché à la caution.</p>
+                  <p className="text-[10px] text-[var(--color-turbo)]/70">Un document prêt à imprimer sera généré avec ces informations.</p>
                 </div>
               </label>
             </div>

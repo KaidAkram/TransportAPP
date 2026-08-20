@@ -9,6 +9,7 @@ import { AlertTriangle, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { ConstatSummary } from "@/types/vehicule";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const constatSchema = z.object({
   date: z.string().min(1, "La date de l'incident est requise"),
@@ -33,6 +34,7 @@ export function AddConstatModal({ vehiculeId, isOpen, onClose, onSuccess }: AddC
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -60,13 +62,31 @@ export function AddConstatModal({ vehiculeId, isOpen, onClose, onSuccess }: AddC
     try {
       setIsSubmitting(true);
       setServerError(null);
+      let url_document = null;
+
+      if (pendingFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("file", pendingFiles[0]);
+        formData.append("entity_type", "vehicule");
+        formData.append("entity_id", vehiculeId);
+        formData.append("document_type", "Constat");
+        formData.append("nom", `Constat scanné - Sinistre du ${data.date}`);
+        
+        const uploadRes = await api.post<any>("/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        url_document = uploadRes.data.url_fichier;
+      }
+
       const res = await api.post<ConstatSummary>(`/vehicules/${vehiculeId}/constats`, {
         ...data,
         vehicule_id: vehiculeId,
         heure: data.heure || null,
         infos_tiers: data.infos_tiers || null,
+        url_document,
       });
       reset();
+      setPendingFiles([]);
       onSuccess(res.data);
       onClose();
     } catch (err: any) {
@@ -208,6 +228,18 @@ export function AddConstatModal({ vehiculeId, isOpen, onClose, onSuccess }: AddC
                 />
               </div>
             )}
+          </div>
+
+          {/* File Upload for Scanned Document */}
+          <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-2">
+              Document scanné (Optionnel)
+            </label>
+            <CreationFileUploader
+              files={pendingFiles}
+              onFilesChange={setPendingFiles}
+              maxFiles={1}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/10 shrink-0">

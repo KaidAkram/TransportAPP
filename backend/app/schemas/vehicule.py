@@ -56,6 +56,15 @@ class ConstatSummary(BaseModel):
   dommages: str
   tiers_implique: bool
   infos_tiers: Optional[str] = None
+  
+  # Insurance tracking
+  statut_assurance: str = "En attente"
+  montant_rembourse: Optional[float] = None
+  url_document: Optional[str] = None
+  url_justificatif_assurance: Optional[str] = None
+
+  vehicule_immatriculation: str
+  chauffeur_nom: Optional[str] = None
 
   model_config = ConfigDict(from_attributes=True)
 
