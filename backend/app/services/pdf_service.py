@@ -37,7 +37,9 @@ def generate_caution_pdf(
     numero_compte_bancaire: str = None,
     societe_nom: str = None,
 ) -> str:
-    output_dir = os.path.abspath("frontend/public/assets/documents/cautions")
+    output_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
+    )
     os.makedirs(output_dir, exist_ok=True)
 
     sanitized = caution_number.replace("/", "_").replace("\\", "_")
