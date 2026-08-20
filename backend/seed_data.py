@@ -437,7 +437,7 @@ def seed_database(db_url: str):
                 numero=f"REC-2026-{idx+1:04d}",
                 fournisseur_id=f.id,
                 date=_dp(random.randint(5, 60)),
-                lieu=f"Entrepôt {f.nom or 'Principal'}",
+                lieu=f"Entrepôt {f.nom_commercial or 'Principal'}",
                 montant_total=montant,
                 mode_reglement=random.choice(modes).name,
                 motif=random.choice([
