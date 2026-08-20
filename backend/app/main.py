@@ -1,11 +1,17 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import engine, Base
 import app.models
 from app.api.v1.router import api_v1_router
 from app.api.v1.health import router as health_router
+
+ASSETS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets")
+)
 
 
 @asynccontextmanager
@@ -37,6 +43,9 @@ app.add_middleware(
 
 app.include_router(health_router, prefix="")
 app.include_router(api_v1_router, prefix=settings.API_V1_STR)
+
+if os.path.isdir(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="static-assets")
 
 
 @app.get("/", tags=["Root"])
