@@ -252,8 +252,39 @@ def seed_database(db_url: str):
                 lieu_demande=random.choice(["Arzew","Alger","Oran","Constantine"]),
                 lieu_soumission=random.choice(["Alger","Oran","Constantine","Annaba"]),
                 numero_compte_bancaire=f"001 00954 0300 {random.randint(100000,999999)}",
-                societe_nom="ENGTP - Direction Regionale Arzew")
+                societe_nom="ENGTP - Direction Regionale Arzew",
+                client_societe_nom=clients[ci].nom_commercial)
             db.add(c); cautions.append(c)
+        db.flush()
+
+        # ── Generate PDFs for cautions ──
+        from app.services.pdf_service import generate_caution_pdf
+        for c in cautions:
+            try:
+                client_nom = c.client.nom_commercial if c.client else "Client"
+                client_adr = c.client.adresse if c.client else "Algerie"
+                ref_ct = c.contrat.reference if c.contrat else c.reference_numero
+                pdf_url = generate_caution_pdf(
+                    caution_number=c.numero,
+                    caution_type=c.type.value if hasattr(c.type, "value") else str(c.type),
+                    amount=c.montant,
+                    devise=c.devise or "DZD",
+                    client_name=client_nom,
+                    client_address=client_adr,
+                    objet=c.objet,
+                    date_emission=c.date_emission,
+                    date_echeance=c.date_echeance,
+                    ref_contrat=ref_ct,
+                    banque_name=c.banque_emetteur or "Banque Nationale d'Algerie (BNA)",
+                    lieu_demande=c.lieu_demande,
+                    lieu_soumission=c.lieu_soumission,
+                    numero_compte_bancaire=c.numero_compte_bancaire,
+                    societe_nom=c.societe_nom,
+                    client_societe_nom=c.client_societe_nom,
+                )
+                c.url_caution_pdf = pdf_url
+            except Exception as e:
+                print(f"[seed] PDF generation failed for {c.numero}: {e}")
         db.flush()
 
         # ── PIECES ────────────────────────────────────────────────
