@@ -14,6 +14,7 @@ import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const demandeSchema = z.object({
+  type: z.enum(["SOUMISSION", "BONNE_EXECUTION"]),
   client_id: z.string().min(1, "Veuillez sélectionner le bénéficiaire"),
   montant: z.coerce.number().min(1, "Le montant doit être supérieur à zéro"),
   banque_emetteur: z.string().min(1, "La banque émettrice est requise"),
@@ -48,10 +49,12 @@ export function NouvelleDemandeModal({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<DemandeFormValues>({
     resolver: zodResolver(demandeSchema),
     defaultValues: {
+      type: "SOUMISSION",
       client_id: "",
       montant: 0,
       banque_emetteur: "Banque Nationale d'Algérie (BNA)",
@@ -62,6 +65,9 @@ export function NouvelleDemandeModal({
       numero_compte_bancaire: "",
     },
   });
+
+  const selectedType = watch("type");
+  const isSoumission = selectedType === "SOUMISSION";
 
   useEffect(() => {
     setMounted(true);
@@ -93,7 +99,7 @@ export function NouvelleDemandeModal({
       setServerError(null);
 
       const payload = {
-        type: "DEMANDE" as const,
+        type: data.type,
         client_id: data.client_id,
         montant: Number(data.montant),
         statut: "CREATION" as const,
@@ -179,6 +185,28 @@ export function NouvelleDemandeModal({
 
         <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
           <form id="demande-caution-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Type toggle */}
+            <div>
+              <label className={labelClass}>Type de Garantie</label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[
+                      { value: "SOUMISSION", label: "Soumission (Appel d'Offres)" },
+                      { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+                    ]}
+                  />
+                )}
+              />
+              {errors.type && (
+                <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.type.message}</p>
+              )}
+            </div>
+
             {/* Bénéficiaire */}
             <div>
               <label className={labelClass}>Bénéficiaire</label>
@@ -204,12 +232,14 @@ export function NouvelleDemandeModal({
               )}
             </div>
 
-            {/* Référence de l'appel d'offres */}
+            {/* Référence (dynamic label) */}
             <div>
-              <label className={labelClass}>Référence de l'appel d'offres</label>
+              <label className={labelClass}>
+                {isSoumission ? "Référence de l'appel d'offres" : "Référence du contrat"}
+              </label>
               <input
                 {...register("reference_numero")}
-                placeholder="Ex: AO 05/2026"
+                placeholder={isSoumission ? "Ex: AO 05/2026" : "Ex: CTR-2026-001"}
                 className={inputClass}
               />
               {errors.reference_numero && (
@@ -217,12 +247,14 @@ export function NouvelleDemandeModal({
               )}
             </div>
 
-            {/* Objet de l'appel d'offres */}
+            {/* Objet (dynamic label) */}
             <div>
-              <label className={labelClass}>Objet de l'appel d'offres</label>
+              <label className={labelClass}>
+                {isSoumission ? "Objet de l'appel d'offres" : "Objet du contrat"}
+              </label>
               <textarea
                 {...register("objet")}
-                placeholder="Objet de l'appel d'offres..."
+                placeholder={isSoumission ? "Objet de l'appel d'offres..." : "Objet du contrat..."}
                 rows={2}
                 className={`${inputClass} resize-none`}
               />
@@ -231,7 +263,7 @@ export function NouvelleDemandeModal({
               )}
             </div>
 
-            {/* Montant */}
+            {/* Montant de la caution */}
             <div>
               <label className={labelClass}>Montant de la caution</label>
               <Controller

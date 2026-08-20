@@ -60,14 +60,14 @@ def generate_caution_pdf(
                                        ref_contrat, banque_name, lieu_demande,
                                        numero_compte_bancaire, client_societe_nom,
                                        company_name, company_nif, company_nis,
-                                       company_rc, company_ai)
+                                       company_rc, company_ai, lieu_soumission=lieu_soumission)
     else:
         story = _build_soumission(doc, caution_number, amount, devise, client_name,
                                   client_address, objet, date_emission, date_echeance,
                                   ref_contrat, banque_name, lieu_soumission,
                                   numero_compte_bancaire, client_societe_nom,
                                   company_name, company_nif, company_nis,
-                                  company_rc, company_ai)
+                                  company_rc, company_ai, lieu_demande=lieu_demande)
 
     doc.build(story)
     return f"/assets/documents/cautions/{filename}"
@@ -81,7 +81,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
                       ref_contrat, banque_name, lieu_soumission,
                       numero_compte_bancaire, client_societe_nom,
                       company_name, company_nif, company_nis,
-                      company_rc, company_ai):
+                      company_rc, company_ai, lieu_demande=None):
     styles = getSampleStyleSheet()
     lieu_s = lieu_soumission or lieu_demande or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
@@ -197,7 +197,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            ref_contrat, banque_name, lieu_demande,
                            numero_compte_bancaire, client_societe_nom,
                            company_name, company_nif, company_nis,
-                           company_rc, company_ai):
+                           company_rc, company_ai, lieu_soumission=None):
     styles = getSampleStyleSheet()
     lieu_d = lieu_demande or lieu_soumission or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
