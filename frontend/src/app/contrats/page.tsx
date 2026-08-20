@@ -20,6 +20,7 @@ import {
   Factory,
 } from "lucide-react";
 import { AddContractModal } from "@/components/modules/contrats/AddContractModal";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { api } from "@/lib/api";
 import { Contrat, ContratListResponse } from "@/types/contrat";
 import { GlassPagination } from "@/components/ui/GlassPagination";
@@ -37,6 +38,14 @@ export default function ContratsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    type: "danger" | "success" | "warning" | "info";
+    confirmText: string;
+    onConfirm: () => void;
+  }>({ title: "", message: "", type: "warning", confirmText: "Confirmer", onConfirm: () => {} });
 
   const fetchContracts = useCallback(async () => {
     try {
@@ -67,26 +76,43 @@ export default function ContratsPage() {
     fetchContracts();
   }, [fetchContracts]);
 
+  const openConfirm = (cfg: typeof confirmConfig) => {
+    setConfirmConfig(cfg);
+    setConfirmOpen(true);
+  };
+
   const handleArchive = async (id: string, ref: string) => {
-    if (confirm(`Archiver le contrat ${ref} ?\nIl n'apparaîtra plus dans la liste principale.`)) {
-      try {
-        await api.post(`/contrats/${id}/archive`, {});
-        fetchContracts();
-      } catch (err) {
-        alert("Erreur lors de l'archivage du contrat.");
-      }
-    }
+    openConfirm({
+      title: "Archiver le contrat",
+      message: `Archiver le contrat ${ref} ? Il n'apparaîtra plus dans la liste principale mais restera dans la base de données.`,
+      type: "warning",
+      confirmText: "Archiver",
+      onConfirm: async () => {
+        try {
+          await api.post(`/contrats/${id}/archive`, {});
+          fetchContracts();
+        } catch (err) {
+          alert("Erreur lors de l'archivage du contrat.");
+        }
+      },
+    });
   };
 
   const handleUnarchive = async (id: string, ref: string) => {
-    if (confirm(`Restaurer le contrat ${ref} ?`)) {
-      try {
-        await api.post(`/contrats/${id}/unarchive`, {});
-        fetchContracts();
-      } catch (err) {
-        alert("Erreur lors de la restauration du contrat.");
-      }
-    }
+    openConfirm({
+      title: "Restaurer le contrat",
+      message: `Restaurer le contrat ${ref} ? Il réapparaîtra dans la liste principale.`,
+      type: "success",
+      confirmText: "Restaurer",
+      onConfirm: async () => {
+        try {
+          await api.post(`/contrats/${id}/unarchive`, {});
+          fetchContracts();
+        } catch (err) {
+          alert("Erreur lors de la restauration du contrat.");
+        }
+      },
+    });
   };
 
   // KPI Calculations
@@ -418,6 +444,19 @@ export default function ContratsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchContracts()}
+      />
+
+      <GlassConfirmModal
+        isOpen={confirmOpen}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        type={confirmConfig.type}
+        confirmText={confirmConfig.confirmText}
+        onConfirm={() => {
+          confirmConfig.onConfirm();
+          setConfirmOpen(false);
+        }}
+        onCancel={() => setConfirmOpen(false)}
       />
     </div>
   );
