@@ -124,6 +124,7 @@ export default function ContratsPage() {
   const totalVolumeDZD = contracts.reduce((acc, c) => acc + (c.montant || 0), 0);
 
   return (
+    <>
     <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
@@ -445,19 +446,20 @@ export default function ContratsPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchContracts()}
       />
-
-      <GlassConfirmModal
-        isOpen={confirmOpen}
-        title={confirmConfig.title}
-        message={confirmConfig.message}
-        type={confirmConfig.type}
-        confirmText={confirmConfig.confirmText}
-        onConfirm={() => {
-          confirmConfig.onConfirm();
-          setConfirmOpen(false);
-        }}
-        onCancel={() => setConfirmOpen(false)}
-      />
     </div>
+
+    <GlassConfirmModal
+      isOpen={confirmOpen}
+      title={confirmConfig.title}
+      message={confirmConfig.message}
+      type={confirmConfig.type}
+      confirmText={confirmConfig.confirmText}
+      onConfirm={() => {
+        confirmConfig.onConfirm();
+        setConfirmOpen(false);
+      }}
+      onCancel={() => setConfirmOpen(false)}
+    />
+    </>
   );
 }
