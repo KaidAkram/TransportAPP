@@ -93,17 +93,29 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
 
     # ── Header (société) ──
     story.append(Paragraph(f"<b>{societe}</b>", ParagraphStyle("H", parent=body, fontSize=13, alignment=1, fontName="Helvetica-Bold")))
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 24))
 
-    # ── Date & lieu ──
-    story.append(Paragraph(lieu_date, body_j))
-    story.append(Spacer(1, 12))
-
-    # ── Addressee ──
-    story.append(Paragraph("À l'attention de", body))
-    story.append(Paragraph("<b>Monsieur Le Directeur</b>", body))
-    story.append(Paragraph(f"De la Banque : {banque_name}", body))
-    story.append(Spacer(1, 12))
+    # ── Addressee (left) + Date/lieu (right) on same row ──
+    addressee_text = (
+        "À l'attention de<br/>"
+        "<b>Monsieur Le Directeur</b><br/>"
+        f"De la Banque : {banque_name}"
+    )
+    date_text = lieu_date
+    header_data = [[
+        Paragraph(addressee_text, body),
+        Paragraph(date_text, body_j),
+    ]]
+    header_table = Table(header_data, colWidths=[11 * cm, 6 * cm])
+    header_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 16))
 
     # ── Subject ──
     story.append(Paragraph("<b>Objet : Demande de caution de soumission</b>", body))
@@ -231,15 +243,27 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
 
     story = []
 
-    # ── Date & lieu ──
-    story.append(Paragraph(lieu_date, body_j))
+    # ── Addressee (left) + Date/lieu (right) on same row ──
+    addressee_text = (
+        "À l'attention de<br/>"
+        f"<b>Monsieur le Directeur</b><br/>"
+        f"De la Banque : {banque_name}"
+    )
+    date_text = lieu_date
+    header_data = [[
+        Paragraph(addressee_text, body),
+        Paragraph(date_text, body_j),
+    ]]
+    header_table = Table(header_data, colWidths=[11 * cm, 6 * cm])
+    header_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.append(header_table)
     story.append(Spacer(1, 16))
-
-    # ── Addressee ──
-    story.append(Paragraph("À l'attention de", body))
-    story.append(Paragraph(f"<b>Monsieur le Directeur</b>", body))
-    story.append(Paragraph(f"De la Banque : {banque_name}", body))
-    story.append(Spacer(1, 12))
 
     # ── Subject ──
     story.append(Paragraph("<b>Objet : Demande d'une caution de bonne exécution.</b>", body))
