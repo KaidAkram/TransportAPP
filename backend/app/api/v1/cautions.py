@@ -1,9 +1,11 @@
 from datetime import datetime, timezone, date as dt_date
 import math
+import os
 from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import FileResponse
 from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 
@@ -312,19 +314,21 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     societe_nom=caution.societe_nom,
   )
 
+  serve_url = f"/api/v1/cautions/{caution_id}/pdf"
+
   existing_doc = (
     db.query(Document)
     .filter(Document.entity_type == "caution", Document.entity_id == caution_id)
     .first()
   )
   if existing_doc:
-    existing_doc.url_fichier = pdf_url
+    existing_doc.url_fichier = serve_url
   else:
     new_doc = Document(
       id=uuid4(),
       nom=f"Acte Officiel {caution.numero}",
       type="Caution Bancaire",
-      url_fichier=pdf_url,
+      url_fichier=serve_url,
       date_emission=caution.date_emission,
       date_expiration=caution.date_echeance,
       statut_validite="Valide",
@@ -333,7 +337,7 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     )
     db.add(new_doc)
 
-  caution.url_caution_pdf = pdf_url
+  caution.url_caution_pdf = serve_url
   db.commit()
   db.refresh(caution)
 
@@ -362,3 +366,24 @@ def generate_caution_document_pdf(caution_id: UUID, db: Session = Depends(get_db
     created_at=caution.created_at,
     updated_at=caution.updated_at,
   )
+
+
+@router.get("/{caution_id}/pdf", summary="Download Caution PDF")
+def download_caution_pdf(caution_id: UUID, db: Session = Depends(get_db)):
+  caution = db.query(Caution).filter(Caution.id == caution_id).first()
+  if not caution:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Caution introuvable.")
+
+  sanitized = caution.numero.replace("/", "_").replace("\\", "_")
+  filename = f"caution_{sanitized}.pdf"
+  filepath = os.path.join(
+    os.path.abspath(
+      os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents", "cautions")
+    ),
+    filename,
+  )
+
+  if os.path.exists(filepath):
+    return FileResponse(filepath, media_type="application/pdf", filename=filename, content_disposition_type="inline")
+
+  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Le fichier PDF n'a pas été généré.")
