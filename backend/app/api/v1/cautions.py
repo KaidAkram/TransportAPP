@@ -204,6 +204,7 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
     lieu_soumission=data.lieu_soumission,
     numero_compte_bancaire=data.numero_compte_bancaire,
     societe_nom=data.societe_nom,
+    client_societe_nom=data.client_societe_nom,
     url_caution_pdf=data.url_caution_pdf,
   )
   db.add(caution)
