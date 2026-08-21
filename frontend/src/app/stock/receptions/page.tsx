@@ -71,7 +71,7 @@ export default function ReceptionHistoryPage() {
 
   const generateBonAchat = async (id: string) => {
     try {
-      const res = await api.post<ReceptionDetail>(`/stock/receptions/${id}/generate-pdf-achat`);
+      const res = await api.post<ReceptionDetail>(`/stock/receptions/${id}/generate-pdf-achat`, {});
       setReceptions((prev) => prev.map((r) => r.id === id ? { ...r, url_pdf: res.data.url_pdf } : r));
       if (detailReception && detailReception.id === id) {
         setDetailReception((prev) => prev ? { ...prev, url_pdf: res.data.url_pdf } : prev);
