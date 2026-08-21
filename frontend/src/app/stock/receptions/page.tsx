@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Eye,
   X,
+  FileText,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Reception, ReceptionDetail, ReceptionListResponse } from "@/types/stock";
@@ -65,6 +66,22 @@ export default function ReceptionHistoryPage() {
       setDetailReception(res.data);
     } catch (err) {
       console.error("Error fetching detail:", err);
+    }
+  };
+
+  const generateBonAchat = async (id: string) => {
+    try {
+      const res = await api.post<ReceptionDetail>(`/stock/receptions/${id}/generate-pdf-achat`);
+      setReceptions((prev) => prev.map((r) => r.id === id ? { ...r, url_pdf: res.data.url_pdf } : r));
+      if (detailReception && detailReception.id === id) {
+        setDetailReception((prev) => prev ? { ...prev, url_pdf: res.data.url_pdf } : prev);
+      }
+      if (res.data.url_pdf) {
+        window.open(res.data.url_pdf, "_blank");
+      }
+    } catch (err) {
+      console.error("Error generating bon achat:", err);
+      alert("Erreur lors de la génération du Bon d'Achat");
     }
   };
 
@@ -188,6 +205,13 @@ export default function ReceptionHistoryPage() {
                     <td className="py-4 px-5 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
+                          onClick={() => generateBonAchat(r.id)}
+                          className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl border border-[var(--color-electric-violet)]/20 bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/20 transition-colors text-xs font-bold"
+                          title="Générer Bon d'Achat"
+                        >
+                          <FileText className="h-3.5 w-3.5" /> Bon
+                        </button>
+                        <button
                           onClick={() => openDetail(r.id)}
                           className="p-1.5 rounded-xl border border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                           title="Détails"
@@ -200,7 +224,7 @@ export default function ReceptionHistoryPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 rounded-xl border border-[var(--color-electric-violet)]/20 bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/20 transition-colors"
-                            title="Télécharger le Bon de Réception"
+                            title="Télécharger"
                           >
                             <Download className="h-4 w-4" />
                           </a>
@@ -298,6 +322,12 @@ export default function ReceptionHistoryPage() {
               </div>
 
               <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-end gap-3 shrink-0">
+                <button
+                  onClick={() => generateBonAchat(detailReception.id)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)]/10 border border-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/20 transition-all"
+                >
+                  <FileText className="h-3.5 w-3.5" /> Générer Bon
+                </button>
                 {detailReception.url_pdf && (
                   <a
                     href={detailReception.url_pdf}
@@ -305,7 +335,7 @@ export default function ReceptionHistoryPage() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#6c3ce0] transition-all"
                   >
-                    <Download className="h-3.5 w-3.5" /> Bon de Réception
+                    <Download className="h-3.5 w-3.5" /> Télécharger
                   </a>
                 )}
                 <button
