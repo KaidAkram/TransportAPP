@@ -35,10 +35,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from fastapi.staticfiles import StaticFiles
+
+assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "assets"))
+os.makedirs(assets_path, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
 app.include_router(health_router, prefix="")
 app.include_router(api_v1_router, prefix=settings.API_V1_STR)
-
 
 @app.get("/", tags=["Root"])
 def root_redirect():
