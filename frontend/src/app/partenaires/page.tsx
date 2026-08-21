@@ -287,14 +287,14 @@ export default function PartenairesPage() {
                   return (
                     <TableRow
                       key={p.id}
-                      className="border-none hover:bg-white/[0.02] transition-colors"
+                      className="border-none hover:bg-white/[0.02] transition-colors relative group cursor-pointer"
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div>
                             <Link
                               href={`/partenaires/${p.id}`}
-                              className="text-xs font-bold text-white hover:text-[var(--color-electric-violet)] transition-colors block"
+                              className="text-xs font-bold text-white group-hover:text-[var(--color-electric-violet)] transition-colors block before:absolute before:inset-0 before:z-10"
                             >
                               {p.nom_commercial}
                             </Link>
@@ -312,7 +312,7 @@ export default function PartenairesPage() {
                             isClient
                               ? "bg-[var(--color-electric-violet)] text-white"
                               : "bg-[var(--color-turbo)] text-black"
-                          }`}
+                          } relative z-20`}
                         >
                           {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
                           {isClient ? "Client" : "Fournisseur"}
