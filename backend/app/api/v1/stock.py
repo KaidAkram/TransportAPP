@@ -53,7 +53,7 @@ def list_pieces(
   statut_stock: Optional[str] = Query(None, description="Filter by stock status: NORMAL, FAIBLE, RUPTURE"),
   include_archived: bool = Query(False, description="Include archived pieces"),
   page: int = Query(1, ge=1, description="Page number"),
-  per_page: int = Query(20, ge=1, le=100, description="Items per page"),
+  per_page: int = Query(20, ge=1, le=1000, description="Items per page"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Piece)

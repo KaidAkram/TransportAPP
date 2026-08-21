@@ -105,9 +105,11 @@ export function AddStockEntryModal({
     0
   );
 
+  const finalPieces = allPieces.length > 0 ? allPieces : piecesList;
+
   const pieceOptions = [
     { value: "", label: "Sélectionner..." },
-    ...allPieces.map((p) => ({
+    ...finalPieces.map((p) => ({
       value: p.id,
       label: `${p.reference} - ${p.designation}`,
     })),
