@@ -321,12 +321,12 @@ export default function ContratsPage() {
                   return (
                     <tr
                       key={c.id}
-                      className={`group hover:bg-white/[0.02] transition-colors ${isArchived ? "opacity-60" : ""}`}
+                      className={`group hover:bg-white/[0.02] transition-colors relative cursor-pointer ${isArchived ? "opacity-60" : ""}`}
                     >
                       <td className="py-4 px-5">
                         <Link
                           href={`/contrats/${c.id}`}
-                          className="font-mono text-[13px] font-bold text-[var(--color-electric-violet)] hover:text-[#9D75FF] transition-colors"
+                          className="font-mono text-[13px] font-bold text-[var(--color-electric-violet)] group-hover:text-[#9D75FF] transition-colors before:absolute before:inset-0 before:z-10"
                         >
                           {c.reference}
                         </Link>
@@ -397,7 +397,7 @@ export default function ContratsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-5 text-right">
+                      <td className="py-4 px-5 text-right relative z-20">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/contrats/${c.id}`}>
                             <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white transition-all">

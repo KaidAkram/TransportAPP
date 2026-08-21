@@ -289,10 +289,10 @@ export default function EmployesPage() {
                   return (
                     <tr
                       key={e.id}
-                      className="hover:bg-white/5 transition-colors group"
+                      className="hover:bg-white/5 transition-colors group relative cursor-pointer"
                     >
                       <td className="py-3 px-3 text-xs font-mono font-bold truncate">
-                        <Link href={`/employes/${e.id}`} className="text-white/80 hover:text-[var(--color-electric-violet)] transition-colors underline-offset-4 hover:underline">
+                        <Link href={`/employes/${e.id}`} className="text-white/80 group-hover:text-[var(--color-electric-violet)] transition-colors underline-offset-4 group-hover:underline before:absolute before:inset-0 before:z-10 block">
                           {e.matricule}
                         </Link>
                       </td>
@@ -309,7 +309,7 @@ export default function EmployesPage() {
                               />
                             </div>
                             {e.dossier_complet === false && (
-                              <div className="absolute -top-1.5 -right-1.5 group/tooltip flex items-center justify-center">
+                              <div className="absolute -top-1.5 -right-1.5 group/tooltip flex items-center justify-center z-20">
                                 <AlertTriangle className="h-4 w-4 text-[var(--color-turbo)] fill-[var(--color-turbo)]/20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover/tooltip:block w-max bg-[var(--color-turbo)] text-black text-[10px] py-0.5 px-1.5 rounded font-bold shadow-lg z-50">
                                   Dossier incomplet
@@ -320,7 +320,7 @@ export default function EmployesPage() {
                           <div className="min-w-0">
                             <Link
                               href={`/employes/${e.id}`}
-                              className="text-xs font-semibold text-white hover:text-[var(--color-electric-violet)] transition-colors truncate block"
+                              className="text-xs font-semibold text-white group-hover:text-[var(--color-electric-violet)] transition-colors truncate block"
                             >
                               {e.nom} {e.prenom}
                             </Link>
@@ -355,7 +355,7 @@ export default function EmployesPage() {
                       <td className="py-3 px-3">
                         <StatusBadge status={e.statut} />
                       </td>
-                      <td className="py-3 px-3 text-right">
+                      <td className="py-3 px-3 text-right relative z-20">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/employes/${e.id}`}

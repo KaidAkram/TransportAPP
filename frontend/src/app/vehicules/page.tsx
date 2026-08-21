@@ -197,9 +197,11 @@ export default function VehiculesPage() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {vehicles.map((v) => (
-                    <tr key={v.id} className="hover:bg-white/5 transition-colors group">
+                    <tr key={v.id} className="hover:bg-white/5 transition-colors group relative cursor-pointer">
                       <td className="py-3 px-4 text-xs font-mono font-bold text-white truncate">
-                        {v.immatriculation}
+                        <Link href={`/vehicules/${v.id}`} className="block group-hover:text-[var(--color-electric-violet)] transition-colors before:absolute before:inset-0 before:z-10">
+                          {v.immatriculation}
+                        </Link>
                       </td>
                       <td className="py-3 px-4 text-xs font-medium text-white truncate">
                         {v.marque} {v.modele}
@@ -216,7 +218,7 @@ export default function VehiculesPage() {
                       <td className="py-3 px-4 text-center">
                         <StatusBadge status={v.statut} />
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right relative z-20">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/vehicules/${v.id}`}

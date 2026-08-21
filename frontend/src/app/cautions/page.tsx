@@ -282,11 +282,11 @@ export default function CautionsPage() {
                   return (
                     <tr
                       key={c.id}
-                      className="group hover:bg-white/[0.02] transition-colors"
+                      className="group hover:bg-white/[0.02] transition-colors relative cursor-pointer"
                     >
                       <td className="py-4 px-5">
-                        <Link href={`/cautions/${c.id}`}>
-                          <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block mb-0.5 hover:underline cursor-pointer">
+                        <Link href={`/cautions/${c.id}`} className="block before:absolute before:inset-0 before:z-10">
+                          <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block mb-0.5 group-hover:underline">
                             {c.numero}
                           </span>
                         </Link>
@@ -340,7 +340,7 @@ export default function CautionsPage() {
                             : "Création"}
                         </span>
                       </td>
-                      <td className="py-4 px-5 text-right">
+                      <td className="py-4 px-5 text-right relative z-20">
                         <div className="flex items-center justify-end gap-2">
                           {/* Workflow actions */}
                           {isCreation && (
