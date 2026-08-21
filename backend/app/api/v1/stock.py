@@ -727,7 +727,7 @@ def generate_bon_achat(reception_id: UUID, db: Session = Depends(get_db)):
   settings = get_or_create_settings(db)
   
   fournisseur_nom = r.fournisseur.nom_commercial if r.fournisseur else "INCONNU"
-  fournisseur_tel = r.fournisseur.telephone if (r.fournisseur and r.fournisseur.telephone) else "-"
+  fournisseur_tel = r.fournisseur.telephone_principal if (r.fournisseur and getattr(r.fournisseur, 'telephone_principal', None)) else "-"
   
   lignes_data = []
   for l in r.lignes:
