@@ -47,6 +47,7 @@ export function AddStockEntryModal({
 }: AddStockEntryModalProps) {
   const [mounted, setMounted] = useState(false);
   const [suppliers, setSuppliers] = useState<Partenaire[]>([]);
+  const [allPieces, setAllPieces] = useState<Piece[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<Reception | null>(null);
@@ -84,6 +85,11 @@ export function AddStockEntryModal({
         .get<PartenaireListResponse>("/partenaires", { role_partenaire: "FOURNISSEUR", per_page: "100" })
         .then((res) => setSuppliers(res.data.items))
         .catch(console.error);
+        
+      api
+        .get("/stock/pieces", { per_page: "1000" })
+        .then((res: any) => setAllPieces(res.data.items || []))
+        .catch(console.error);
     } else {
       document.body.style.overflow = "unset";
       setServerError(null);
@@ -101,7 +107,7 @@ export function AddStockEntryModal({
 
   const pieceOptions = [
     { value: "", label: "Sélectionner..." },
-    ...piecesList.map((p) => ({
+    ...allPieces.map((p) => ({
       value: p.id,
       label: `${p.reference} - ${p.designation}`,
     })),

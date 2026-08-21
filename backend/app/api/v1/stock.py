@@ -717,7 +717,7 @@ def delete_reception(reception_id: UUID, db: Session = Depends(get_db)):
   db.commit()
   return None
 
-@router.post("/receptions/{reception_id}/generate-pdf-achat", response_model=ReceptionRead, summary="Generate Bon d'Achat PDF", dependencies=[Depends(require_feature("create_stock_entry"))])
+@router.post("/receptions/{reception_id}/generate-pdf-achat", response_model=ReceptionRead, summary="Generate Bon d'Achat PDF", dependencies=[Depends(require_feature("view_stock"))])
 def generate_bon_achat(reception_id: UUID, db: Session = Depends(get_db)):
   r = db.query(Reception).options(joinedload(Reception.fournisseur), joinedload(Reception.lignes).joinedload(ReceptionLigne.piece)).filter(Reception.id == reception_id).first()
   if not r:
@@ -746,7 +746,7 @@ def generate_bon_achat(reception_id: UUID, db: Session = Depends(get_db)):
       fournisseur_tel=fournisseur_tel,
       lignes=lignes_data,
       montant_total=r.montant_total,
-      mode_reglement=r.mode_reglement.name if r.mode_reglement else "A_Terme",
+      mode_reglement=getattr(r.mode_reglement, 'name', str(r.mode_reglement)) if r.mode_reglement else "A_Terme",
       company_name=settings.company_name or "GarageDZ",
       company_address=settings.company_address or "25 ARZEW, ORAN",
       company_phone=settings.company_phone or "",
