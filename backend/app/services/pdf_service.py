@@ -444,13 +444,21 @@ def generate_bon_achat_pdf(
     elements.append(Spacer(1, 1*cm))
 
     # 5. Financial Summary
-    green_color = colors.Color(0.2, 0.6, 0.2)
     versement = 0.0
     reste = montant_total
     
-    if mode_reglement != "A_Terme":
+    # "CREDIT" means not paid immediately
+    if mode_reglement != "CREDIT":
         versement = montant_total
         reste = 0.0
+
+    mode_labels = {
+        "ESPECES": "Espèces",
+        "CHEQUE": "Chèque",
+        "VIREMENT": "Virement",
+        "CCP": "CCP"
+    }
+    mode_str = mode_labels.get(mode_reglement, mode_reglement)
 
     totals_data = [
         [Paragraph("<b>Total achat</b>", styles['Normal']), Paragraph(f"<b>{montant_total:,.2f} DA</b>".replace(',', ' '), ParagraphStyle('R', parent=styles['Normal'], alignment=2))],
@@ -458,13 +466,13 @@ def generate_bon_achat_pdf(
     
     if versement > 0:
         totals_data.append([
-            Paragraph("<font color='#339933'><b>Versement effectué</b></font>", styles['Normal']), 
-            Paragraph(f"<font color='#339933'><b>-{versement:,.2f} DA</b></font>".replace(',', ' '), ParagraphStyle('R', parent=styles['Normal'], alignment=2))
+            Paragraph(f"<font color='#2e8b57'><b>Versement effectué ({mode_str})</b></font>", styles['Normal']), 
+            Paragraph(f"<font color='#2e8b57'><b>-{versement:,.2f} DA</b></font>".replace(',', ' '), ParagraphStyle('R', parent=styles['Normal'], alignment=2))
         ])
     
     totals_data.append([
-        Paragraph("<font color='#339933'><b>Reste à payer</b></font>" if reste == 0 else "<b>Reste à payer</b>", styles['Normal']), 
-        Paragraph(f"<font color='#339933'><b>{reste:,.2f} DA</b></font>".replace(',', ' ') if reste == 0 else f"<b>{reste:,.2f} DA</b>".replace(',', ' '), ParagraphStyle('R', parent=styles['Normal'], alignment=2))
+        Paragraph("<font color='#2e8b57'><b>Reste à payer</b></font>" if reste == 0 else "<b>Reste à payer</b>", styles['Normal']), 
+        Paragraph(f"<font color='#2e8b57'><b>{reste:,.2f} DA</b></font>".replace(',', ' ') if reste == 0 else f"<b>{reste:,.2f} DA</b>".replace(',', ' '), ParagraphStyle('R', parent=styles['Normal'], alignment=2))
     ])
 
     totals_table = Table(totals_data, colWidths=[15*cm, 3*cm])
