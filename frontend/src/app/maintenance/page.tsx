@@ -19,6 +19,7 @@ import {
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
+import { AddInterventionDocumentModal } from "@/components/modules/maintenance/AddInterventionDocumentModal";
 import { api } from "@/lib/api";
 import { Intervention, InterventionListResponse } from "@/types/intervention";
 import { GlassPagination } from "@/components/ui/GlassPagination";
@@ -36,6 +37,10 @@ export default function MaintenancePage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [docModal, setDocModal] = useState<{
+    isOpen: boolean;
+    interventionId: string;
+  }>({ isOpen: false, interventionId: "" });
 
   // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -348,6 +353,13 @@ export default function MaintenancePage() {
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
+                            onClick={() => setDocModal({ isOpen: true, interventionId: i.id })}
+                            className="p-1.5 rounded-xl border border-[var(--color-turbo)]/20 bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] hover:bg-[var(--color-turbo)]/20 transition-colors shadow-sm"
+                            title="Ajouter un document"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => handleDeleteClick(i.id, i.numero)}
                             className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
                             title="Annuler/Supprimer l'ordre de travail"
@@ -371,14 +383,26 @@ export default function MaintenancePage() {
         />
       </div>
 
-            {/* Modals */}
+      {/* Modals */}
       <Portal>
-{/* Add Modal */}
+      {/* Add Modal */}
       <AddInterventionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchInterventions()}
       />
+      
+      {/* Upload Document Modal */}
+      {docModal.isOpen && (
+        <AddInterventionDocumentModal
+          interventionId={docModal.interventionId}
+          isOpen={docModal.isOpen}
+          onClose={() => setDocModal({ isOpen: false, interventionId: "" })}
+          onSuccess={() => {
+            // Document ajouté avec succès
+          }}
+        />
+      )}
 
       {/* Confirm Archiving Modal */}
       <GlassConfirmModal

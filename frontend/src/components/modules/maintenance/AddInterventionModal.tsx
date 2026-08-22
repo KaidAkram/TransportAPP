@@ -13,6 +13,7 @@ import { Employe, EmployeListResponse } from "@/types/employe";
 import { Piece, PieceListResponse } from "@/types/stock";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const pieceUsageSchema = z.object({
   piece_id: z.string().min(1, "Veuillez sélectionner une pièce"),
@@ -62,6 +63,8 @@ export function AddInterventionModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [formData, setFormData] = useState<InterventionFormValues | null>(null);
+  const [factureFile, setFactureFile] = useState<File[]>([]);
+  const [rapportFile, setRapportFile] = useState<File[]>([]);
 
   const {
     register,
@@ -157,7 +160,34 @@ export function AddInterventionModal({
       };
 
       const res = await api.post<Intervention>("/interventions", payload);
+
+      const filesToUpload = [
+        { file: factureFile[0], type: "Facture / Devis" },
+        { file: rapportFile[0], type: "Rapport d'intervention" },
+      ].filter(item => item.file);
+
+      // Upload pending files if any
+      if (filesToUpload.length > 0) {
+        for (const item of filesToUpload) {
+          const uploadData = new FormData();
+          uploadData.append("file", item.file);
+          uploadData.append("entity_type", "intervention");
+          uploadData.append("entity_id", res.data.id);
+          uploadData.append("document_type", item.type);
+          uploadData.append("nom", item.type);
+          try {
+            await api.post("/upload", uploadData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (uploadErr) {
+            console.error("Failed to upload file:", item.file.name, uploadErr);
+          }
+        }
+      }
+
       reset();
+      setFactureFile([]);
+      setRapportFile([]);
       setIsConfirming(false);
       onSuccess(res.data);
       onClose();
@@ -532,6 +562,27 @@ export function AddInterventionModal({
                   </ul>
                 </div>
               )}
+              
+              {/* File Uploads */}
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Documents attachés (Optionnel)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <CreationFileUploader
+                    label="Facture ou Devis"
+                    acceptedFileTypes={["application/pdf", "image/jpeg", "image/png"]}
+                    maxFileSize={5 * 1024 * 1024}
+                    value={factureFile}
+                    onChange={setFactureFile}
+                  />
+                  <CreationFileUploader
+                    label="Rapport d'intervention"
+                    acceptedFileTypes={["application/pdf", "image/jpeg", "image/png"]}
+                    maxFileSize={5 * 1024 * 1024}
+                    value={rapportFile}
+                    onChange={setRapportFile}
+                  />
+                </div>
+              </div>
               
             </div>
           )}
