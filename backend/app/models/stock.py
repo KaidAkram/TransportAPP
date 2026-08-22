@@ -21,6 +21,7 @@ class Piece(Base, BaseModelMixin):
   stock_minimum = Column(Integer, default=5, nullable=False)
   emplacement = Column(String(50), nullable=True) # e.g., Rayon A - Etagere 03 -> A-03-02
   description = Column(Text, nullable=True)
+  prix_unitaire_moyen = Column(Float, default=0.0, nullable=False)
 
   mouvements = relationship("MouvementStock", back_populates="piece", cascade="all, delete-orphan")
 

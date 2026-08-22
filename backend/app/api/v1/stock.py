@@ -546,6 +546,15 @@ def create_reception(data: ReceptionCreate, db: Session = Depends(get_db)):
     )
     db.add(ligne)
 
+    # Calculate PUMP (Prix Unitaire Moyen Pondéré)
+    old_qty = piece.stock_actuel
+    old_val = old_qty * piece.prix_unitaire_moyen
+    added_qty = ligne_data.quantite
+    added_val = montant_ligne
+    new_qty = old_qty + added_qty
+    if new_qty > 0:
+        piece.prix_unitaire_moyen = (old_val + added_val) / new_qty
+
     piece.stock_actuel += ligne_data.quantite
 
     mv = MouvementStock(

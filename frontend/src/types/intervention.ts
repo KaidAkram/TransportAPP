@@ -7,6 +7,8 @@ export interface PieceConsommeeItem {
  reference?: string | null;
  designation?: string | null;
  unite?: string | null;
+ prix_unitaire_applique?: number;
+ montant?: number;
 }
 
 export interface MecanicienParticipantItem {
@@ -44,6 +46,8 @@ export interface Intervention {
  est_externe: boolean;
  prestataire_nom?: string | null;
  prestataire_telephone?: string | null;
+ cout_main_doeuvre: number;
+ cout_pieces: number;
  cout_total: number;
  prochaine_date_maintenance?: string | null;
  prochain_kilo_maintenance?: number | null;

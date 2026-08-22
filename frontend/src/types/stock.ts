@@ -32,6 +32,7 @@ export interface Piece {
  stock_minimum: number;
  emplacement?: string | null;
  description?: string | null;
+ prix_unitaire_moyen: number;
  statut_stock: StatutStock;
  created_at: string;
  updated_at: string;

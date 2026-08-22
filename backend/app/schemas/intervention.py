@@ -15,6 +15,8 @@ class PieceConsommeeItem(BaseModel):
   reference: Optional[str] = None
   designation: Optional[str] = None
   unite: Optional[str] = None
+  prix_unitaire_applique: Optional[float] = None
+  montant: Optional[float] = None
 
 
 class MecanicienParticipantItem(BaseModel):
@@ -41,6 +43,8 @@ class InterventionBase(BaseModel):
   est_externe: bool = Field(False, description="Intervention sous-traitée à un garage extérieur ?")
   prestataire_nom: Optional[str] = Field(None, description="Nom du garage ou concessionnaire externe")
   prestataire_telephone: Optional[str] = Field(None, description="Téléphone du prestataire externe")
+  cout_main_doeuvre: float = Field(0.0, ge=0.0, description="Coût de la main d'œuvre (DZD)")
+  cout_pieces: float = Field(0.0, ge=0.0, description="Coût total des pièces (DZD)")
   cout_total: float = Field(0.0, ge=0.0, description="Coût total de l'intervention (DZD)")
   prochaine_date_maintenance: Optional[dt_date] = Field(None, description="Échéance calendaire de la prochaine maintenance")
   prochain_kilo_maintenance: Optional[float] = Field(None, description="Kilométrage de la prochaine maintenance")
@@ -63,6 +67,8 @@ class InterventionUpdate(BaseModel):
   est_externe: Optional[bool] = None
   prestataire_nom: Optional[str] = None
   prestataire_telephone: Optional[str] = None
+  cout_main_doeuvre: Optional[float] = None
+  cout_pieces: Optional[float] = None
   cout_total: Optional[float] = None
   prochaine_date_maintenance: Optional[dt_date] = None
   prochain_kilo_maintenance: Optional[float] = None

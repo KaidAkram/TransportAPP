@@ -12,14 +12,19 @@ intervention_mecaniciens = Table(
   Column("mecanicien_id", UUID(as_uuid=True), ForeignKey("employes.id", ondelete="CASCADE"), primary_key=True),
 )
 
-# Junction table: Intervention <->Pieces Detachees
-intervention_pieces = Table(
-  "intervention_pieces",
-  Base.metadata,
-  Column("intervention_id", UUID(as_uuid=True), ForeignKey("interventions.id", ondelete="CASCADE"), primary_key=True),
-  Column("piece_id", UUID(as_uuid=True), ForeignKey("pieces.id", ondelete="CASCADE"), primary_key=True),
-  Column("quantite_utilisee", Integer, default=1, nullable=False),
-)
+class InterventionPiece(Base):
+  """
+  Association Object for Intervention and Piece, holding extra data like quantity and applied price.
+  """
+  __tablename__ = "intervention_pieces"
+  
+  intervention_id = Column(UUID(as_uuid=True), ForeignKey("interventions.id", ondelete="CASCADE"), primary_key=True)
+  piece_id = Column(UUID(as_uuid=True), ForeignKey("pieces.id", ondelete="CASCADE"), primary_key=True)
+  quantite_utilisee = Column(Integer, default=1, nullable=False)
+  prix_unitaire_applique = Column(Float, default=0.0, nullable=False)
+  
+  intervention = relationship("Intervention", back_populates="pieces_utilisees_association")
+  piece = relationship("Piece")
 
 
 class Intervention(Base, BaseModelMixin):
@@ -49,6 +54,8 @@ class Intervention(Base, BaseModelMixin):
   prestataire_nom = Column(String(150), nullable=True)
   prestataire_telephone = Column(String(50), nullable=True)
 
+  cout_main_doeuvre = Column(Float, default=0.0, nullable=False)
+  cout_pieces = Column(Float, default=0.0, nullable=False)
   cout_total = Column(Float, default=0.0, nullable=False)
 
   prochaine_date_maintenance = Column(Date, nullable=True)
@@ -63,5 +70,5 @@ class Intervention(Base, BaseModelMixin):
   vehicule = relationship("Vehicule", back_populates="interventions")
   mecanicien_responsable = relationship("Employe", foreign_keys=[mecanicien_responsable_id])
   mecaniciens_participants = relationship("Employe", secondary=intervention_mecaniciens)
-  pieces_utilisees = relationship("Piece", secondary=intervention_pieces)
+  pieces_utilisees_association = relationship("InterventionPiece", back_populates="intervention", cascade="all, delete-orphan")
   mouvements_stock = relationship("MouvementStock", back_populates="intervention")

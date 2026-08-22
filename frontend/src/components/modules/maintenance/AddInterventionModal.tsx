@@ -31,7 +31,7 @@ const interventionSchema = z.object({
   probleme_constate: z.string().optional().nullable(),
   diagnostic: z.string().optional().nullable(),
   travail_effectue: z.string().optional().nullable(),
-  cout_total: z.coerce.number().min(0, "Le coût doit être positif"),
+  cout_main_doeuvre: z.coerce.number().min(0, "Le coût doit être positif"),
   prochaine_date_maintenance: z.string().optional().nullable(),
   prochain_kilo_maintenance: z.coerce.number().optional().nullable(),
   statut: z.enum(["PLANIFIEE", "EN_COURS", "TERMINEE", "ANNULEE"]),
@@ -82,7 +82,7 @@ export function AddInterventionModal({
       categorie: "Freinage & Révision",
       date: new Date().toISOString().split("T")[0],
       kilometrage: 0,
-      cout_total: 0,
+      cout_main_doeuvre: 0,
       statut: "TERMINEE",
       vehicule_id: defaultVehiculeId || "",
       mecanicien_responsable_id: defaultMecanicienId || "",
@@ -147,7 +147,7 @@ export function AddInterventionModal({
       const payload = {
         ...formData,
         kilometrage: Number(formData.kilometrage),
-        cout_total: Number(formData.cout_total),
+        cout_main_doeuvre: Number(formData.cout_main_doeuvre),
         prochain_kilo_maintenance: formData.prochain_kilo_maintenance
           ? Number(formData.prochain_kilo_maintenance)
           : null,
@@ -372,9 +372,9 @@ export function AddInterventionModal({
                   {errors.kilometrage && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.kilometrage.message}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Coût Total</label>
+                  <label className={labelClass}>Coût Main d'Œuvre</label>
                   <Controller
-                    name="cout_total"
+                    name="cout_main_doeuvre"
                     control={control}
                     render={({ field }) => (
                       <GlassNumberInput
@@ -386,9 +386,19 @@ export function AddInterventionModal({
                       />
                     )}
                   />
-                  {errors.cout_total && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.cout_total.message}</p>}
+                  {errors.cout_main_doeuvre && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.cout_main_doeuvre.message}</p>}
                 </div>
               </div>
+
+              {/* Estimate Pièces */}
+              {watchPieces && watchPieces.length > 0 && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex justify-between items-center text-sm">
+                  <span className="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">Coût estimé des pièces (PUMP)</span>
+                  <span className="text-emerald-300 font-mono font-bold">
+                    {watchPieces.reduce((total, p) => total + ((pieces.find(x => x.id === p.piece_id)?.prix_unitaire_moyen || 0) * (p.quantite || 0)), 0).toLocaleString()} DZD
+                  </span>
+                </div>
+              )}
 
               {/* Détails */}
               <div>

@@ -87,6 +87,7 @@ class PieceBase(BaseModel):
   stock_minimum: int = Field(5, ge=0, description="Seuil d'alerte de réapprovisionnement")
   emplacement: Optional[str] = Field(None, description="Emplacement physique (ex: A-03-02)")
   description: Optional[str] = Field(None, description="Description technique / spécifications")
+  prix_unitaire_moyen: float = Field(0.0, ge=0.0, description="Prix Unitaire Moyen Pondéré (PUMP)")
 
 
 class PieceCreate(PieceBase):

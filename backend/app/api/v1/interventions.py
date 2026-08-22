@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import require_feature
-from app.models.intervention import Intervention, intervention_pieces, intervention_mecaniciens
+from app.models.intervention import Intervention, InterventionPiece, intervention_mecaniciens
 from app.models.vehicule import Vehicule
 from app.models.employe import Employe, Mecanicien
 from app.models.stock import Piece, MouvementStock
@@ -110,6 +110,8 @@ def list_interventions(
         est_externe=it.est_externe,
         prestataire_nom=it.prestataire_nom,
         prestataire_telephone=it.prestataire_telephone,
+        cout_main_doeuvre=it.cout_main_doeuvre,
+        cout_pieces=it.cout_pieces,
         cout_total=it.cout_total,
         prochaine_date_maintenance=it.prochaine_date_maintenance,
         prochain_kilo_maintenance=it.prochain_kilo_maintenance,
@@ -135,16 +137,17 @@ def get_intervention(intervention_id: UUID, db: Session = Depends(get_db)):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Intervention introuvable.")
 
   stmt = (
-    select(Piece, intervention_pieces.c.quantite_utilisee)
-    .join(intervention_pieces, Piece.id == intervention_pieces.c.piece_id)
-    .where(intervention_pieces.c.intervention_id == intervention_id)
+    select(Piece, InterventionPiece.quantite_utilisee, InterventionPiece.prix_unitaire_applique)
+    .join(InterventionPiece, Piece.id == InterventionPiece.piece_id)
+    .where(InterventionPiece.intervention_id == intervention_id)
   )
   pieces_rows = db.execute(stmt).all()
 
   pieces_consommees = []
   total_pieces = 0
-  for piece_obj, qty in pieces_rows:
+  for piece_obj, qty, prix_applique in pieces_rows:
     total_pieces += qty
+    montant = qty * prix_applique
     pieces_consommees.append(
       PieceConsommeeItem(
         piece_id=piece_obj.id,
@@ -152,6 +155,8 @@ def get_intervention(intervention_id: UUID, db: Session = Depends(get_db)):
         reference=piece_obj.reference,
         designation=piece_obj.designation,
         unite=piece_obj.unite,
+        prix_unitaire_applique=prix_applique,
+        montant=montant
       )
     )
 
@@ -197,6 +202,8 @@ def get_intervention(intervention_id: UUID, db: Session = Depends(get_db)):
     est_externe=it.est_externe,
     prestataire_nom=it.prestataire_nom,
     prestataire_telephone=it.prestataire_telephone,
+    cout_main_doeuvre=it.cout_main_doeuvre,
+    cout_pieces=it.cout_pieces,
     cout_total=it.cout_total,
     prochaine_date_maintenance=it.prochaine_date_maintenance,
     prochain_kilo_maintenance=it.prochain_kilo_maintenance,
@@ -256,7 +263,9 @@ def create_intervention(data: InterventionCreate, db: Session = Depends(get_db))
     est_externe=data.est_externe,
     prestataire_nom=data.prestataire_nom.strip() if data.prestataire_nom else None,
     prestataire_telephone=data.prestataire_telephone.strip() if data.prestataire_telephone else None,
-    cout_total=data.cout_total,
+    cout_main_doeuvre=data.cout_main_doeuvre,
+    cout_pieces=0.0,
+    cout_total=0.0,
     prochaine_date_maintenance=data.prochaine_date_maintenance,
     prochain_kilo_maintenance=data.prochain_kilo_maintenance,
     statut=data.statut,
@@ -264,8 +273,13 @@ def create_intervention(data: InterventionCreate, db: Session = Depends(get_db))
   db.add(intervention)
   db.flush()
 
+  cout_pieces_total = 0.0
+
   for piece, qty in pieces_to_deduct:
     piece.stock_actuel -= qty
+    
+    prix_applique = piece.prix_unitaire_moyen
+    cout_pieces_total += (prix_applique * qty)
 
     mouvement = MouvementStock(
       id=uuid4(),
@@ -279,13 +293,16 @@ def create_intervention(data: InterventionCreate, db: Session = Depends(get_db))
     )
     db.add(mouvement)
 
-    db.execute(
-      insert(intervention_pieces).values(
-        intervention_id=intervention.id,
-        piece_id=piece.id,
-        quantite_utilisee=qty,
-      )
+    int_piece = InterventionPiece(
+      intervention_id=intervention.id,
+      piece_id=piece.id,
+      quantite_utilisee=qty,
+      prix_unitaire_applique=prix_applique
     )
+    db.add(int_piece)
+
+  intervention.cout_pieces = cout_pieces_total
+  intervention.cout_total = data.cout_main_doeuvre + cout_pieces_total
 
   for mec_id in data.mecaniciens_participants_ids:
     db.execute(
@@ -298,7 +315,7 @@ def create_intervention(data: InterventionCreate, db: Session = Depends(get_db))
   if data.kilometrage >vehicule.kilometrage_actuel:
     vehicule.kilometrage_actuel = data.kilometrage
 
-  vehicule.cout_total += data.cout_total
+  vehicule.cout_total += intervention.cout_total
 
   if data.statut == StatutIntervention.EN_COURS:
     vehicule.statut = StatutVehicule.MAINTENANCE
@@ -331,6 +348,8 @@ def create_intervention(data: InterventionCreate, db: Session = Depends(get_db))
     est_externe=intervention.est_externe,
     prestataire_nom=intervention.prestataire_nom,
     prestataire_telephone=intervention.prestataire_telephone,
+    cout_main_doeuvre=intervention.cout_main_doeuvre,
+    cout_pieces=intervention.cout_pieces,
     cout_total=intervention.cout_total,
     prochaine_date_maintenance=intervention.prochaine_date_maintenance,
     prochain_kilo_maintenance=intervention.prochain_kilo_maintenance,
@@ -382,6 +401,8 @@ def update_intervention(intervention_id: UUID, data: InterventionUpdate, db: Ses
     est_externe=it.est_externe,
     prestataire_nom=it.prestataire_nom,
     prestataire_telephone=it.prestataire_telephone,
+    cout_main_doeuvre=it.cout_main_doeuvre,
+    cout_pieces=it.cout_pieces,
     cout_total=it.cout_total,
     prochaine_date_maintenance=it.prochaine_date_maintenance,
     prochain_kilo_maintenance=it.prochain_kilo_maintenance,
