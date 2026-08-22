@@ -38,6 +38,8 @@ def list_employes(
   include_archived: bool = Query(False, description="Include soft-deleted employees"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Employe)
@@ -63,11 +65,16 @@ def list_employes(
     query = query.filter(Employe.statut == statut)
 
   total = query.count()
-  total_pages = math.ceil(total / per_page) if total >0 else 1
+  total_pages = math.ceil(total / per_page) if total > 0 else 1
+
+  if sort_by and hasattr(Employe, sort_by):
+    col = getattr(Employe, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Employe.created_at))
 
   items = (
-    query.order_by(desc(Employe.created_at))
-    .offset((page - 1) * per_page)
+    query.offset((page - 1) * per_page)
     .limit(per_page)
     .all()
   )

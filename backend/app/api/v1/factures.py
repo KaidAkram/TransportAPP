@@ -31,6 +31,8 @@ def list_factures(
   search: Optional[str] = Query(None),
   statut: Optional[StatutFacture] = Query(None),
   client_id: Optional[str] = Query(None),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Facture).filter(Facture.archived_at.is_(None))
@@ -51,7 +53,13 @@ def list_factures(
       )
     )
 
-  factures = query.order_by(desc(Facture.created_at)).all()
+  if sort_by and hasattr(Facture, sort_by):
+    col = getattr(Facture, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Facture.created_at))
+
+  factures = query.all()
 
   total_montant = sum(f.montant_facture for f in factures)
   total_encaisse = sum(f.montant_facture for f in factures if f.statut == StatutFacture.PAYEE)

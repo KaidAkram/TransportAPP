@@ -27,6 +27,7 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function StockPage() {
   const [pieces, setPieces] = useState<Piece[]>([]);
@@ -63,6 +64,19 @@ export default function StockPage() {
     isLoading: false,
   });
 
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
   const fetchStock = useCallback(async () => {
     try {
       setLoading(true);
@@ -71,6 +85,10 @@ export default function StockPage() {
       params.page = page.toString();
       if (categoryFilter) params.categorie = categoryFilter;
       if (statusFilter) params.statut_stock = statusFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<PieceListResponse>("/stock/pieces", params);
       setPieces(res.data.items);
@@ -87,12 +105,12 @@ export default function StockPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryFilter, statusFilter, page]);
+  }, [search, categoryFilter, statusFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter]);
+  }, [search, categoryFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchStock();
@@ -280,12 +298,12 @@ export default function StockPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Référence</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap w-[25%] sm:w-[35%]">Désignation & Marque</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Catégorie</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Emplacement</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Stock Actuel</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Seuil Min</th>
+                <SortableHeader label="Référence" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Désignation & Marque" field="designation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[25%] sm:w-[35%]" />
+                <SortableHeader label="Catégorie" field="categorie" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Emplacement" field="emplacement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Stock Actuel" field="stock_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Seuil Min" field="stock_minimum" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">État Stock</th>
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap min-w-[130px] w-[130px]">Actions</th>
               </tr>

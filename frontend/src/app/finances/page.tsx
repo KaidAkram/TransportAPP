@@ -25,6 +25,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 const STATUT_CONFIG: Record<string, { label: string; color: string; border: string; icon: any }> = {
   EN_ATTENTE: { label: "En attente", color: "text-yellow-400", border: "border-yellow-500/20", icon: Clock },
@@ -48,6 +49,19 @@ export default function FinancesPage() {
   const [encaisserModalOpen, setEncaisserModalOpen] = useState(false);
   const [selectedFacture, setSelectedFacture] = useState<Facture | null>(null);
 
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
   const canView = hasPermission("view_facture");
   const canCreate = hasPermission("create_facture");
   const canPay = hasPermission("record_paiement");
@@ -66,6 +80,10 @@ export default function FinancesPage() {
     try {
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<FactureListResponse>("/factures", params);
       if (res.data) {
@@ -87,7 +105,7 @@ export default function FinancesPage() {
     } finally {
       setLoading(false);
     }
-  }, [canView, search]);
+  }, [search, canView, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchFactures();
@@ -225,14 +243,14 @@ export default function FinancesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                 <tr>
-                  <th className="py-3 px-4 w-[13%]">N° Facture</th>
-                  <th className="py-3 px-4 w-[17%]">Client</th>
-                  <th className="py-3 px-4 w-[10%]">Date</th>
-                  <th className="py-3 px-4 w-[11%]">Mois Réalis.</th>
-                  <th className="py-3 px-4 text-right w-[13%]">Montant</th>
-                  <th className="py-3 px-4 text-center w-[10%]">Statut</th>
-                  <th className="py-3 px-4 text-center w-[12%]">Mode Règl.</th>
-                  <th className="py-3 px-4 text-center w-[8%]">Actions</th>
+                  <SortableHeader label="N° Facture" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[13%]" />
+                  <SortableHeader label="Client" field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[17%]" />
+                  <SortableHeader label="Date" field="date_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                  <SortableHeader label="Mois Réalis." field="mois_prestation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[11%]" />
+                  <SortableHeader label="Montant" field="montant_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-right w-[13%]" />
+                  <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[10%]" />
+                  <SortableHeader label="Mode Règl." field="mode_paiement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[12%]" />
+                  <th className="py-3 px-4 text-center w-[8%] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">

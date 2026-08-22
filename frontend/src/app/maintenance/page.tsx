@@ -27,6 +27,7 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function MaintenancePage() {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
@@ -43,6 +44,18 @@ export default function MaintenancePage() {
     interventionId: string;
   }>({ isOpen: false, interventionId: "" });
   const [viewModal, setViewModal] = useState<{ isOpen: boolean; interventionId: string | null }>({ isOpen: false, interventionId: null });
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -65,6 +78,10 @@ export default function MaintenancePage() {
       params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<InterventionListResponse>("/interventions", params);
       setInterventions(res.data.items);
@@ -75,12 +92,12 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter, page]);
+  }, [search, typeFilter, statusFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter]);
+  }, [search, typeFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchInterventions();
@@ -244,13 +261,13 @@ export default function MaintenancePage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Ordre de Travail</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Véhicule</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Catégorie</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Responsable</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Date & Info</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Coût Total</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut</th>
+                <SortableHeader label="N° Ordre de Travail" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Véhicule" field="vehicule_immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Type & Catégorie" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Responsable" field="mecanicien_responsable_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Date & Info" field="date" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Coût Total" field="cout_total" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>

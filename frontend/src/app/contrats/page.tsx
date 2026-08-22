@@ -26,6 +26,7 @@ import { Contrat, ContratListResponse } from "@/types/contrat";
 import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function ContratsPage() {
   const [contracts, setContracts] = useState<Contrat[]>([]);
@@ -46,6 +47,18 @@ export default function ContratsPage() {
     confirmText: string;
     onConfirm: () => void;
   }>({ title: "", message: "", type: "warning", confirmText: "Confirmer", onConfirm: () => {} });
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   const fetchContracts = useCallback(async () => {
     try {
@@ -56,6 +69,10 @@ export default function ContratsPage() {
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type_contrat = typeFilter;
       if (showArchived) params.include_archived = "true";
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<ContratListResponse>("/contrats", params);
       setContracts(res.data.items);
@@ -66,11 +83,11 @@ export default function ContratsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, page, showArchived]);
+  }, [search, statusFilter, typeFilter, page, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, typeFilter, showArchived]);
+  }, [search, statusFilter, typeFilter, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchContracts();
@@ -284,12 +301,12 @@ export default function ContratsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Réf. Contrat</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Partenaire</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Objet</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant</th>
+                <SortableHeader label="Réf. Contrat" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Partenaire" field="partenaire_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Type & Objet" field="type_contrat" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Montant" field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Période</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut / Échéance</th>
+                <SortableHeader label="Statut / Échéance" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>

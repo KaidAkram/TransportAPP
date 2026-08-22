@@ -38,6 +38,8 @@ def list_vehicules(
   include_archived: bool = Query(False, description="Include archived / soft-deleted vehicles"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Vehicule)
@@ -64,9 +66,14 @@ def list_vehicules(
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1
 
+  if sort_by and hasattr(Vehicule, sort_by):
+    col = getattr(Vehicule, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Vehicule.created_at))
+
   vehicles = (
-    query.order_by(desc(Vehicule.created_at))
-    .offset((page - 1) * per_page)
+    query.offset((page - 1) * per_page)
     .limit(per_page)
     .all()
   )

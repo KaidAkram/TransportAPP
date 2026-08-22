@@ -54,6 +54,8 @@ def list_pieces(
   include_archived: bool = Query(False, description="Include archived pieces"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(20, ge=1, le=1000, description="Items per page"),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Piece)
@@ -75,6 +77,12 @@ def list_pieces(
 
   if categorie:
     query = query.filter(Piece.categorie.ilike(categorie))
+
+  if sort_by and hasattr(Piece, sort_by):
+    col = getattr(Piece, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Piece.created_at))
 
   all_matching = query.all()
 

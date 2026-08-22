@@ -25,6 +25,7 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function CautionsPage() {
   const [cautions, setCautions] = useState<Caution[]>([]);
@@ -36,6 +37,18 @@ export default function CautionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isDemandeModalOpen, setIsDemandeModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -67,6 +80,10 @@ export default function CautionsPage() {
       params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<CautionListResponse>("/cautions", params);
       setCautions(res.data.items);
@@ -77,11 +94,11 @@ export default function CautionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter, page]);
+  }, [search, typeFilter, statusFilter, page, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter]);
+  }, [search, typeFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchCautions();
@@ -246,11 +263,11 @@ export default function CautionsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Caution</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Client / Bénéficiaire</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Type & Objet</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Montant</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Statut</th>
+                <SortableHeader label="N° Caution" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Client / Bénéficiaire" field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Type & Objet" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Montant" field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>

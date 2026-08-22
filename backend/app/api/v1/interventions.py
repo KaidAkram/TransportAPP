@@ -39,6 +39,8 @@ def list_interventions(
   statut: Optional[StatutIntervention] = Query(None, description="Filter by status"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(20, ge=1, le=100, description="Items per page"),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Intervention)
@@ -70,9 +72,14 @@ def list_interventions(
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1
 
+  if sort_by and hasattr(Intervention, sort_by):
+    col = getattr(Intervention, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Intervention.date), desc(Intervention.created_at))
+
   interventions = (
-    query.order_by(desc(Intervention.date), desc(Intervention.created_at))
-    .offset((page - 1) * per_page)
+    query.offset((page - 1) * per_page)
     .limit(per_page)
     .all()
   )

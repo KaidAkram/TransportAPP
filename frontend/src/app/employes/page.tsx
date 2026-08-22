@@ -27,6 +27,7 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function EmployesPage() {
   const [employees, setEmployees] = useState<Employe[]>([]);
@@ -38,6 +39,18 @@ export default function EmployesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -60,6 +73,10 @@ export default function EmployesPage() {
       params.page = page.toString();
       if (roleFilter) params.type_employe = roleFilter;
       if (statusFilter) params.statut = statusFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<EmployeListResponse>("/employes", params);
       setEmployees(res.data.items);
@@ -70,12 +87,12 @@ export default function EmployesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, page]);
+  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter]);
+  }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchEmployees();
@@ -251,13 +268,13 @@ export default function EmployesPage() {
           <table className="w-full text-left text-xs table-fixed">
             <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
               <tr>
-                <th className="py-3 px-3 w-[10%]">Matricule</th>
-                <th className="py-3 px-3 w-[22%]">Collaborateur</th>
-                <th className="py-3 px-3 w-[12%]">Rôle / Métier</th>
-                <th className="py-3 px-3 w-[22%]">Spécialité / Fonction</th>
-                <th className="py-3 px-3 w-[10%]">Téléphone</th>
-                <th className="py-3 px-3 w-[10%]">Statut</th>
-                <th className="py-3 px-3 text-right w-[14%]">Actions</th>
+                <SortableHeader label="Matricule" field="matricule" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <SortableHeader label="Collaborateur" field="nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[22%]" />
+                <SortableHeader label="Rôle / Métier" field="type_employe" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
+                <th className="py-3 px-3 w-[22%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Spécialité / Fonction</th>
+                <SortableHeader label="Téléphone" field="telephone" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <th className="py-3 px-3 text-right w-[14%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">

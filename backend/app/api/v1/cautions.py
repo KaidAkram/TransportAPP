@@ -40,6 +40,8 @@ def list_cautions(
   include_archived: bool = Query(False, description="Include soft-deleted cautions"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
+  sort_by: Optional[str] = Query(None, description="Field to sort by"),
+  sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
 ):
   query = db.query(Caution)
@@ -73,9 +75,14 @@ def list_cautions(
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1
 
+  if sort_by and hasattr(Caution, sort_by):
+    col = getattr(Caution, sort_by)
+    query = query.order_by(desc(col) if sort_order == "desc" else col.asc())
+  else:
+    query = query.order_by(desc(Caution.created_at))
+
   cautions = (
-    query.order_by(desc(Caution.date_emission))
-    .offset((page - 1) * per_page)
+    query.offset((page - 1) * per_page)
     .limit(per_page)
     .all()
   )

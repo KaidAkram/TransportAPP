@@ -22,6 +22,7 @@ import { AddVehicleModal } from "@/components/modules/vehicules/AddVehicleModal"
 import { api } from "@/lib/api";
 import { Vehicule, VehiculeListResponse } from "@/types/vehicule";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function VehiculesPage() {
   const [vehicles, setVehicles] = useState<Vehicule[]>([]);
@@ -30,6 +31,18 @@ export default function VehiculesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   // Fetch vehicles from API
   const fetchVehicles = useCallback(async () => {
@@ -39,6 +52,10 @@ export default function VehiculesPage() {
       if (search) params.search = search;
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type = typeFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<VehiculeListResponse>("/vehicules", params);
       setVehicles(res.data.items);
@@ -47,7 +64,7 @@ export default function VehiculesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter]);
+  }, [search, statusFilter, typeFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchVehicles();
@@ -186,13 +203,13 @@ export default function VehiculesPage() {
               <table className="w-full text-left text-xs table-fixed">
                 <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                   <tr>
-                    <th className="py-3 px-4 w-[16%]">Immatriculation</th>
-                    <th className="py-3 px-4 w-[20%]">Véhicule (Marque & Modèle)</th>
-                    <th className="py-3 px-4 w-[12%]">Type</th>
-                    <th className="py-3 px-4 w-[12%] text-center">Places</th>
-                    <th className="py-3 px-4 w-[14%] text-right">Kilométrage</th>
-                    <th className="py-3 px-4 w-[14%] text-center">Statut</th>
-                    <th className="py-3 px-4 w-[12%] text-right">Actions</th>
+                    <SortableHeader label="Immatriculation" field="immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[16%]" />
+                    <SortableHeader label="Véhicule" field="marque" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[20%]" />
+                    <SortableHeader label="Type" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
+                    <SortableHeader label="Places" field="nombre_places" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%] text-center" />
+                    <SortableHeader label="Kilométrage" field="kilometrage_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-right" />
+                    <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-center" />
+                    <th className="py-3 px-4 w-[12%] text-right font-accent uppercase tracking-widest text-white/50 text-[10px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">

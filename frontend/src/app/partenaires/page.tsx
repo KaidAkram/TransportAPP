@@ -32,6 +32,7 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function PartenairesPage() {
   const [partners, setPartners] = useState<Partenaire[]>([]);
@@ -43,6 +44,18 @@ export default function PartenairesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === "asc") setSortOrder("desc");
+      else { setSortBy(undefined); setSortOrder("asc"); }
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
 
   const fetchPartners = useCallback(async () => {
     try {
@@ -52,6 +65,10 @@ export default function PartenairesPage() {
       params.page = page.toString();
       if (roleFilter) params.role_partenaire = roleFilter;
       if (statusFilter) params.statut_crm = statusFilter;
+      if (sortBy) {
+        params.sort_by = sortBy;
+        params.sort_order = sortOrder;
+      }
 
       const res = await api.get<PartenaireListResponse>("/partenaires", params);
       setPartners(res.data.items);
@@ -62,12 +79,12 @@ export default function PartenairesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, page]);
+  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter]);
+  }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchPartners();
@@ -254,13 +271,13 @@ export default function PartenairesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/10 bg-black/20">
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Entreprise / Raison Sociale</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Rôle</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Catégorie / Spécialité</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Interlocuteur Principal</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Ville / Wilaya</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut CRM</TableHead>
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right">Actions</TableHead>
+                  <SortableHeader label="Entreprise / Raison Sociale" field="nom_commercial" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Rôle" field="role_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Catégorie / Spécialité" field="type_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Interlocuteur Principal</TableHead>
+                  <SortableHeader label="Ville / Wilaya" field="ville" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Statut CRM" field="statut_crm" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap select-none">Actions</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>
