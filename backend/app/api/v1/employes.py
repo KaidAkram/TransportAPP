@@ -195,26 +195,22 @@ def get_employe(employe_id: UUID, db: Session = Depends(get_db)):
 
 
 def _generate_matricule(db: Session, type_employe: TypeEmploye) -> str:
-  prefix_map = {
-    TypeEmploye.CHAUFFEUR: "CHF",
-    TypeEmploye.MECANICIEN: "MEC",
-    TypeEmploye.ADMINISTRATIF: "ADM",
-  }
-  prefix = prefix_map.get(type_employe, "EMP")
+  year = datetime.now().year
+  prefix = f"EMP-{year}-"
   last = (
     db.query(Employe.matricule)
-    .filter(Employe.matricule.like(f"{prefix}-%"))
+    .filter(Employe.matricule.like(f"{prefix}%"))
     .order_by(desc(Employe.matricule))
     .first()
   )
   if last and last[0]:
     try:
-      num = int(last[0].split("-")[1]) + 1
+      num = int(last[0].split("-")[-1]) + 1
     except (IndexError, ValueError):
       num = 1
   else:
     num = 1
-  return f"{prefix}-{num:03d}"
+  return f"{prefix}{num:04d}"
 
 
 @router.post("", response_model=EmployeRead, status_code=status.HTTP_201_CREATED, summary="Create Employee", dependencies=[Depends(require_feature("create_chauffeur"))])

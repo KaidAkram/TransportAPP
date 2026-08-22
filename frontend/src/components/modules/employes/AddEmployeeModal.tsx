@@ -91,8 +91,18 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
 
   useEffect(() => {
     if (isOpen) {
-      setValue("matricule", "");
+      document.body.style.overflow = "hidden";
+      api
+        .get("/utils/next-sequence", { entity: "employe" })
+        .then((res: any) => {
+          if (res.data?.next) setValue("matricule", res.data.next);
+        })
+        .catch(console.error);
+    } else {
+      document.body.style.overflow = "unset";
+      setServerError(null);
     }
+    return () => { document.body.style.overflow = "unset"; };
   }, [isOpen, setValue]);
 
   const selectedType = watch("type_employe");
@@ -237,7 +247,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
               </label>
               <input
                 {...register("matricule")}
-                placeholder={selectedType === "CHAUFFEUR" ? "Auto: CHF-XXX" : selectedType === "MECANICIEN" ? "Auto: MEC-XXX" : "Auto: ADM-XXX"}
+                placeholder="Auto: EMP-YYYY-XXXX"
                 className={glassInputMono}
               />
               {errors.matricule && <p className="text-[11px] text-rose-400 mt-1.5">{errors.matricule.message}</p>}

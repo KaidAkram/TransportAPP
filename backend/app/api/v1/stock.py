@@ -488,7 +488,19 @@ def list_mouvements(
 @router.post("/receptions", response_model=ReceptionRead, status_code=status.HTTP_201_CREATED,
              summary="Create Reception (Bon de Réception)", dependencies=[Depends(require_feature("create_stock_entry"))])
 def create_reception(data: ReceptionCreate, db: Session = Depends(get_db)):
-  numero = f"REC-{datetime.now().year}-{uuid4().hex[:6].upper()}"
+  if data.numero and data.numero.strip():
+    numero = data.numero.strip()
+  else:
+    prefix = f"REC-{datetime.now().year}-"
+    result = db.query(Reception.numero).filter(Reception.numero.like(f"{prefix}%")).order_by(Reception.numero.desc()).first()
+    if result and result[0]:
+      try:
+        last_num = int(result[0].split("-")[-1])
+        numero = f"{prefix}{last_num + 1:04d}"
+      except ValueError:
+        numero = f"{prefix}0001"
+    else:
+      numero = f"{prefix}0001"
 
   total = 0.0
   for ligne in data.lignes:

@@ -19,7 +19,7 @@ class VehiculeBase(BaseModel):
 
 
 class VehiculeCreate(VehiculeBase):
-  pass
+  immatriculation: Optional[str] = Field(None, description="Généré automatiquement si vide")
 
 
 class VehiculeUpdate(BaseModel):

@@ -154,6 +154,7 @@ class ReceptionLigneRead(BaseModel):
 
 
 class ReceptionCreate(BaseModel):
+  numero: Optional[str] = Field(None, description="Numéro (généré automatiquement si non fourni)")
   fournisseur_id: Optional[UUID] = Field(None, description="Fournisseur ayant livré")
   date: dt_date = Field(default_factory=dt_date.today, description="Date de réception")
   lieu: Optional[str] = Field(None, description="Lieu de réception")

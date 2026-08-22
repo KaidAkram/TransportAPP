@@ -14,8 +14,8 @@ import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 const vehicleSchema = z.object({
   immatriculation: z
     .string()
-    .min(5, "L'immatriculation doit comporter au moins 5 caractères")
-    .regex(/^[0-9A-Za-z\s-]+$/, "Format d'immatriculation invalide (ex: 16-123456-00)"),
+    .regex(/^[0-9A-Za-z\s-]*$/, "Format d'immatriculation invalide")
+    .optional(),
   marque: z.string().min(2, "La marque est requise"),
   modele: z.string().min(2, "Le modèle est requis"),
   type: z.string().min(2, "Le type est requis"),
@@ -49,10 +49,12 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
+      immatriculation: "",
       statut: "DISPONIBLE",
       type: "Bus",
       nombre_places: 49,
@@ -60,6 +62,22 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
       cout_total: 0,
     },
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      api
+        .get("/utils/next-sequence", { entity: "vehicule" })
+        .then((res: any) => {
+          if (res.data?.next) setValue("immatriculation", res.data.next);
+        })
+        .catch(console.error);
+    } else {
+      document.body.style.overflow = "unset";
+      setServerError(null);
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isOpen, setValue]);
 
   if (!isOpen) return null;
 
@@ -227,7 +245,7 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
                   </label>
                   <input
                     {...register("immatriculation")}
-                    placeholder="ex: 16-123456-00"
+                    placeholder="Auto-généré (ex: VEH-2026-0001) ou saisissez"
                     className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all font-mono"
                   />
                   {errors.immatriculation && (

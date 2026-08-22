@@ -71,7 +71,7 @@ export function AddCautionModal({
   } = useForm<CautionFormValues>({
     resolver: zodResolver(cautionSchema),
     defaultValues: {
-      numero: "CAU-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString(),
+      numero: "",
       type: "SOUMISSION",
       client_id: defaultClientId || "",
       contrat_id: defaultContratId || "",
@@ -105,6 +105,13 @@ export function AddCautionModal({
       api
         .get<ContratListResponse>("/contrats", { per_page: "100" })
         .then((res) => setContracts(res.data.items))
+        .catch(console.error);
+        
+      api
+        .get("/utils/next-sequence", { entity: "caution" })
+        .then((res: any) => {
+          if (res.data?.next) setValue("numero", res.data.next);
+        })
         .catch(console.error);
 
       if (defaultClientId) setValue("client_id", defaultClientId);
@@ -209,8 +216,17 @@ export function AddCautionModal({
         <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
           {!isConfirming ? (
             <form id="add-caution-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Type et Client */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Numero, Type et Client */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>N° Caution</label>
+                  <input
+                    {...register("numero")}
+                    placeholder="Auto-généré"
+                    className={inputClass}
+                  />
+                </div>
+                
                 <div>
                   <label className={labelClass}>Type de Caution</label>
                   <Controller

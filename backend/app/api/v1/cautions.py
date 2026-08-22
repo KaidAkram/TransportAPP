@@ -166,7 +166,7 @@ def get_caution(caution_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("", response_model=CautionRead, status_code=status.HTTP_201_CREATED, summary="Create New Caution", dependencies=[Depends(require_feature("create_caution"))])
 def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
-  if data.numero:
+  if data.numero and data.numero.strip():
     existing = db.query(Caution).filter(Caution.numero == data.numero.strip()).first()
     if existing:
       raise HTTPException(
@@ -175,7 +175,16 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
       )
     final_numero = data.numero.strip()
   else:
-    final_numero = f"CAU-{datetime.now().year}-{uuid4().hex[:6].upper()}"
+    prefix = f"CAU-{datetime.now().year}-"
+    result = db.query(Caution.numero).filter(Caution.numero.like(f"{prefix}%")).order_by(Caution.numero.desc()).first()
+    if result and result[0]:
+      try:
+        last_num = int(result[0].split("-")[-1])
+        final_numero = f"{prefix}{last_num + 1:04d}"
+      except ValueError:
+        final_numero = f"{prefix}0001"
+    else:
+      final_numero = f"{prefix}0001"
 
   client = db.query(Partenaire).filter(Partenaire.id == data.client_id).first()
   if not client:

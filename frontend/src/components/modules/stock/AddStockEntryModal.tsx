@@ -19,6 +19,7 @@ const ligneSchema = z.object({
 });
 
 const receptionSchema = z.object({
+  numero: z.string().optional(),
   fournisseur_id: z.string().optional().nullable(),
   date: z.string().min(1, "Date requise"),
   lieu: z.string().optional(),
@@ -58,6 +59,7 @@ export function AddStockEntryModal({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ReceptionFormValues>({
     resolver: zodResolver(receptionSchema),
@@ -101,6 +103,13 @@ export function AddStockEntryModal({
       api
         .get("/stock/pieces", { per_page: "1000" })
         .then((res: any) => setAllPieces(res.data.items || []))
+        .catch(console.error);
+        
+      api
+        .get("/utils/next-sequence", { entity: "reception" })
+        .then((res: any) => {
+          if (res.data?.next) setValue("numero", res.data.next);
+        })
         .catch(console.error);
     } else {
       document.body.style.overflow = "unset";
@@ -232,8 +241,12 @@ export function AddStockEntryModal({
         <div className="p-6 overflow-y-auto relative z-10 flex-1 custom-scrollbar">
           <form id="reception-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-            {/* Fournisseur + Date + Lieu */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Numero + Fournisseur + Date + Lieu */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div>
+                <label className={labelClass}>N° Réception</label>
+                <input {...register("numero")} placeholder="Auto-généré" className={inputClass} />
+              </div>
               <div>
                 <label className={labelClass}>Fournisseur</label>
                 <Controller name="fournisseur_id" control={control} render={({ field }) => (
@@ -244,7 +257,7 @@ export function AddStockEntryModal({
                 )} />
               </div>
               <div>
-                <label className={labelClass}>Date Réception *</label>
+                <label className={labelClass}>Date *</label>
                 <input type="date" {...register("date")} className={inputClass} />
                 {errors.date && <p className="mt-1 text-[11px] text-red-400">{errors.date.message}</p>}
               </div>
