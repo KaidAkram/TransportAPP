@@ -20,6 +20,7 @@ import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
 import { AddInterventionDocumentModal } from "@/components/modules/maintenance/AddInterventionDocumentModal";
+import { ViewInterventionModal } from "@/components/modules/maintenance/ViewInterventionModal";
 import { api } from "@/lib/api";
 import { Intervention, InterventionListResponse } from "@/types/intervention";
 import { GlassPagination } from "@/components/ui/GlassPagination";
@@ -41,6 +42,7 @@ export default function MaintenancePage() {
     isOpen: boolean;
     interventionId: string;
   }>({ isOpen: false, interventionId: "" });
+  const [viewModal, setViewModal] = useState<{ isOpen: boolean; interventionId: string | null }>({ isOpen: false, interventionId: null });
 
   // Glass Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -276,7 +278,8 @@ export default function MaintenancePage() {
                   return (
                     <tr
                       key={i.id}
-                      className="group hover:bg-white/[0.02] transition-colors"
+                      className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                      onClick={() => setViewModal({ isOpen: true, interventionId: i.id })}
                     >
                       <td className="py-4 px-5">
                         <span className="font-mono text-[11px] font-bold text-[var(--color-electric-violet)] block">
@@ -351,7 +354,7 @@ export default function MaintenancePage() {
                         </span>
                       </td>
                       <td className="py-4 px-5 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setDocModal({ isOpen: true, interventionId: i.id })}
                             className="p-1.5 rounded-xl border border-[var(--color-turbo)]/20 bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] hover:bg-[var(--color-turbo)]/20 transition-colors shadow-sm"
@@ -403,6 +406,13 @@ export default function MaintenancePage() {
           }}
         />
       )}
+
+      {/* View Intervention Details Modal */}
+      <ViewInterventionModal
+        interventionId={viewModal.interventionId}
+        isOpen={viewModal.isOpen}
+        onClose={() => setViewModal({ isOpen: false, interventionId: null })}
+      />
 
       {/* Confirm Archiving Modal */}
       <GlassConfirmModal
