@@ -81,6 +81,18 @@ export function AddStockEntryModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      reset({
+        date: new Date().toISOString().split("T")[0],
+        mode_reglement: "ESPECES",
+        motif: "Réception commande magasin",
+        fournisseur_id: "",
+        lieu: "",
+        reference_document: "",
+        lignes: defaultPiece
+          ? [{ piece_id: defaultPiece.id, quantite: 1, prix_unitaire: 0 }]
+          : [{ piece_id: "", quantite: 1, prix_unitaire: 0 }],
+      });
+
       api
         .get<PartenaireListResponse>("/partenaires", { role_partenaire: "FOURNISSEUR", per_page: "100" })
         .then((res) => setSuppliers(res.data.items))
@@ -96,7 +108,7 @@ export function AddStockEntryModal({
       setSuccessData(null);
     }
     return () => { document.body.style.overflow = "unset"; };
-  }, [isOpen]);
+  }, [isOpen, defaultPiece, reset]);
 
   if (!mounted || !isOpen) return null;
 
