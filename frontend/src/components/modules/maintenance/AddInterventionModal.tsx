@@ -413,6 +413,29 @@ export function AddInterventionModal({
                 </div>
               </div>
 
+              {/* File Uploads */}
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Documents attachés (Optionnel)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Facture ou Devis</label>
+                    <CreationFileUploader
+                      files={factureFile}
+                      onFilesChange={setFactureFile}
+                      maxFiles={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Rapport d'intervention</label>
+                    <CreationFileUploader
+                      files={rapportFile}
+                      onFilesChange={setRapportFile}
+                      maxFiles={1}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Pièces Consommées */}
               <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
                 <div className="flex items-center justify-between mb-3">
@@ -562,29 +585,6 @@ export function AddInterventionModal({
                   </ul>
                 </div>
               )}
-              
-              {/* File Uploads */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Documents attachés (Optionnel)</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Facture ou Devis</label>
-                    <CreationFileUploader
-                      files={factureFile}
-                      onFilesChange={setFactureFile}
-                      maxFiles={1}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Rapport d'intervention</label>
-                    <CreationFileUploader
-                      files={rapportFile}
-                      onFilesChange={setRapportFile}
-                      maxFiles={1}
-                    />
-                  </div>
-                </div>
-              </div>
               
             </div>
           )}
