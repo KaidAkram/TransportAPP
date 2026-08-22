@@ -19,8 +19,8 @@ export function ViewInterventionModal({ interventionId, isOpen, onClose }: ViewI
   useEffect(() => {
     if (isOpen && interventionId) {
       setLoading(true);
-      api.get(`/interventions/${interventionId}`)
-        .then((data) => setIntervention(data))
+      api.get<InterventionDetail>(`/interventions/${interventionId}`)
+        .then((res) => setIntervention(res.data))
         .catch((err) => console.error("Error fetching intervention:", err))
         .finally(() => setLoading(false));
     }
