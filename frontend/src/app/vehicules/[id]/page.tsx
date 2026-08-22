@@ -28,6 +28,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddDocumentModal } from "@/components/modules/vehicules/AddDocumentModal";
 import { AddConstatModal } from "@/components/modules/vehicules/AddConstatModal";
 import { AddInterventionModal } from "@/components/modules/maintenance/AddInterventionModal";
+import { ViewInterventionModal } from "@/components/modules/maintenance/ViewInterventionModal";
 import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 import { api } from "@/lib/api";
@@ -44,6 +45,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
   const [docModalDefaultType, setDocModalDefaultType] = useState<string | undefined>(undefined);
   const [isConstatModalOpen, setIsConstatModalOpen] = useState(false);
   const [isInterventionModalOpen, setIsInterventionModalOpen] = useState(false);
+  const [viewModal, setViewModal] = useState<{ isOpen: boolean; interventionId: string | null }>({ isOpen: false, interventionId: null });
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
   
   const [updateConstatModal, setUpdateConstatModal] = useState<{
@@ -700,7 +702,11 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {vehicule.interventions.map((it) => (
-                      <tr key={it.id} className="hover:bg-white/[0.02] transition-colors">
+                      <tr 
+                        key={it.id} 
+                        className="hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                        onClick={() => setViewModal({ isOpen: true, interventionId: it.id })}
+                      >
                         <td className="px-6 py-4 font-mono text-xs font-bold text-[var(--color-electric-violet)]">
                           {it.numero}
                         </td>
@@ -766,6 +772,11 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
         isOpen={isInterventionModalOpen}
         onClose={() => setIsInterventionModalOpen(false)}
         onSuccess={() => fetchDetail()}
+      />
+      <ViewInterventionModal
+        interventionId={viewModal.interventionId}
+        isOpen={viewModal.isOpen}
+        onClose={() => setViewModal({ isOpen: false, interventionId: null })}
       />
 
       {/* Constat Update Status Modal */}
