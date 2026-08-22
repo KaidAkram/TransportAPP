@@ -63,8 +63,7 @@ export function AddInterventionModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [formData, setFormData] = useState<InterventionFormValues | null>(null);
-  const [factureFile, setFactureFile] = useState<File[]>([]);
-  const [rapportFile, setRapportFile] = useState<File[]>([]);
+  const [documents, setDocuments] = useState<File[]>([]);
 
   const {
     register,
@@ -161,33 +160,27 @@ export function AddInterventionModal({
 
       const res = await api.post<Intervention>("/interventions", payload);
 
-      const filesToUpload = [
-        { file: factureFile[0], type: "Facture / Devis" },
-        { file: rapportFile[0], type: "Rapport d'intervention" },
-      ].filter(item => item.file);
-
       // Upload pending files if any
-      if (filesToUpload.length > 0) {
-        for (const item of filesToUpload) {
+      if (documents.length > 0) {
+        for (const file of documents) {
           const uploadData = new FormData();
-          uploadData.append("file", item.file);
+          uploadData.append("file", file);
           uploadData.append("entity_type", "intervention");
           uploadData.append("entity_id", res.data.id);
-          uploadData.append("document_type", item.type);
-          uploadData.append("nom", item.type);
+          uploadData.append("document_type", "Document Attaché");
+          uploadData.append("nom", file.name);
           try {
             await api.post("/upload", uploadData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
           } catch (uploadErr) {
-            console.error("Failed to upload file:", item.file.name, uploadErr);
+            console.error("Failed to upload file:", file.name, uploadErr);
           }
         }
       }
 
       reset();
-      setFactureFile([]);
-      setRapportFile([]);
+      setDocuments([]);
       setIsConfirming(false);
       onSuccess(res.data);
       onClose();
@@ -421,29 +414,21 @@ export function AddInterventionModal({
                     className={`${inputClass} resize-none`}
                   />
                 </div>
-              </div>
-
-              {/* File Uploads */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Documents attachés (Optionnel)</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Facture ou Devis</label>
-                    <CreationFileUploader
-                      files={factureFile}
-                      onFilesChange={setFactureFile}
-                      maxFiles={1}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-accent uppercase tracking-wider text-white/50 mb-1.5 font-bold">Rapport d'intervention</label>
-                    <CreationFileUploader
-                      files={rapportFile}
-                      onFilesChange={setRapportFile}
-                      maxFiles={1}
-                    />
-                  </div>
+                  {/* Documents */}
+              <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02]">
+                  <h3 className="text-[10px] font-bold text-white uppercase tracking-wider">
+                    Documents Attachés (Optionnel)
+                  </h3>
                 </div>
+                <div className="p-4">
+                  <CreationFileUploader
+                    files={documents}
+                    onFilesChange={setDocuments}
+                    maxFiles={10}
+                  />
+                </div>
+              </div>
               </div>
 
               {/* Pièces Consommées */}

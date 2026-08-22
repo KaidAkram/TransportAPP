@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ShieldCheck, X, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 import { Caution } from "@/types/caution";
 import { Partenaire, PartenaireListResponse } from "@/types/partenaire";
 import { Contrat, ContratListResponse } from "@/types/contrat";
@@ -54,6 +55,7 @@ export function AddCautionModal({
   const [mounted, setMounted] = useState(false);
   const [clients, setClients] = useState<Partenaire[]>([]);
   const [contracts, setContracts] = useState<Contrat[]>([]);
+  const [documents, setDocuments] = useState<File[]>([]);
   const [generatePdfNow, setGeneratePdfNow] = useState(true);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,6 +151,25 @@ export function AddCautionModal({
       const res = await api.post<Caution>("/cautions", payload);
       let finalCaution = res.data;
 
+      // Upload pending files if any
+      if (documents.length > 0) {
+        for (const file of documents) {
+          const uploadData = new FormData();
+          uploadData.append("file", file);
+          uploadData.append("entity_type", "caution");
+          uploadData.append("entity_id", finalCaution.id);
+          uploadData.append("document_type", "Document Attaché");
+          uploadData.append("nom", file.name);
+          try {
+            await api.post("/upload", uploadData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (uploadErr) {
+            console.error("Failed to upload file:", file.name, uploadErr);
+          }
+        }
+      }
+
       // Automatically generate PDF if checked
       if (generatePdfNow) {
         try {
@@ -160,6 +181,7 @@ export function AddCautionModal({
       }
 
       reset();
+      setDocuments([]);
       setIsConfirming(false);
       onSuccess(finalCaution);
       onClose();
@@ -359,6 +381,22 @@ export function AddCautionModal({
                   className={`${inputClass} resize-none`}
                 />
                 {errors.objet && <p className="mt-1.5 text-[11px] text-red-400 font-medium">{errors.objet.message}</p>}
+              </div>
+
+              {/* Documents */}
+              <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02]">
+                  <h3 className="text-[10px] font-bold text-white uppercase tracking-wider">
+                    Documents Attachés (Optionnel)
+                  </h3>
+                </div>
+                <div className="p-4">
+                  <CreationFileUploader
+                    files={documents}
+                    onFilesChange={setDocuments}
+                    maxFiles={10}
+                  />
+                </div>
               </div>
             </form>
           ) : (
