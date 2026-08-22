@@ -563,9 +563,13 @@ export function AddInterventionModal({
                   </p>
                 </div>
                 <div className="bg-[var(--color-electric-violet)]/10 rounded-xl p-4 border border-[var(--color-electric-violet)]/20">
-                  <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--color-electric-violet)]/70 mb-1">Coût Total</p>
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--color-electric-violet)]/70 mb-1">Coût Estimé Total</p>
                   <p className="text-lg font-bold font-mono text-[var(--color-electric-violet)]">
-                    {Number(formData?.cout_total).toLocaleString("fr-DZ")} DZD
+                    {(() => {
+                      const estimatedPiecesCost = formData?.pieces_utilisees?.reduce((total, p) => total + ((pieces.find(x => x.id === p.piece_id)?.prix_unitaire_moyen || 0) * (p.quantite || 0)), 0) || 0;
+                      const total = Number(formData?.cout_main_doeuvre || 0) + estimatedPiecesCost;
+                      return total.toLocaleString("fr-DZ");
+                    })()} DZD
                   </p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
