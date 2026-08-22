@@ -319,11 +319,11 @@ export default function StockPage() {
                           {p.reference}
                         </span>
                       </td>
-                      <td className="py-4 px-5 max-w-[250px]">
-                        <p className="text-xs font-bold text-white truncate" title={p.designation}>
+                      <td className="py-4 px-5 min-w-[200px]">
+                        <p className="text-xs font-bold text-white leading-relaxed break-words" title={p.designation}>
                           {p.designation}
                         </p>
-                        <p className="text-[10px] text-white/40 mt-0.5 truncate">
+                        <p className="text-[10px] text-white/40 mt-1 break-words">
                           Marque : {p.marque || "—"}
                         </p>
                       </td>
