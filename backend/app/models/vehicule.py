@@ -54,3 +54,13 @@ class Constat(Base, BaseModelMixin):
 
   vehicule = relationship("Vehicule", back_populates="constats")
   chauffeur = relationship("Employe", foreign_keys=[chauffeur_id])
+
+  @property
+  def vehicule_immatriculation(self) -> str:
+      return self.vehicule.immatriculation if self.vehicule else ""
+
+  @property
+  def chauffeur_nom(self) -> str:
+      if self.chauffeur:
+          return f"{self.chauffeur.nom} {self.chauffeur.prenom}"
+      return None
