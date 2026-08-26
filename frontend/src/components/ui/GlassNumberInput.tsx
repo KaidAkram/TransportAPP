@@ -14,13 +14,20 @@ export const GlassNumberInput = forwardRef<HTMLInputElement, GlassNumberInputPro
     // Expose the internal input ref to react-hook-form
     useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
+    const setNativeValue = (element: HTMLInputElement, value: string) => {
+      const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+      if (valueSetter) {
+        valueSetter.call(element, value);
+      }
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
     const handleIncrement = () => {
       if (inputRef.current) {
         const stepValue = customStep !== undefined ? customStep : (props.step && props.step !== 'any' ? Number(props.step) : 1);
         const currentValue = Number(inputRef.current.value) || 0;
         const max = props.max !== undefined ? Number(props.max) : Infinity;
-        inputRef.current.value = String(Math.min(currentValue + stepValue, max));
-        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
+        setNativeValue(inputRef.current, String(Math.min(currentValue + stepValue, max)));
       }
     };
 
@@ -29,8 +36,7 @@ export const GlassNumberInput = forwardRef<HTMLInputElement, GlassNumberInputPro
         const stepValue = customStep !== undefined ? customStep : (props.step && props.step !== 'any' ? Number(props.step) : 1);
         const currentValue = Number(inputRef.current.value) || 0;
         const min = props.min !== undefined ? Number(props.min) : -Infinity;
-        inputRef.current.value = String(Math.max(currentValue - stepValue, min));
-        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
+        setNativeValue(inputRef.current, String(Math.max(currentValue - stepValue, min)));
       }
     };
 
