@@ -169,26 +169,13 @@ def get_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("", response_model=VehiculeRead, status_code=status.HTTP_201_CREATED, summary="Create New Vehicle", dependencies=[Depends(require_feature("create_vehicle"))])
 def create_vehicule(data: VehiculeCreate, db: Session = Depends(get_db)):
-  if data.immatriculation and data.immatriculation.strip():
-    final_immatriculation = data.immatriculation.strip()
-    existing = db.query(Vehicule).filter(Vehicule.immatriculation == final_immatriculation).first()
-    if existing:
-      raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=f"Un véhicule avec l'immatriculation '{final_immatriculation}'existe déjà.",
-      )
-  else:
-    prefix = f"VEH-{datetime.now().year}-"
-    results = db.query(Vehicule.immatriculation).filter(Vehicule.immatriculation.like(f"{prefix}%")).all()
-    max_num = 0
-    for res in results:
-      try:
-        num = int(res[0].split("-")[-1])
-        if num > max_num:
-          max_num = num
-      except (ValueError, IndexError):
-        pass
-    final_immatriculation = f"{prefix}{max_num + 1:04d}"
+  final_immatriculation = data.immatriculation.strip()
+  existing = db.query(Vehicule).filter(Vehicule.immatriculation == final_immatriculation).first()
+  if existing:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail=f"Un véhicule avec l'immatriculation '{final_immatriculation}' existe déjà.",
+    )
 
   vehicule = Vehicule(
     id=uuid4(),

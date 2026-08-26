@@ -14,8 +14,8 @@ import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 const vehicleSchema = z.object({
   immatriculation: z
     .string()
-    .regex(/^[0-9A-Za-z\s-]*$/, "Format d'immatriculation invalide")
-    .optional(),
+    .min(3, "L'immatriculation est requise")
+    .regex(/^[0-9A-Za-z\s-]*$/, "Format d'immatriculation invalide"),
   marque: z.string().min(2, "La marque est requise"),
   modele: z.string().min(2, "Le modèle est requis"),
   type: z.string().min(2, "Le type est requis"),
@@ -66,18 +66,12 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      api
-        .get("/utils/next-sequence", { entity: "vehicule" })
-        .then((res: any) => {
-          if (res.data?.next) setValue("immatriculation", res.data.next);
-        })
-        .catch(console.error);
     } else {
       document.body.style.overflow = "unset";
       setServerError(null);
     }
     return () => { document.body.style.overflow = "unset"; };
-  }, [isOpen, setValue]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -245,7 +239,7 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
                   </label>
                   <input
                     {...register("immatriculation")}
-                    placeholder="Auto-généré (ex: VEH-2026-0001) ou saisissez"
+                    placeholder="Saisissez l'immatriculation (ex: 16-123456-00)"
                     className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all font-mono"
                   />
                   {errors.immatriculation && (
