@@ -49,16 +49,7 @@ export function AddEmployeeDocumentModal({
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      reset({
-        type: defaultType || "CNI",
-        nom: defaultType ? `Nouveau: ${defaultType}` : "",
-      });
-      setPendingFiles([]);
-      setServerError(null);
-    }
-  }, [isOpen, defaultType, reset]);
+
 
   const {
     register,
@@ -71,6 +62,17 @@ export function AddEmployeeDocumentModal({
       type: "CNI",
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        type: defaultType || "CNI",
+        nom: defaultType ? `Nouveau: ${defaultType}` : "",
+      });
+      setPendingFiles([]);
+      setServerError(null);
+    }
+  }, [isOpen, defaultType, reset]);
 
   if (!mounted || !isOpen) return null;
 
