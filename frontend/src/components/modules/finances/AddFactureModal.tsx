@@ -66,9 +66,9 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
 
   useEffect(() => {
     if (isOpen) {
-      api.get("/partenaires").then(res => {
+      api.get("/partenaires", { role_partenaire: "CLIENT", per_page: "100" }).then(res => {
         const data = res.data as any;
-        const clientList = data.items?.filter((p: any) => p.role_partenaire === "CLIENT") || data || [];
+        const clientList = data.items || data || [];
         setClients(clientList);
       }).catch(err => console.error("Error fetching clients", err));
 
