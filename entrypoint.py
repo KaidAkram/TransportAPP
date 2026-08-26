@@ -37,10 +37,17 @@ try:
     if is_sqlite:
         Base.metadata.drop_all(bind=engine)
 
-    print("[entrypoint] Creating all tables...")
+    print("[entrypoint] Running Alembic migrations...")
+    try:
+        subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"[entrypoint] Alembic upgrade failed: {e}")
+        print("[entrypoint] Falling back to Base.metadata.create_all()...")
+    
+    print("[entrypoint] Ensuring all tables exist...")
     Base.metadata.create_all(bind=engine)
 
-    print("[entrypoint] Tables created successfully.")
+    print("[entrypoint] Tables created/migrated successfully.")
 
     # ── Seed demo data ─────────────────────────────────────────────
     print("[entrypoint] Running seed_data...")
