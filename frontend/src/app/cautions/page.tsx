@@ -125,7 +125,9 @@ export default function CautionsPage() {
   const creationCount = cautions.filter((c) => c.statut === "CREATION").length;
   const chezClientCount = cautions.filter((c) => c.statut === "CHEZ_CLIENT").length;
   const retourneeCount = cautions.filter((c) => c.statut === "RETOURNEE" || c.statut === "MAIN_LEVEE").length;
-  const totalGarantiDZD = cautions.reduce((acc, c) => acc + (c.montant || 0), 0);
+  const totalGarantiDZD = cautions
+    .filter((c) => c.statut === "CREATION" || c.statut === "CHEZ_CLIENT")
+    .reduce((acc, c) => acc + (c.montant || 0), 0);
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans contain-layout">
