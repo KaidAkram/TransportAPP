@@ -17,7 +17,7 @@ import { CreationFileUploader } from "@/components/shared/CreationFileUploader";
 
 const pieceUsageSchema = z.object({
   piece_id: z.string().min(1, "Veuillez sélectionner une pièce"),
-  quantite: z.number().min(1, "La quantité doit être >= 1"),
+  quantite: z.coerce.number().min(1, "La quantité doit être >= 1"),
 });
 
 const interventionSchema = z.object({
