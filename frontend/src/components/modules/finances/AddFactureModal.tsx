@@ -15,7 +15,7 @@ const factureSchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
   date_facture: z.string().min(1, "La date est requise"),
   mois_realisation: z.string().min(1, "Le mois de réalisation est requis"),
-  montant_facture: z.number().positive("Le montant doit être supérieur à 0"),
+  montant_facture: z.coerce.number().positive("Le montant doit être supérieur à 0"),
   remarques: z.string().optional(),
 });
 
@@ -203,7 +203,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                   name="montant_facture"
                   control={control}
                   render={({ field }) => (
-                    <GlassNumberInput {...field} min={0} step={1000} placeholder="0" />
+                    <GlassNumberInput {...field} min={0} step="any" customStep={1000} placeholder="0" />
                   )}
                 />
                 {errors.montant_facture && <p className="text-xs text-red-400 ml-1">{errors.montant_facture.message}</p>}
