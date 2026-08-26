@@ -119,7 +119,7 @@ export function AddInterventionModal({
         .catch(console.error);
 
       api
-        .get("/utils/next-sequence", { params: { entity: "intervention" } })
+        .get("/utils/next-sequence", { entity: "intervention" })
         .then((res: any) => {
           if (res.data?.next) setValue("numero", res.data.next);
         })

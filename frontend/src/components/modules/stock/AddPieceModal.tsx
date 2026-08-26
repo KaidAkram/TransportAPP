@@ -65,7 +65,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
     if (isOpen) {
       document.body.style.overflow = "hidden";
       api
-        .get("/utils/next-sequence", { params: { entity: "piece" } })
+        .get("/utils/next-sequence", { entity: "piece" })
         .then((res: any) => {
           if (res.data?.next) setValue("reference", res.data.next);
         })

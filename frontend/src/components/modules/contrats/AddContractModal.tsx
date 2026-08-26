@@ -77,7 +77,7 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
         .catch(console.error);
         
       api
-        .get("/utils/next-sequence", { params: { entity: "contrat" } })
+        .get("/utils/next-sequence", { entity: "contrat" })
         .then((res: any) => {
           if (res.data?.next) setValue("reference", res.data.next);
         })
