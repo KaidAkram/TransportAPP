@@ -36,6 +36,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
   const [activeTab, setActiveTab] = useState<"infos" | "permis" | "interventions" | "documents">("infos");
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [docModalDefaultType, setDocModalDefaultType] = useState<string | undefined>(undefined);
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -590,8 +591,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                           </h3>
                           <button
                             onClick={() => {
-                              // We can open the modal pre-filled with this category
-                              // setDocModalDefaultType(catType); // (Assumes this exists or will be handled later, for now just open)
+                              setDocModalDefaultType(catType);
                               setIsDocModalOpen(true);
                             }}
                             className="text-[10px] font-bold text-[var(--color-turbo)] hover:text-[#ffe133] px-3 py-1.5 rounded-lg bg-[var(--color-turbo)]/10 hover:bg-[var(--color-turbo)]/20 transition-all flex items-center gap-1.5"
@@ -715,7 +715,11 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
       <AddEmployeeDocumentModal
         employeId={employe.id}
         isOpen={isDocModalOpen}
-        onClose={() => setIsDocModalOpen(false)}
+        defaultType={docModalDefaultType}
+        onClose={() => {
+          setIsDocModalOpen(false);
+          setDocModalDefaultType(undefined);
+        }}
         onSuccess={() => fetchDetail()}
       />
     </div>

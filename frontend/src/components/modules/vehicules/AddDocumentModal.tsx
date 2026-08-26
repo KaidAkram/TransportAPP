@@ -118,8 +118,12 @@ export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess, defau
               <FileText className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-xl font-heading font-bold text-white drop-shadow-sm">Ajouter un Document</h2>
-              <p className="text-xs text-white/50 mt-0.5 font-sans">Assurance, Carte grise, Contrôle technique</p>
+              <h2 className="text-xl font-heading font-bold text-white drop-shadow-sm">
+                {defaultType ? `Ajouter : ${defaultType}` : "Ajouter un Document"}
+              </h2>
+              {!defaultType && (
+                <p className="text-xs text-white/50 mt-0.5 font-sans">Assurance, Carte grise, Contrôle technique</p>
+              )}
             </div>
           </div>
           <button
@@ -140,23 +144,24 @@ export function AddDocumentModal({ vehiculeId, isOpen, onClose, onSuccess, defau
             </div>
           )}
 
-          <div>
-            <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-2">
-              Type de document <span className="text-[var(--color-turbo)]">*</span>
-            </label>
-            <select
-              {...register("type")}
-              disabled={!!defaultType}
-              className={`w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm ${!!defaultType ? 'text-white/50 cursor-not-allowed' : 'text-white cursor-pointer'} focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[#251739] transition-all appearance-none`}
-              style={!defaultType ? { backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: `right 1.25rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` } : {}}
-            >
-              <option value="Assurance">Assurance</option>
-              <option value="Contrôle technique">Contrôle technique</option>
-              <option value="Carte grise">Carte grise</option>
-              <option value="Vignette automobile">Vignette automobile</option>
-              <option value="Autre">Autre document</option>
-            </select>
-          </div>
+          {!defaultType && (
+            <div>
+              <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-2">
+                Type de document <span className="text-[var(--color-turbo)]">*</span>
+              </label>
+              <select
+                {...register("type")}
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[#251739] transition-all appearance-none"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: `right 1.25rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` }}
+              >
+                <option value="Assurance">Assurance</option>
+                <option value="Contrôle technique">Contrôle technique</option>
+                <option value="Carte grise">Carte grise</option>
+                <option value="Vignette automobile">Vignette automobile</option>
+                <option value="Autre">Autre document</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-2">

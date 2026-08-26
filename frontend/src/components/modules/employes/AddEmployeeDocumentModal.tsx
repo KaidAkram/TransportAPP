@@ -28,6 +28,7 @@ const glassLabel = "block text-[10px] font-accent uppercase tracking-widest text
 interface AddEmployeeDocumentModalProps {
   employeId: string;
   isOpen: boolean;
+  defaultType?: string;
   onClose: () => void;
   onSuccess: (newDoc: EmployeDocument) => void;
 }
@@ -35,6 +36,7 @@ interface AddEmployeeDocumentModalProps {
 export function AddEmployeeDocumentModal({
   employeId,
   isOpen,
+  defaultType,
   onClose,
   onSuccess,
 }: AddEmployeeDocumentModalProps) {
@@ -46,6 +48,17 @@ export function AddEmployeeDocumentModal({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        type: defaultType || "CNI",
+        nom: defaultType ? `Nouveau: ${defaultType}` : "",
+      });
+      setPendingFiles([]);
+      setServerError(null);
+    }
+  }, [isOpen, defaultType, reset]);
 
   const {
     register,
@@ -120,8 +133,12 @@ export function AddEmployeeDocumentModal({
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-heading font-bold text-white tracking-tight">Ajouter un Document RH</h2>
-              <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] mt-0.5">CNI, Extrait de naissance, Carte Chifa, Contrat</p>
+              <h2 className="text-lg font-heading font-bold text-white tracking-tight">
+                {defaultType ? `Ajouter : ${defaultType}` : "Ajouter un Document RH"}
+              </h2>
+              {!defaultType && (
+                <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] mt-0.5">CNI, Extrait de naissance, Carte Chifa, Contrat</p>
+              )}
             </div>
           </div>
           <button
@@ -141,19 +158,21 @@ export function AddEmployeeDocumentModal({
             </div>
           )}
 
-          <div>
-            <label className={glassLabel}>
-              Type de document <span className="text-rose-400">*</span>
-            </label>
-            <select {...register("type")} className={glassSelect}>
-              <option value="CNI">Carte Nationale d&apos;Identité (CNI)</option>
-              <option value="Extrait de naissance">Extrait de Naissance (12S)</option>
-              <option value="Carte Chifa">Carte Chifa / CNAS</option>
-              <option value="Contrat de travail">Contrat de Travail</option>
-              <option value="Certificat médical">Certificat Médical d&apos;Aptitude</option>
-              <option value="Autre">Autre document administratif</option>
-            </select>
-          </div>
+          {!defaultType && (
+            <div>
+              <label className={glassLabel}>
+                Type de document <span className="text-rose-400">*</span>
+              </label>
+              <select {...register("type")} className={glassSelect}>
+                <option value="CNI">Carte Nationale d&apos;Identité (CNI)</option>
+                <option value="Extrait de naissance">Extrait de Naissance (12S)</option>
+                <option value="Carte Chifa">Carte Chifa / CNAS</option>
+                <option value="Contrat de travail">Contrat de Travail</option>
+                <option value="Certificat médical">Certificat Médical d&apos;Aptitude</option>
+                <option value="Autre">Autre document administratif</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className={glassLabel}>
