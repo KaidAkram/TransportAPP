@@ -183,15 +183,16 @@ def create_caution(data: CautionCreate, db: Session = Depends(get_db)):
     final_numero = data.numero.strip()
   else:
     prefix = f"CAU-{datetime.now().year}-"
-    result = db.query(Caution.numero).filter(Caution.numero.like(f"{prefix}%")).order_by(Caution.numero.desc()).first()
-    if result and result[0]:
+    results = db.query(Caution.numero).filter(Caution.numero.like(f"{prefix}%")).all()
+    max_num = 0
+    for res in results:
       try:
-        last_num = int(result[0].split("-")[-1])
-        final_numero = f"{prefix}{last_num + 1:04d}"
-      except ValueError:
-        final_numero = f"{prefix}0001"
-    else:
-      final_numero = f"{prefix}0001"
+        num = int(res[0].split("-")[-1])
+        if num > max_num:
+          max_num = num
+      except (ValueError, IndexError):
+        pass
+    final_numero = f"{prefix}{max_num + 1:04d}"
 
   client = db.query(Partenaire).filter(Partenaire.id == data.client_id).first()
   if not client:

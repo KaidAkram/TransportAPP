@@ -17,50 +17,58 @@ def get_next_sequence(entity: str, db: Session = Depends(get_db)):
     if entity == "reception":
         # pattern: REC-YYYY-NNNN
         prefix = f"REC-{year}-"
-        result = db.query(Reception.numero).filter(Reception.numero.like(f"{prefix}%")).order_by(Reception.numero.desc()).first()
-        if result and result[0]:
+        results = db.query(Reception.numero).filter(Reception.numero.like(f"{prefix}%")).all()
+        max_num = 0
+        for res in results:
             try:
-                last_num = int(result[0].split("-")[-1])
-                return {"next": f"{prefix}{last_num + 1:04d}"}
-            except ValueError:
-                return {"next": f"{prefix}0001"}
-        return {"next": f"{prefix}0001"}
+                num = int(res[0].split("-")[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                pass
+        return {"next": f"{prefix}{max_num + 1:04d}"}
         
     elif entity == "caution":
         # pattern: CAU-YYYY-NNNN
         prefix = f"CAU-{year}-"
-        result = db.query(Caution.numero).filter(Caution.numero.like(f"{prefix}%")).order_by(Caution.numero.desc()).first()
-        if result and result[0]:
+        results = db.query(Caution.numero).filter(Caution.numero.like(f"{prefix}%")).all()
+        max_num = 0
+        for res in results:
             try:
-                last_num = int(result[0].split("-")[-1])
-                return {"next": f"{prefix}{last_num + 1:04d}"}
-            except ValueError:
-                return {"next": f"{prefix}0001"}
-        return {"next": f"{prefix}0001"}
+                num = int(res[0].split("-")[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                pass
+        return {"next": f"{prefix}{max_num + 1:04d}"}
         
     elif entity == "employe":
         # pattern: EMP-YYYY-NNNN
         prefix = f"EMP-{year}-"
-        result = db.query(Employe.matricule).filter(Employe.matricule.like(f"{prefix}%")).order_by(Employe.matricule.desc()).first()
-        if result and result[0]:
+        results = db.query(Employe.matricule).filter(Employe.matricule.like(f"{prefix}%")).all()
+        max_num = 0
+        for res in results:
             try:
-                last_num = int(result[0].split("-")[-1])
-                return {"next": f"{prefix}{last_num + 1:04d}"}
-            except ValueError:
-                return {"next": f"{prefix}0001"}
-        return {"next": f"{prefix}0001"}
+                num = int(res[0].split("-")[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                pass
+        return {"next": f"{prefix}{max_num + 1:04d}"}
         
     elif entity == "vehicule":
         # pattern: VEH-YYYY-NNNN
         prefix = f"VEH-{year}-"
-        result = db.query(Vehicule.immatriculation).filter(Vehicule.immatriculation.like(f"{prefix}%")).order_by(Vehicule.immatriculation.desc()).first()
-        if result and result[0]:
+        results = db.query(Vehicule.immatriculation).filter(Vehicule.immatriculation.like(f"{prefix}%")).all()
+        max_num = 0
+        for res in results:
             try:
-                last_num = int(result[0].split("-")[-1])
-                return {"next": f"{prefix}{last_num + 1:04d}"}
-            except ValueError:
-                return {"next": f"{prefix}0001"}
-        return {"next": f"{prefix}0001"}
+                num = int(res[0].split("-")[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                pass
+        return {"next": f"{prefix}{max_num + 1:04d}"}
         
     else:
         raise HTTPException(status_code=400, detail="Entité non supportée pour la génération de séquence.")

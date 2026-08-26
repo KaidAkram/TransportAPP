@@ -179,15 +179,16 @@ def create_vehicule(data: VehiculeCreate, db: Session = Depends(get_db)):
       )
   else:
     prefix = f"VEH-{datetime.now().year}-"
-    result = db.query(Vehicule.immatriculation).filter(Vehicule.immatriculation.like(f"{prefix}%")).order_by(Vehicule.immatriculation.desc()).first()
-    if result and result[0]:
+    results = db.query(Vehicule.immatriculation).filter(Vehicule.immatriculation.like(f"{prefix}%")).all()
+    max_num = 0
+    for res in results:
       try:
-        last_num = int(result[0].split("-")[-1])
-        final_immatriculation = f"{prefix}{last_num + 1:04d}"
-      except ValueError:
-        final_immatriculation = f"{prefix}0001"
-    else:
-      final_immatriculation = f"{prefix}0001"
+        num = int(res[0].split("-")[-1])
+        if num > max_num:
+          max_num = num
+      except (ValueError, IndexError):
+        pass
+    final_immatriculation = f"{prefix}{max_num + 1:04d}"
 
   vehicule = Vehicule(
     id=uuid4(),

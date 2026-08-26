@@ -500,15 +500,16 @@ def create_reception(data: ReceptionCreate, db: Session = Depends(get_db)):
     numero = data.numero.strip()
   else:
     prefix = f"REC-{datetime.now().year}-"
-    result = db.query(Reception.numero).filter(Reception.numero.like(f"{prefix}%")).order_by(Reception.numero.desc()).first()
-    if result and result[0]:
+    results = db.query(Reception.numero).filter(Reception.numero.like(f"{prefix}%")).all()
+    max_num = 0
+    for res in results:
       try:
-        last_num = int(result[0].split("-")[-1])
-        numero = f"{prefix}{last_num + 1:04d}"
-      except ValueError:
-        numero = f"{prefix}0001"
-    else:
-      numero = f"{prefix}0001"
+        num = int(res[0].split("-")[-1])
+        if num > max_num:
+          max_num = num
+      except (ValueError, IndexError):
+        pass
+    numero = f"{prefix}{max_num + 1:04d}"
 
   total = 0.0
   for ligne in data.lignes:
