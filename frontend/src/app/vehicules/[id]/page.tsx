@@ -642,7 +642,8 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                                   </span>
                                 )}
                                 {c.url_justificatif_assurance && (
-                                  <a href={c.url_justificatif_assurance} target="_blank" rel="noreferrer" className="text-[10px] text-white/50 hover:text-white underline">
+                                  <a href={c.url_justificatif_assurance} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                                    <FileText className="h-3 w-3" />
                                     Justificatif
                                   </a>
                                 )}
