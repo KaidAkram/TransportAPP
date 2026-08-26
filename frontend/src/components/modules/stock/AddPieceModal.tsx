@@ -64,7 +64,12 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      setValue("reference", "ART-" + Math.floor(1000 + Math.random() * 9000).toString());
+      api
+        .get("/utils/next-sequence", { params: { entity: "piece" } })
+        .then((res: any) => {
+          if (res.data?.next) setValue("reference", res.data.next);
+        })
+        .catch(console.error);
     } else {
       document.body.style.overflow = "unset";
       setIsConfirming(false);

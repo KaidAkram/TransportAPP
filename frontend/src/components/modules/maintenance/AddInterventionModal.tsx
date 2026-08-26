@@ -76,7 +76,7 @@ export function AddInterventionModal({
   } = useForm<InterventionFormValues>({
     resolver: zodResolver(interventionSchema),
     defaultValues: {
-      numero: `INT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      numero: "",
       type: "PREVENTIVE",
       categorie: "Freinage & Révision",
       date: new Date().toISOString().split("T")[0],
@@ -116,6 +116,13 @@ export function AddInterventionModal({
       api
         .get<PieceListResponse>("/stock/pieces", { per_page: "100" })
         .then((res) => setPieces(res.data.items))
+        .catch(console.error);
+
+      api
+        .get("/utils/next-sequence", { params: { entity: "intervention" } })
+        .then((res: any) => {
+          if (res.data?.next) setValue("numero", res.data.next);
+        })
         .catch(console.error);
 
       if (defaultVehiculeId) setValue("vehicule_id", defaultVehiculeId);

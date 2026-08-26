@@ -61,7 +61,7 @@ export function AddAvenantModal({
 
   useEffect(() => {
     if (isOpen) {
-      setValue("numero", "Avenant N°" + Math.floor(1 + Math.random() * 99).toString().padStart(2, '0'));
+      setValue("numero", "");
     }
   }, [isOpen, setValue]);
 

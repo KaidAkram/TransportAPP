@@ -76,7 +76,12 @@ export function AddContractModal({ isOpen, onClose, onSuccess }: AddContractModa
         .then((res) => setPartners(res.data.items))
         .catch(console.error);
         
-      setValue("reference", "CTR-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900).toString());
+      api
+        .get("/utils/next-sequence", { params: { entity: "contrat" } })
+        .then((res: any) => {
+          if (res.data?.next) setValue("reference", res.data.next);
+        })
+        .catch(console.error);
     }
   }, [isOpen, setValue]);
 
