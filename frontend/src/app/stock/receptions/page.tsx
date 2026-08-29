@@ -35,6 +35,7 @@ export default function ReceptionHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -46,6 +47,7 @@ export default function ReceptionHistoryPage() {
       const params: Record<string, string> = {};
       if (search) params.search = search;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       params.page = page.toString();
       params.per_page = "15";
 
@@ -58,9 +60,9 @@ export default function ReceptionHistoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, yearFilter, page]);
+  }, [search, yearFilter, monthFilter, page]);
 
-  useEffect(() => { setPage(1); }, [search, yearFilter]);
+  useEffect(() => { setPage(1); }, [search, yearFilter, monthFilter]);
   useEffect(() => { fetchReceptions(); }, [fetchReceptions]);
 
   const openDetail = async (id: string) => {
@@ -155,6 +157,28 @@ export default function ReceptionHistoryPage() {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
               }),
+            ]}
+          />
+        </div>
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={monthFilter}
+            onChange={setMonthFilter}
+            placeholder="Mois"
+            options={[
+              { value: "", label: "Tous les mois" },
+              { value: "1", label: "Janvier" },
+              { value: "2", label: "Février" },
+              { value: "3", label: "Mars" },
+              { value: "4", label: "Avril" },
+              { value: "5", label: "Mai" },
+              { value: "6", label: "Juin" },
+              { value: "7", label: "Juillet" },
+              { value: "8", label: "Août" },
+              { value: "9", label: "Septembre" },
+              { value: "10", label: "Octobre" },
+              { value: "11", label: "Novembre" },
+              { value: "12", label: "Décembre" },
             ]}
           />
         </div>

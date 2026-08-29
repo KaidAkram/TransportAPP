@@ -52,6 +52,7 @@ def list_pieces(
   categorie: Optional[str] = Query(None, description="Filter by category"),
   statut_stock: Optional[str] = Query(None, description="Filter by stock status: NORMAL, FAIBLE, RUPTURE"),
   annee: Optional[int] = Query(None, description="Filter by year (created_at)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   include_archived: bool = Query(False, description="Include archived pieces"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(20, ge=1, le=1000, description="Items per page"),
@@ -81,6 +82,8 @@ def list_pieces(
 
   if annee:
     query = query.filter(extract('year', Piece.created_at) == annee)
+if mois:
+    query = query.filter(extract('month', Piece.created_at) == mois)
 
   if sort_by and hasattr(Piece, sort_by):
     col = getattr(Piece, sort_by)
@@ -631,6 +634,7 @@ def list_receptions(
   date_from: Optional[dt_date] = Query(None),
   date_to: Optional[dt_date] = Query(None),
   annee: Optional[int] = Query(None, description="Filter by year (date)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   page: int = Query(1, ge=1),
   per_page: int = Query(10, ge=1, le=100),
   db: Session = Depends(get_db),
@@ -650,6 +654,8 @@ def list_receptions(
     query = query.filter(Reception.date <= date_to)
   if annee:
     query = query.filter(extract('year', Reception.date) == annee)
+if mois:
+    query = query.filter(extract('month', Reception.date) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total > 0 else 1

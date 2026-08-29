@@ -46,6 +46,7 @@ export default function FinancesPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const [kpis, setKpis] = useState({ total_montant: 0, total_encaisse: 0, total_en_attente: 0 });
@@ -86,6 +87,7 @@ export default function FinancesPage() {
       const params: Record<string, string> = {};
       if (search) params.search = search;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -111,7 +113,7 @@ export default function FinancesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, yearFilter, canView, sortBy, sortOrder]);
+  }, [search, yearFilter, monthFilter, canView, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchFactures();

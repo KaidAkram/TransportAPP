@@ -38,6 +38,7 @@ export default function ContratsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -70,6 +71,7 @@ export default function ContratsPage() {
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type_contrat = typeFilter;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (showArchived) params.include_archived = "true";
       if (sortBy) {
         params.sort_by = sortBy;
@@ -85,11 +87,11 @@ export default function ContratsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, yearFilter, page, showArchived, sortBy, sortOrder]);
+  }, [search, statusFilter, typeFilter, yearFilter, monthFilter, page, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, typeFilter, yearFilter, showArchived, sortBy, sortOrder]);
+  }, [search, statusFilter, typeFilter, yearFilter, monthFilter, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchContracts();

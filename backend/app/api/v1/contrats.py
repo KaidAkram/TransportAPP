@@ -49,6 +49,7 @@ def list_contrats(
   partenaire_id: Optional[UUID] = Query(None, description="Filter by partner ID"),
   type_contrat: Optional[str] = Query(None, description="Filter by contract type"),
   annee: Optional[int] = Query(None, description="Filter by year (date_debut)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   include_archived: bool = Query(False, description="Include soft-deleted contracts"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -82,6 +83,8 @@ def list_contrats(
 
   if annee:
     query = query.filter(extract('year', Contrat.date_debut) == annee)
+if mois:
+    query = query.filter(extract('month', Contrat.date_debut) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1

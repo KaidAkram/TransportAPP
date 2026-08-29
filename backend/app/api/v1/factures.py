@@ -32,6 +32,7 @@ def list_factures(
   statut: Optional[StatutFacture] = Query(None),
   client_id: Optional[str] = Query(None),
   annee: Optional[int] = Query(None, description="Filter by year (annee_realisation)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois (date_facture)"),
   sort_by: Optional[str] = Query(None, description="Field to sort by"),
   sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
@@ -56,6 +57,8 @@ def list_factures(
 
   if annee:
     query = query.filter(Facture.annee_realisation == annee)
+  if mois:
+    query = query.filter(extract('month', Facture.date_facture) == mois)
 
   if sort_by and hasattr(Facture, sort_by):
     col = getattr(Facture, sort_by)

@@ -37,6 +37,7 @@ export default function CautionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isDemandeModalOpen, setIsDemandeModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -82,6 +83,7 @@ export default function CautionsPage() {
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -96,11 +98,11 @@ export default function CautionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, monthFilter, page, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter, yearFilter, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, monthFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchCautions();
@@ -256,6 +258,28 @@ export default function CautionsPage() {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
               }),
+            ]}
+          />
+        </div>
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={monthFilter}
+            onChange={setMonthFilter}
+            placeholder="Mois"
+            options={[
+              { value: "", label: "Tous les mois" },
+              { value: "1", label: "Janvier" },
+              { value: "2", label: "Février" },
+              { value: "3", label: "Mars" },
+              { value: "4", label: "Avril" },
+              { value: "5", label: "Mai" },
+              { value: "6", label: "Juin" },
+              { value: "7", label: "Juillet" },
+              { value: "8", label: "Août" },
+              { value: "9", label: "Septembre" },
+              { value: "10", label: "Octobre" },
+              { value: "11", label: "Novembre" },
+              { value: "12", label: "Décembre" },
             ]}
           />
         </div>

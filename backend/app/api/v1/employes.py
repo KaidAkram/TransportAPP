@@ -36,6 +36,7 @@ def list_employes(
   type_employe: Optional[TypeEmploye] = Query(None, description="Filter by employee type (CHAUFFEUR or MECANICIEN)"),
   statut: Optional[StatutEmploye] = Query(None, description="Filter by HR status"),
   annee: Optional[int] = Query(None, description="Filter by year (date_embauche)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   include_archived: bool = Query(False, description="Include soft-deleted employees"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -67,6 +68,8 @@ def list_employes(
 
   if annee:
     query = query.filter(extract('year', Employe.date_embauche) == annee)
+if mois:
+    query = query.filter(extract('month', Employe.date_embauche) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total > 0 else 1

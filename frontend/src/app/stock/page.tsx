@@ -45,6 +45,7 @@ export default function StockPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
 
   // Modals
   const [isAddPieceModalOpen, setIsAddPieceModalOpen] = useState(false);
@@ -87,6 +88,7 @@ export default function StockPage() {
       if (categoryFilter) params.categorie = categoryFilter;
       if (statusFilter) params.statut_stock = statusFilter;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -107,12 +109,12 @@ export default function StockPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
+  }, [search, categoryFilter, statusFilter, yearFilter, monthFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter, yearFilter, sortBy, sortOrder]);
+  }, [search, categoryFilter, statusFilter, yearFilter, monthFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchStock();
@@ -304,6 +306,28 @@ export default function StockPage() {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
               }),
+            ]}
+          />
+        </div>
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={monthFilter}
+            onChange={setMonthFilter}
+            placeholder="Mois"
+            options={[
+              { value: "", label: "Tous les mois" },
+              { value: "1", label: "Janvier" },
+              { value: "2", label: "Février" },
+              { value: "3", label: "Mars" },
+              { value: "4", label: "Avril" },
+              { value: "5", label: "Mai" },
+              { value: "6", label: "Juin" },
+              { value: "7", label: "Juillet" },
+              { value: "8", label: "Août" },
+              { value: "9", label: "Septembre" },
+              { value: "10", label: "Octobre" },
+              { value: "11", label: "Novembre" },
+              { value: "12", label: "Décembre" },
             ]}
           />
         </div>

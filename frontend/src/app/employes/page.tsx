@@ -39,6 +39,7 @@ export default function EmployesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"actifs" | "archives">("actifs");
   const [sortBy, setSortBy] = useState<string | undefined>();
@@ -85,6 +86,7 @@ export default function EmployesPage() {
       }
       
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
 
       if (sortBy) {
         params.sort_by = sortBy;
@@ -100,12 +102,12 @@ export default function EmployesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, yearFilter, page, sortBy, sortOrder, viewMode]);
+  }, [search, roleFilter, statusFilter, yearFilter, monthFilter, page, sortBy, sortOrder, viewMode]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter, yearFilter, sortBy, sortOrder, viewMode]);
+  }, [search, roleFilter, statusFilter, yearFilter, monthFilter, sortBy, sortOrder, viewMode]);
 
   useEffect(() => {
     fetchEmployees();

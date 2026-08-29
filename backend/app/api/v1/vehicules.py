@@ -36,6 +36,7 @@ def list_vehicules(
   statut: Optional[StatutVehicule] = Query(None, description="Filter by operational status"),
   type: Optional[str] = Query(None, description="Filter by vehicle category/type"),
   annee: Optional[int] = Query(None, description="Filter by year (date_mise_circulation)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   include_archived: bool = Query(False, description="Include archived / soft-deleted vehicles"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -66,6 +67,8 @@ def list_vehicules(
 
   if annee:
     query = query.filter(extract('year', Vehicule.date_mise_circulation) == annee)
+if mois:
+    query = query.filter(extract('month', Vehicule.date_mise_circulation) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1

@@ -38,6 +38,7 @@ def list_cautions(
   client_id: Optional[UUID] = Query(None, description="Filter by client ID"),
   contrat_id: Optional[UUID] = Query(None, description="Filter by contract ID"),
   annee: Optional[int] = Query(None, description="Filter by year (date_emission)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   include_archived: bool = Query(False, description="Include soft-deleted cautions"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -75,6 +76,8 @@ def list_cautions(
 
   if annee:
     query = query.filter(extract('year', Caution.date_emission) == annee)
+if mois:
+    query = query.filter(extract('month', Caution.date_emission) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1

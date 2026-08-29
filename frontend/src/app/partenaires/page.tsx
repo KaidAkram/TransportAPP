@@ -44,6 +44,7 @@ export default function PartenairesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -67,6 +68,7 @@ export default function PartenairesPage() {
       if (roleFilter) params.role_partenaire = roleFilter;
       if (statusFilter) params.statut_crm = statusFilter;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -81,12 +83,12 @@ export default function PartenairesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, yearFilter, monthFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter, yearFilter, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, yearFilter, monthFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchPartners();

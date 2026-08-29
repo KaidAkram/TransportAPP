@@ -33,6 +33,7 @@ export default function VehiculesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [yearFilter, setYearFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -71,6 +72,7 @@ export default function VehiculesPage() {
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type = typeFilter;
       if (yearFilter) params.annee = yearFilter;
+      if (monthFilter) params.mois = monthFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -87,7 +89,7 @@ export default function VehiculesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, yearFilter, sortBy, sortOrder, viewMode]);
+  }, [search, statusFilter, typeFilter, yearFilter, monthFilter, sortBy, sortOrder, viewMode]);
 
   const [pendingConstats, setPendingConstats] = useState<ConstatSummary[]>([]);
 
@@ -281,6 +283,28 @@ export default function VehiculesPage() {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
               }),
+            ]}
+          />
+        </div>
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={monthFilter}
+            onChange={setMonthFilter}
+            placeholder="Mois"
+            options={[
+              { value: "", label: "Tous les mois" },
+              { value: "1", label: "Janvier" },
+              { value: "2", label: "Février" },
+              { value: "3", label: "Mars" },
+              { value: "4", label: "Avril" },
+              { value: "5", label: "Mai" },
+              { value: "6", label: "Juin" },
+              { value: "7", label: "Juillet" },
+              { value: "8", label: "Août" },
+              { value: "9", label: "Septembre" },
+              { value: "10", label: "Octobre" },
+              { value: "11", label: "Novembre" },
+              { value: "12", label: "Décembre" },
             ]}
           />
         </div>

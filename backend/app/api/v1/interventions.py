@@ -38,6 +38,7 @@ def list_interventions(
   type: Optional[CategorieIntervention] = Query(None, description="Filter by type: PREVENTIVE or CORRECTIVE"),
   statut: Optional[StatutIntervention] = Query(None, description="Filter by status"),
   annee: Optional[int] = Query(None, description="Filter by year (date)"),
+  mois: Optional[int] = Query(None, description="Filtrer par mois"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(20, ge=1, le=100, description="Items per page"),
   sort_by: Optional[str] = Query(None, description="Field to sort by"),
@@ -72,6 +73,8 @@ def list_interventions(
 
   if annee:
     query = query.filter(extract('year', Intervention.date) == annee)
+if mois:
+    query = query.filter(extract('month', Intervention.date) == mois)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1
