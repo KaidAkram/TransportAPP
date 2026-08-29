@@ -83,7 +83,7 @@ def list_contrats(
 
   if annee:
     query = query.filter(extract('year', Contrat.date_debut) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Contrat.date_debut) == mois)
 
   total = query.count()

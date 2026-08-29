@@ -73,7 +73,7 @@ def list_partenaires(
 
   if annee:
     query = query.filter(extract('year', Partenaire.created_at) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Partenaire.created_at) == mois)
 
   total = query.count()

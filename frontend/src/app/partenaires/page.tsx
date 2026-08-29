@@ -252,7 +252,8 @@ export default function PartenairesPage() {
               className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:bg-[var(--color-haiti)] focus:border-[var(--color-electric-violet)] focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
             />
           </div>
-          <div className="w-full md:w-56 shrink-0 flex gap-2">
+          
+          <div className="w-full sm:w-[220px]">
             <GlassSelect
               value={statusFilter}
               onChange={setStatusFilter}
@@ -265,6 +266,9 @@ export default function PartenairesPage() {
               ]}
               placeholder="Statut"
             />
+          </div>
+          
+          <div className="w-full sm:w-[120px]">
             <GlassSelect
               value={yearFilter}
               onChange={setYearFilter}
@@ -275,6 +279,29 @@ export default function PartenairesPage() {
                   const year = new Date().getFullYear() - i;
                   return { value: year.toString(), label: year.toString() };
                 }),
+              ]}
+            />
+          </div>
+          
+          <div className="w-full sm:w-[150px]">
+            <GlassSelect
+              value={monthFilter}
+              onChange={setMonthFilter}
+              placeholder="Mois"
+              options={[
+                { value: "", label: "Tous les mois" },
+                { value: "1", label: "Janvier" },
+                { value: "2", label: "Février" },
+                { value: "3", label: "Mars" },
+                { value: "4", label: "Avril" },
+                { value: "5", label: "Mai" },
+                { value: "6", label: "Juin" },
+                { value: "7", label: "Juillet" },
+                { value: "8", label: "Août" },
+                { value: "9", label: "Septembre" },
+                { value: "10", label: "Octobre" },
+                { value: "11", label: "Novembre" },
+                { value: "12", label: "Décembre" },
               ]}
             />
           </div>

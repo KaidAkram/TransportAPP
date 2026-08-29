@@ -76,7 +76,7 @@ def list_cautions(
 
   if annee:
     query = query.filter(extract('year', Caution.date_emission) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Caution.date_emission) == mois)
 
   total = query.count()

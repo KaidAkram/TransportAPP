@@ -73,7 +73,7 @@ def list_interventions(
 
   if annee:
     query = query.filter(extract('year', Intervention.date) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Intervention.date) == mois)
 
   total = query.count()

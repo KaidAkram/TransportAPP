@@ -68,7 +68,7 @@ def list_employes(
 
   if annee:
     query = query.filter(extract('year', Employe.date_embauche) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Employe.date_embauche) == mois)
 
   total = query.count()

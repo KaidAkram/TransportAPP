@@ -67,7 +67,7 @@ def list_vehicules(
 
   if annee:
     query = query.filter(extract('year', Vehicule.date_mise_circulation) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Vehicule.date_mise_circulation) == mois)
 
   total = query.count()

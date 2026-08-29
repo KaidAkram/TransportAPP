@@ -82,7 +82,7 @@ def list_pieces(
 
   if annee:
     query = query.filter(extract('year', Piece.created_at) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Piece.created_at) == mois)
 
   if sort_by and hasattr(Piece, sort_by):
@@ -654,7 +654,7 @@ def list_receptions(
     query = query.filter(Reception.date <= date_to)
   if annee:
     query = query.filter(extract('year', Reception.date) == annee)
-if mois:
+  if mois:
     query = query.filter(extract('month', Reception.date) == mois)
 
   total = query.count()
