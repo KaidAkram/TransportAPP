@@ -40,6 +40,11 @@ def generate_caution_pdf(
     company_nis: str = None,
     company_rc: str = None,
     company_ai: str = None,
+    company_address: str = "Zone Industrielle Oued Smar, Alger",
+    company_phone: str = "+213 (0) 23 85 40 00",
+    company_email: str = "contact@etransport.dz",
+    company_activity: str = "Transport routier de marchandises",
+    company_rib: str = "002 00612 0123456789 45",
     montant_contrat: float = None,
 ) -> str:
     output_dir = os.path.abspath(
@@ -62,7 +67,8 @@ def generate_caution_pdf(
                                        ref_contrat, banque_name, lieu_demande,
                                        numero_compte_bancaire, client_societe_nom,
                                        company_name, company_nif, company_nis,
-                                       company_rc, company_ai, lieu_soumission=lieu_soumission,
+                                       company_rc, company_ai, company_address, company_phone, company_email, company_activity, company_rib,
+                                       lieu_soumission=lieu_soumission,
                                        montant_contrat=montant_contrat)
     else:
         story = _build_soumission(doc, caution_number, amount, devise, client_name,
@@ -70,7 +76,8 @@ def generate_caution_pdf(
                                   ref_contrat, banque_name, lieu_soumission,
                                   numero_compte_bancaire, client_societe_nom,
                                   company_name, company_nif, company_nis,
-                                  company_rc, company_ai, lieu_demande=lieu_demande)
+                                  company_rc, company_ai, company_address, company_phone, company_email, company_activity, company_rib,
+                                  lieu_demande=lieu_demande)
 
     doc.build(story)
     return f"/assets/documents/cautions/{filename}"
@@ -84,7 +91,8 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
                       ref_contrat, banque_name, lieu_soumission,
                       numero_compte_bancaire, client_societe_nom,
                       company_name, company_nif, company_nis,
-                      company_rc, company_ai, lieu_demande=None):
+                      company_rc, company_ai, company_address, company_phone, company_email, company_activity, company_rib,
+                      lieu_demande=None):
     styles = getSampleStyleSheet()
     lieu_s = lieu_soumission or lieu_demande or "..."
     date_str = date_emission.strftime("%d/%m/%Y") if hasattr(date_emission, "strftime") else str(date_emission)
@@ -93,26 +101,52 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     ref_display = ref_contrat or caution_number or "..."
     num_compte = numero_compte_bancaire or "........"
 
-    ent = company_name or "Notre Société"
-    nif = company_nif or "..."
+    ent = company_name or "E-TRANSPORT VOYAGES & LOGISTIQUE EURL"
+    nif = company_nif or "001916001234567"
     nis = company_nis or "..."
-    rc = company_rc or "..."
+    rc = company_rc or "16/00-1234567B19"
     ai = company_ai or "..."
+    addr = company_address or "Zone Industrielle Oued Smar, Alger"
+    phone = company_phone or "+213 (0) 23 85 40 00"
+    email = company_email or "contact@etransport.dz"
+    act = company_activity or "Transport routier de marchandises"
+    rib = company_rib or "002 00612 0123456789 45"
 
     body = ParagraphStyle("Body", parent=styles["Normal"], fontSize=11, leading=16,
                           alignment=0, fontName="Helvetica")
     body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1, fontName="Helvetica-Bold", fontSize=13)
+    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14)
+    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10)
+    reg_style = ParagraphStyle('RegStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2)
 
     story = []
 
     # ── Header: Company name + fiscal IDs ──
-    story.append(Paragraph(f"<b>{ent}</b>", body_c))
-    story.append(Paragraph(
-        f"<font size=9>RC : {rc}  |  NIF : {nif}  |  AI : {ai}  |  NIS : {nis}</font>",
-        ParagraphStyle("HeaderIDs", parent=body, fontSize=9, alignment=1, leading=13),
-    ))
-    story.append(Spacer(1, 24))
+    comp_info = [
+        Paragraph(f"<b>{ent}</b>", header_bold),
+        Paragraph(f"<b>{addr}</b>", header_bold),
+        Paragraph(f"Tél: {phone}" if phone else "", header_norm),
+        Paragraph(f"Email: {email}" if email else "", header_norm),
+        Paragraph(f"Activité: {act}", header_norm),
+    ]
+    
+    reg_info = [
+        Paragraph(f"RC: {rc}", reg_style),
+        Paragraph(f"NIF: {nif}", reg_style),
+        Paragraph(f"AI: {ai}", reg_style),
+        Paragraph(f"NIS: {nis}", reg_style),
+        Paragraph(f"RIB: {rib}", reg_style),
+    ]
+
+    header_table = Table([[comp_info, reg_info]], colWidths=[10*cm, 6*cm])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 1*cm))
 
     # ── Addressee + Date (right-aligned) ──
     story.append(Paragraph("À l'attention de", body_r))
@@ -200,7 +234,8 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                            ref_contrat, banque_name, lieu_demande,
                            numero_compte_bancaire, client_societe_nom,
                            company_name, company_nif, company_nis,
-                           company_rc, company_ai, lieu_soumission=None,
+                           company_rc, company_ai, company_address, company_phone, company_email, company_activity, company_rib,
+                           lieu_soumission=None,
                            montant_contrat=None):
     styles = getSampleStyleSheet()
     lieu_d = lieu_demande or lieu_soumission or "..."
@@ -213,26 +248,52 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     mc_chiffres = f"{montant_contrat:,.2f} {devise}".replace(",", " ") if montant_contrat else montant_chiffres
     mc_lettres = _amount_in_letters(montant_contrat, devise) if montant_contrat else montant_lettres
 
-    ent = company_name or "Notre Société"
-    nif = company_nif or "..."
+    ent = company_name or "E-TRANSPORT VOYAGES & LOGISTIQUE EURL"
+    nif = company_nif or "001916001234567"
     nis = company_nis or "..."
-    rc = company_rc or "..."
+    rc = company_rc or "16/00-1234567B19"
     ai = company_ai or "..."
+    addr = company_address or "Zone Industrielle Oued Smar, Alger"
+    phone = company_phone or "+213 (0) 23 85 40 00"
+    email = company_email or "contact@etransport.dz"
+    act = company_activity or "Transport routier de marchandises"
+    rib = company_rib or "002 00612 0123456789 45"
 
     body = ParagraphStyle("Body", parent=styles["Normal"], fontSize=11, leading=16,
                           alignment=0, fontName="Helvetica")
     body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1, fontName="Helvetica-Bold", fontSize=13)
+    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14)
+    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10)
+    reg_style = ParagraphStyle('RegStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2)
 
     story = []
 
     # ── Header: Company name + fiscal IDs ──
-    story.append(Paragraph(f"<b>{ent}</b>", body_c))
-    story.append(Paragraph(
-        f"<font size=9>RC : {rc}  |  NIF : {nif}  |  AI : {ai}  |  NIS : {nis}</font>",
-        ParagraphStyle("HeaderIDs", parent=body, fontSize=9, alignment=1, leading=13),
-    ))
-    story.append(Spacer(1, 24))
+    comp_info = [
+        Paragraph(f"<b>{ent}</b>", header_bold),
+        Paragraph(f"<b>{addr}</b>", header_bold),
+        Paragraph(f"Tél: {phone}" if phone else "", header_norm),
+        Paragraph(f"Email: {email}" if email else "", header_norm),
+        Paragraph(f"Activité: {act}", header_norm),
+    ]
+    
+    reg_info = [
+        Paragraph(f"RC: {rc}", reg_style),
+        Paragraph(f"NIF: {nif}", reg_style),
+        Paragraph(f"AI: {ai}", reg_style),
+        Paragraph(f"NIS: {nis}", reg_style),
+        Paragraph(f"RIB: {rib}", reg_style),
+    ]
+
+    header_table = Table([[comp_info, reg_info]], colWidths=[10*cm, 6*cm])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 1*cm))
 
     # ── Addressee + Date (right-aligned) ──
     story.append(Paragraph("À l'attention de", body_r))
