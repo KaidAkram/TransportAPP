@@ -311,7 +311,7 @@ def update_employe(employe_id: UUID, data: EmployeUpdate, db: Session = Depends(
   return employe
 
 
-@router.patch("/{employe_id}/archive", response_model=EmployeRead, summary="Archive / Soft-Delete Employee")
+@router.patch("/{employe_id}/archive", response_model=EmployeRead, summary="Archive / Soft-Delete Employee", dependencies=[Depends(require_feature("edit_employe"))])
 def archive_employe(employe_id: UUID, db: Session = Depends(get_db)):
   employe = db.query(Employe).filter(Employe.id == employe_id).first()
   if not employe:
@@ -319,6 +319,19 @@ def archive_employe(employe_id: UUID, db: Session = Depends(get_db)):
 
   employe.archived_at = datetime.now(timezone.utc)
   employe.statut = StatutEmploye.QUITTE
+  db.commit()
+  db.refresh(employe)
+  return employe
+
+
+@router.patch("/{employe_id}/restore", response_model=EmployeRead, summary="Restore / Unarchive Employee", dependencies=[Depends(require_feature("edit_employe"))])
+def restore_employe(employe_id: UUID, db: Session = Depends(get_db)):
+  employe = db.query(Employe).filter(Employe.id == employe_id).first()
+  if not employe:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé introuvable.")
+
+  employe.archived_at = None
+  employe.statut = StatutEmploye.ACTIF
   db.commit()
   db.refresh(employe)
   return employe

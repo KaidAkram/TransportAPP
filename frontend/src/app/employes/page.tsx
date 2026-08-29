@@ -39,6 +39,7 @@ export default function EmployesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"actifs" | "archives">("actifs");
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -58,11 +59,13 @@ export default function EmployesPage() {
     employeeId: string | null;
     employeeName: string;
     isLoading: boolean;
+    action: "archive" | "restore";
   }>({
     isOpen: false,
     employeeId: null,
     employeeName: "",
     isLoading: false,
+    action: "archive",
   });
 
   const fetchEmployees = useCallback(async () => {
@@ -72,7 +75,14 @@ export default function EmployesPage() {
       if (search) params.search = search;
       params.page = page.toString();
       if (roleFilter) params.type_employe = roleFilter;
-      if (statusFilter) params.statut = statusFilter;
+      
+      if (viewMode === "archives") {
+        params.include_archived = "true";
+        params.statut = "QUITTE";
+      } else if (statusFilter) {
+        params.statut = statusFilter;
+      }
+
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -87,31 +97,39 @@ export default function EmployesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder, viewMode]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, sortBy, sortOrder, viewMode]);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
 
   const handleArchiveClick = (id: string, name: string) => {
-    setConfirmModal({ isOpen: true, employeeId: id, employeeName: name, isLoading: false });
+    setConfirmModal({ isOpen: true, employeeId: id, employeeName: name, isLoading: false, action: "archive" });
   };
 
-  const handleArchiveConfirm = async () => {
+  const handleRestoreClick = (id: string, name: string) => {
+    setConfirmModal({ isOpen: true, employeeId: id, employeeName: name, isLoading: false, action: "restore" });
+  };
+
+  const handleConfirmAction = async () => {
     if (!confirmModal.employeeId) return;
     setConfirmModal((prev) => ({ ...prev, isLoading: true }));
     try {
-      await api.patch(`/employes/${confirmModal.employeeId}/archive`, {});
+      if (confirmModal.action === "archive") {
+        await api.patch(`/employes/${confirmModal.employeeId}/archive`, {});
+      } else {
+        await api.patch(`/employes/${confirmModal.employeeId}/restore`, {});
+      }
       fetchEmployees();
     } catch (err) {
-      console.error("Erreur lors de l'archivage:", err);
+      console.error("Erreur lors de l'action:", err);
     } finally {
-      setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false });
+      setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false, action: "archive" });
     }
   };
 
@@ -236,8 +254,8 @@ export default function EmployesPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="relative z-20 flex flex-col sm:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
-        <div className="relative flex-1">
+      <div className="relative z-20 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+        <div className="flex-1 max-w-md relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
             type="text"
@@ -247,18 +265,50 @@ export default function EmployesPage() {
             className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
           />
         </div>
-        <div className="w-[180px]">
+
+        <div className="flex items-center gap-3">
+          <div className="p-1 bg-black/20 border border-white/10 rounded-xl flex">
+            <button
+              onClick={() => setViewMode("actifs")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === "actifs" ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white"
+              }`}
+            >
+              Actifs
+            </button>
+            <button
+              onClick={() => setViewMode("archives")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === "archives" ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white"
+              }`}
+            >
+              Archivés
+            </button>
+          </div>
+          
           <GlassSelect
-            value={statusFilter}
-            onChange={setStatusFilter}
+            value={roleFilter}
+            onChange={setRoleFilter}
+            placeholder="Rôle / Métier"
             options={[
-              { value: "", label: "Tous les statuts RH" },
-              { value: "ACTIF", label: "Actif" },
-              { value: "ABSENT", label: "Absent / Congé" },
-              { value: "SUSPENDU", label: "Suspendu" },
-              { value: "QUITTE", label: "Quitté" },
+              { value: "", label: "Tous les rôles" },
+              { value: "CHAUFFEUR", label: "Chauffeurs" },
+              { value: "MECANICIEN", label: "Mécaniciens" },
             ]}
           />
+          {viewMode === "actifs" && (
+            <GlassSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              placeholder="Statut RH"
+              options={[
+                { value: "", label: "Tous statuts" },
+                { value: "ACTIF", label: "Actifs" },
+                { value: "ABSENT", label: "Absents" },
+                { value: "SUSPENDU", label: "Suspendus" },
+              ]}
+            />
+          )}
         </div>
       </div>
 
@@ -380,13 +430,23 @@ export default function EmployesPage() {
                           >
                             <Eye className="h-3.5 w-3.5" /> Fiche RH
                           </Link>
-                          <button
-                            onClick={() => handleArchiveClick(e.id, `${e.nom} ${e.prenom}`)}
-                            className="p-1 rounded-lg border border-white/10 bg-white/5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all"
-                            title="Archiver l'employé"
-                          >
-                            <Archive className="h-3.5 w-3.5" />
-                          </button>
+                          {e.statut !== "QUITTE" ? (
+                            <button
+                              onClick={() => handleArchiveClick(e.id, `${e.nom} ${e.prenom}`)}
+                              className="p-1 rounded-lg border border-white/10 bg-white/5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all"
+                              title="Archiver l'employé"
+                            >
+                              <Archive className="h-3.5 w-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleRestoreClick(e.id, `${e.nom} ${e.prenom}`)}
+                              className="p-1 rounded-lg border border-white/10 bg-white/5 text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
+                              title="Désarchiver l'employé"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -416,13 +476,17 @@ export default function EmployesPage() {
       {/* Archive Confirmation Modal */}
       <GlassConfirmModal
         isOpen={confirmModal.isOpen}
-        title="Archiver le collaborateur"
-        message={`Confirmez-vous le départ et l'archivage du collaborateur ${confirmModal.employeeName} ? Cette action changera son statut en "Hors Service".`}
-        confirmText="Confirmer l'archivage"
+        title={confirmModal.action === "archive" ? "Archiver le collaborateur" : "Désarchiver le collaborateur"}
+        message={
+          confirmModal.action === "archive"
+            ? `Confirmez-vous le départ et l'archivage du collaborateur ${confirmModal.employeeName} ? Cette action changera son statut en "Quitté".`
+            : `Confirmez-vous le retour du collaborateur ${confirmModal.employeeName} ? Son profil redeviendra "Actif".`
+        }
+        confirmText={confirmModal.action === "archive" ? "Confirmer l'archivage" : "Désarchiver"}
         cancelText="Annuler"
-        type="danger"
-        onConfirm={handleArchiveConfirm}
-        onCancel={() => setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false })}
+        type={confirmModal.action === "archive" ? "danger" : "info"}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false, action: "archive" })}
         isLoading={confirmModal.isLoading}
       />
       </Portal>
