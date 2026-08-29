@@ -533,7 +533,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
       {/* TAB 3: DOCUMENTS ADMINISTRATIFS */}
       {activeTab === "documents" && (
         <div className="space-y-8 animate-in fade-in duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="flex flex-wrap sm:items-center justify-between gap-4 mb-4">
             <p className="text-xs text-white/50 max-w-2xl leading-relaxed">
               Dossier RH du collaborateur (CNI, Extrait de naissance, Contrat de travail, Carte Chifa).
             </p>
@@ -555,7 +555,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
             return (
               <div className="space-y-6">
                 {missing.length > 0 && (
-                  <div className="glass-panel p-5 bg-rose-500/10 border-rose-500/20 flex flex-col md:flex-row md:items-center gap-4">
+                  <div className="glass-panel p-5 bg-rose-500/10 border-rose-500/20 flex flex-wrap md:items-center gap-4">
                     <div className="h-10 w-10 shrink-0 rounded-full bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
                       <AlertTriangle className="h-5 w-5 text-rose-400" />
                     </div>

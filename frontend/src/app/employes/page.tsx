@@ -259,7 +259,7 @@ export default function EmployesPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="relative z-20 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
+      <div className="relative z-20 flex flex-wrap items-stretch md:items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
         <div className="flex-1 max-w-md relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input

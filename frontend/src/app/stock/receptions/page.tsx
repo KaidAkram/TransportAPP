@@ -133,8 +133,8 @@ export default function ReceptionHistoryPage() {
       </div>
 
       {/* Search & Filter */}
-      <div className="relative z-20 flex flex-col md:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: "0.1s" }}>
-        <div className="relative flex-1 group">
+      <div className="relative z-20 flex flex-wrap gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: "0.1s" }}>
+        <div className="relative w-full lg:w-auto lg:flex-1 min-w-[250px] group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
           </div>
@@ -146,7 +146,7 @@ export default function ReceptionHistoryPage() {
             className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-all font-medium"
           />
         </div>
-        <div className="w-full sm:w-[150px]">
+        <div className="w-[calc(50%-6px)] sm:w-auto sm:min-w-[150px]">
           <GlassSelect
             value={yearFilter}
             onChange={setYearFilter}
@@ -160,7 +160,7 @@ export default function ReceptionHistoryPage() {
             ]}
           />
         </div>
-        <div className="w-full sm:w-[150px]">
+        <div className="w-[calc(50%-6px)] sm:w-auto sm:min-w-[150px]">
           <GlassSelect
             value={monthFilter}
             onChange={setMonthFilter}

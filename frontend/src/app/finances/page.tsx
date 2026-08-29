@@ -156,7 +156,7 @@ export default function FinancesPage() {
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto overflow-x-hidden animate-in fade-in duration-300 contain-layout">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-wrap md:items-center justify-between gap-4">
         <div>
           <span className="text-[10px] font-accent text-emerald-400 uppercase tracking-widest mb-1 font-bold flex items-center gap-2">
             <DollarSign className="w-3 h-3" /> Module Facturation
@@ -233,7 +233,7 @@ export default function FinancesPage() {
       </div>
 
       {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input

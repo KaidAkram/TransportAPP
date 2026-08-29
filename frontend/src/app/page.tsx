@@ -215,7 +215,7 @@ export default function DashboardHomePage() {
 
       {/* Action Rapides */}
       <div 
-        className="glass-panel p-4 flex flex-col md:flex-row items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]"
+        className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]"
         style={{ animationDelay: '0.1s' }}
       >
         <span className="text-xs font-bold text-white/50 uppercase tracking-widest font-accent pl-2">
@@ -485,7 +485,7 @@ export default function DashboardHomePage() {
                     </div>
                     
                     <div className="flex-1 space-y-1.5">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <div className="flex flex-wrap sm:items-center sm:justify-between gap-1">
                         <div className="flex items-center gap-2">
                           <span
                             className={`rounded-md px-1.5 py-0.5 text-[9px] font-accent uppercase tracking-wider ${

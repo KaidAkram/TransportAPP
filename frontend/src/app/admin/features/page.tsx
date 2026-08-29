@@ -154,7 +154,7 @@ export default function AdminFeaturesPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-wrap md:items-end justify-between gap-4">
         <div>
           <span className="text-[10px] font-accent text-[var(--color-electric-violet)] uppercase tracking-widest mb-1 block font-bold">
             Supervision Système
@@ -177,7 +177,7 @@ export default function AdminFeaturesPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="flex flex-wrap items-stretch md:items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 max-w-full no-scrollbar">
           <button
             onClick={() => setSelectedCategory("ALL")}
@@ -237,7 +237,7 @@ export default function AdminFeaturesPage() {
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
                 {/* Category Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 border-b border-white/10 bg-black/20">
+                <div className="flex flex-wrap sm:items-center justify-between gap-4 px-6 py-5 border-b border-white/10 bg-black/20">
                   <div className="flex items-center gap-3">
                     <h3 className="font-heading font-black text-base text-white tracking-wide uppercase">{category}</h3>
                     <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-white/10 text-white/70 border border-white/5">

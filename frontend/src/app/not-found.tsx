@@ -45,7 +45,7 @@ export default function NotFound() {
           Vérifiez l&apos;URL ou retournez au tableau de bord.
         </p>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="pt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/"
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#9d6cfc] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(131,77,251,0.3)] transition-all flex items-center justify-center gap-2 group"

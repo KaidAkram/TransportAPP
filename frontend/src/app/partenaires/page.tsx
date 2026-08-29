@@ -241,7 +241,7 @@ export default function PartenairesPage() {
         </div>
 
         {/* Search & Status Filters */}
-        <div className="flex flex-col md:flex-row gap-3 relative z-50 w-full">
+        <div className="flex flex-wrap gap-3 relative z-50 w-full">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
             <input
@@ -253,7 +253,7 @@ export default function PartenairesPage() {
             />
           </div>
           
-          <div className="w-full sm:w-[220px]">
+          <div className="w-[calc(50%-6px)] sm:w-auto sm:min-w-[220px]">
             <GlassSelect
               value={statusFilter}
               onChange={setStatusFilter}
@@ -268,7 +268,7 @@ export default function PartenairesPage() {
             />
           </div>
           
-          <div className="w-full sm:w-[120px]">
+          <div className="w-[calc(50%-6px)] sm:w-auto sm:min-w-[120px]">
             <GlassSelect
               value={yearFilter}
               onChange={setYearFilter}
@@ -283,7 +283,7 @@ export default function PartenairesPage() {
             />
           </div>
           
-          <div className="w-full sm:w-[150px]">
+          <div className="w-[calc(50%-6px)] sm:w-auto sm:min-w-[150px]">
             <GlassSelect
               value={monthFilter}
               onChange={setMonthFilter}

@@ -49,7 +49,7 @@ export default function UserSettingsPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-wrap md:items-end justify-between gap-4">
         <div>
           <span className="text-[10px] font-accent text-[var(--color-turbo)] uppercase tracking-widest mb-1 block font-bold">
             Profil Utilisateur
