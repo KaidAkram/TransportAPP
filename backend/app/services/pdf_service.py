@@ -109,7 +109,7 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     # ── Header: Company name + fiscal IDs ──
     story.append(Paragraph(f"<b>{ent}</b>", body_c))
     story.append(Paragraph(
-        f"<font size=9>NIF : {nif}  |  NIS : {nis}  |  RC : {rc}  |  AI : {ai}</font>",
+        f"<font size=9>RC : {rc}  |  NIF : {nif}  |  AI : {ai}  |  NIS : {nis}</font>",
         ParagraphStyle("HeaderIDs", parent=body, fontSize=9, alignment=1, leading=13),
     ))
     story.append(Spacer(1, 24))
@@ -229,7 +229,7 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     # ── Header: Company name + fiscal IDs ──
     story.append(Paragraph(f"<b>{ent}</b>", body_c))
     story.append(Paragraph(
-        f"<font size=9>NIF : {nif}  |  NIS : {nis}  |  RC : {rc}  |  AI : {ai}</font>",
+        f"<font size=9>RC : {rc}  |  NIF : {nif}  |  AI : {ai}  |  NIS : {nis}</font>",
         ParagraphStyle("HeaderIDs", parent=body, fontSize=9, alignment=1, leading=13),
     ))
     story.append(Spacer(1, 24))
