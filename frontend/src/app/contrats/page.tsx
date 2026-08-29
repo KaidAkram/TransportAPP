@@ -318,8 +318,8 @@ export default function ContratsPage() {
             <span className="text-xs text-white/50">— Contrats archivés, cliquez restaurer pour réactiver</span>
           </div>
         )}
-        <div className="w-full min-w-0 overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse">
+        <div className="w-full min-w-0">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
                 <SortableHeader label="Réf. Contrat" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />

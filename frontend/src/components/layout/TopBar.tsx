@@ -29,7 +29,7 @@ const ALL_SEARCH_OPTIONS = [
   { id: 'fin-1', type: "finance", text: "Factures 2026 - Trimestre 1", icon: Wallet, color: "text-white/40", href: "/finances" },
 ];
 
-export function TopBar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) {
+export function TopBar() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -119,20 +119,9 @@ export function TopBar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
       </AnimatePresence>
 
       <div className={`sticky top-4 z-50 px-6 font-sans ${isSearchOpen ? 'relative z-50' : ''}`}>
-        <header className="flex h-16 w-full items-center justify-between px-6 glass-panel relative z-50 gap-4">
-          
-          {/* Mobile Menu Button (Only visible on small screens) */}
-          {onOpenMobileMenu && (
-            <button 
-              onClick={onOpenMobileMenu}
-              className="md:hidden flex items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors shrink-0 text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-          )}
-
+        <header className="flex h-16 w-full items-center justify-between px-6 glass-panel relative z-50">
           {/* Global Search */}
-          <div className="relative flex-1 md:w-96 md:flex-none group">
+          <div className="relative w-72 md:w-96 group">
             <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors z-20 ${isSearchOpen ? 'text-[var(--color-turbo)]' : 'text-white/40 group-focus-within:text-[var(--color-turbo)]'}`} />
             
             {/* Search Input Wrapper for Ghost Text */}

@@ -777,7 +777,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
             </div>
           ) : (
             <div className="glass-panel overflow-hidden">
-              <div className="min-w-0 overflow-x-auto custom-scrollbar w-full">
+              <div className="min-w-0">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.02]">

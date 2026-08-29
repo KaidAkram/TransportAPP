@@ -327,8 +327,8 @@ export default function VehiculesPage() {
           />
         ) : (
           <div className="glass-panel overflow-hidden p-0">
-            <div className="overflow-x-auto w-full custom-scrollbar">
-                <table className="w-full text-left text-xs table-fixed">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs table-fixed">
                 <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                   <tr>
                     <SortableHeader label="Immatriculation" field="immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[16%]" />
@@ -408,8 +408,8 @@ export default function VehiculesPage() {
             Sinistres en attente
           </h2>
           <div className="glass-panel overflow-hidden p-0">
-            <div className="overflow-x-auto w-full custom-scrollbar">
-                <table className="w-full text-left text-xs table-fixed">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs table-fixed">
                 <thead className="bg-rose-500/10 border-b border-rose-500/20 text-rose-300 font-accent uppercase tracking-widest">
                   <tr>
                     <th className="py-3 px-4 w-[15%]">Date</th>

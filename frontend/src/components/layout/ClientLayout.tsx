@@ -16,7 +16,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { adminTheme, adminTypographyVibe, userPreferences } = useSettingsStore();
   const [mounted, setMounted] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -101,18 +100,16 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        mobileMenuOpen={mobileMenuOpen}
-        onCloseMobileMenu={() => setMobileMenuOpen(false)}
       />
 
       {/* Main View Area */}
       <div
         className={cn(
           "flex flex-1 flex-col min-w-0 w-full max-w-full overflow-x-hidden transition-all duration-400 ease-out",
-          sidebarCollapsed ? "md:pl-[104px]" : "md:pl-[272px]"
+          sidebarCollapsed ? "pl-[104px]" : "pl-[104px] md:pl-[272px]"
         )}
       >
-        <TopBar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
+        <TopBar />
         <main className="flex-1 min-w-0 w-full max-w-full overflow-x-hidden">
           {children}
         </main>

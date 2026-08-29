@@ -321,8 +321,8 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
-                    <div className="min-w-0 overflow-x-auto custom-scrollbar w-full">
-                <table className="w-full text-left border-collapse">
+                    <div className="min-w-0">
+                      <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Avenant</th>
@@ -384,8 +384,8 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
-                    <div className="min-w-0 overflow-x-auto custom-scrollbar w-full">
-                <table className="w-full text-left border-collapse">
+                    <div className="min-w-0">
+                      <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Caution</th>
