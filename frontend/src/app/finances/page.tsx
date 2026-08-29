@@ -23,6 +23,7 @@ import { Portal } from "@/components/shared/Portal";
 import { AccessDeniedCard } from "@/components/shared/AccessDeniedCard";
 import { useAuthStore } from "@/stores/authStore";
 import { GlassPagination } from "@/components/ui/GlassPagination";
+import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { SortableHeader } from "@/components/ui/SortableHeader";
@@ -35,6 +36,7 @@ const STATUT_CONFIG: Record<string, { label: string; color: string; border: stri
 };
 
 export default function FinancesPage() {
+  const router = useRouter();
   const { hasPermission, setDeniedAction } = useAuthStore();
   const [factures, setFactures] = useState<Facture[]>([]);
   const [loading, setLoading] = useState(true);
@@ -275,7 +277,11 @@ export default function FinancesPage() {
                       const statutCfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.EN_ATTENTE;
                       const StatutIcon = statutCfg.icon;
                       return (
-                        <tr key={f.id} className="hover:bg-white/5 transition-colors group">
+                        <tr 
+                          key={f.id} 
+                          className="hover:bg-white/10 transition-colors group cursor-pointer"
+                          onClick={() => router.push(`/finances/factures/${f.id}`)}
+                        >
                       <td className="py-3 px-4 font-mono font-bold text-white/80">{f.numero}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5 truncate">
@@ -303,7 +309,7 @@ export default function FinancesPage() {
                         <div className="flex items-center justify-center gap-1.5">
                           {canPay && f.statut === "EN_ATTENTE" && (
                             <button
-                              onClick={() => handleEncaisser(f)}
+                              onClick={(e) => { e.stopPropagation(); handleEncaisser(f); }}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 border border-emerald-500/20 transition-all text-[9px] font-bold font-accent uppercase tracking-wider"
                               title="Encaisser"
                             >
@@ -315,6 +321,7 @@ export default function FinancesPage() {
                               href={f.url_document_reglement}
                               target="_blank"
                               rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               className="p-1 rounded-lg border border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
                               title="Document justificatif"
                             >
