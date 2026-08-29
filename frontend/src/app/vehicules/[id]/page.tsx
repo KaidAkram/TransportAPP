@@ -57,6 +57,14 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
     pendingFiles: File[];
   } | null>(null);
 
+  const [expandedConstats, setExpandedConstats] = useState<string[]>([]);
+  
+  const toggleConstat = (id: string) => {
+    setExpandedConstats((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const fetchDetail = useCallback(async () => {
     try {
       setLoading(true);
@@ -619,8 +627,11 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                       <div className="space-y-3 mt-8">
                         <h4 className="text-xs font-accent uppercase tracking-widest text-white/50 mb-2">Historique / Archives</h4>
                         {archivedConstats.map((c) => (
-                          <div key={c.id} className="glass-panel overflow-hidden relative opacity-75 hover:opacity-100 transition-opacity">
-                            <div className="p-3 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3">
+                          <div key={c.id} className="glass-panel overflow-hidden relative transition-opacity">
+                            <div 
+                              onClick={() => toggleConstat(c.id)}
+                              className="p-3 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-white/[0.05]"
+                            >
                               <div className="flex items-center gap-3">
                                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
                                   <AlertTriangle className="h-3 w-3 text-white/40" />
@@ -642,13 +653,37 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                                   </span>
                                 )}
                                 {c.url_justificatif_assurance && (
-                                  <a href={c.url_justificatif_assurance} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                                  <a href={c.url_justificatif_assurance} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all">
                                     <FileText className="h-3 w-3" />
                                     Justificatif
                                   </a>
                                 )}
                               </div>
                             </div>
+                            
+                            {expandedConstats.includes(c.id) && (
+                              <div className="p-4 space-y-3 text-xs bg-black/20">
+                                {c.url_document && (
+                                  <a href={c.url_document} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-bold text-[var(--color-turbo)] bg-[var(--color-turbo)]/10 px-3 py-1.5 rounded-lg hover:bg-[var(--color-turbo)]/20 transition-colors border border-[var(--color-turbo)]/20">
+                                    <FileText className="h-3 w-3" /> Voir le document scanné
+                                  </a>
+                                )}
+                                <div>
+                                  <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Circonstances</p>
+                                  <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">{c.circonstances}</p>
+                                </div>
+                                <div>
+                                  <p className="font-accent text-[10px] uppercase tracking-widest text-white/40 mb-1.5">Dommages constatés</p>
+                                  <p className="text-white/80 bg-white/5 p-3 rounded-xl border border-white/5">{c.dommages}</p>
+                                </div>
+                                {c.tiers_implique && (
+                                  <div className="p-3 rounded-xl bg-[var(--color-turbo)]/5 border border-[var(--color-turbo)]/20">
+                                    <p className="font-accent text-[10px] uppercase tracking-widest text-[var(--color-turbo)] mb-1">Tiers impliqué</p>
+                                    <p className="text-white/80 text-xs">{c.infos_tiers || "Informations non détaillées"}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
