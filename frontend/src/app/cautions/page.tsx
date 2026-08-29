@@ -291,8 +291,30 @@ export default function CautionsPage() {
                   </td>
                 </tr>
               ) : (
-                cautions.map((c) => {
-                  const isDemande = c.type === "DEMANDE";
+                (() => {
+                  const groupedCautions = cautions.reduce((acc, c) => {
+                    const year = c.date_emission ? c.date_emission.substring(0, 4) : "Sans date";
+                    if (!acc[year]) acc[year] = [];
+                    acc[year].push(c);
+                    return acc;
+                  }, {} as Record<string, Caution[]>);
+                  
+                  const sortedYears = Object.keys(groupedCautions).sort((a, b) => b.localeCompare(a));
+
+                  return (
+                    <>
+                      {sortedYears.map((year) => (
+                        <React.Fragment key={year}>
+                          <tr className="bg-white/[0.03]">
+                            <td colSpan={6} className="py-2 px-5 border-y border-white/5">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-3.5 w-3.5 text-white/40" />
+                                <span className="text-xs font-heading font-bold text-white/70 tracking-wider">ANNÉE {year}</span>
+                              </div>
+                            </td>
+                          </tr>
+                          {groupedCautions[year].map((c) => {
+                            const isDemande = c.type === "DEMANDE";
                   const isBonneExec = c.type === "BONNE_EXECUTION";
                   const isCreation = c.statut === "CREATION";
                   const isChezClient = c.statut === "CHEZ_CLIENT";
@@ -405,10 +427,15 @@ export default function CautionsPage() {
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
+                })}
+              </React.Fragment>
+            ))}
+          </>
+        );
+      })()
+    )}
+  </tbody>
+</table>
         </div>
         <GlassPagination
           currentPage={page}
