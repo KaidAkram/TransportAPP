@@ -13,6 +13,11 @@ import {
   RefreshCw,
   ExternalLink,
   X,
+  Briefcase,
+  Banknote,
+  ShieldAlert,
+  CheckSquare,
+  IdCard,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
@@ -93,21 +98,86 @@ export function NotificationBell() {
     setIsOpen(false);
   };
 
-  const getAlertIcon = (type: string) => {
-    switch (type) {
-      case "DOCUMENT":
-        return <FileText className="h-4 w-4 text-yellow-400" />;
-      case "CONTRAT":
-        return <FileText className="h-4 w-4 text-[var(--color-turbo)]" />;
-      case "CAUTION":
-        return <Shield className="h-4 w-4 text-yellow-400" />;
-      case "STOCK":
-        return <Package className="h-4 w-4 text-red-400" />;
-      case "MAINTENANCE":
-        return <Wrench className="h-4 w-4 text-orange-400" />;
-      default:
-        return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
+  const getAlertStyle = (item: AlertItem) => {
+    const isUrgent = item.severity === "URGENT";
+    const titleLower = item.title.toLowerCase();
+    
+    // Default base styles
+    let style = {
+      icon: <AlertTriangle className="h-4 w-4" />,
+      bg: isUrgent ? "bg-red-500/10" : "bg-orange-500/10",
+      border: isUrgent ? "border-red-500/20" : "border-orange-500/20",
+      hoverBg: isUrgent ? "group-hover:bg-red-500/20" : "group-hover:bg-orange-500/20",
+      iconColor: isUrgent ? "text-red-400" : "text-orange-400",
+      badgeBg: isUrgent ? "bg-red-500/20" : "bg-orange-500/20",
+      badgeText: isUrgent ? "text-red-400" : "text-orange-400",
+      badgeBorder: isUrgent ? "border-red-500/30" : "border-orange-500/30",
+    };
+
+    if (item.type === "STOCK") {
+      style.icon = <Package className="h-4 w-4" />;
+      style.bg = isUrgent ? "bg-rose-500/10" : "bg-[var(--color-turbo)]/10";
+      style.border = isUrgent ? "border-rose-500/30" : "border-[var(--color-turbo)]/30 border-dashed";
+      style.hoverBg = isUrgent ? "group-hover:bg-rose-500/20" : "group-hover:bg-[var(--color-turbo)]/20";
+      style.iconColor = isUrgent ? "text-rose-500" : "text-[var(--color-turbo)]";
+      style.badgeBg = isUrgent ? "bg-rose-500/20" : "bg-[var(--color-turbo)]/20";
+      style.badgeText = isUrgent ? "text-rose-400" : "text-[#ffe133]";
+      style.badgeBorder = isUrgent ? "border-rose-500/30" : "border-[var(--color-turbo)]/30";
+    } else if (item.type === "CONTRAT") {
+      style.icon = <Briefcase className="h-4 w-4" />;
+      style.bg = "bg-[var(--color-electric-violet)]/10";
+      style.border = "border-[var(--color-electric-violet)]/30";
+      style.hoverBg = "group-hover:bg-[var(--color-electric-violet)]/20";
+      style.iconColor = "text-[#b388eb]";
+      style.badgeBg = "bg-[var(--color-electric-violet)]/20";
+      style.badgeText = "text-[#b388eb]";
+      style.badgeBorder = "border-[var(--color-electric-violet)]/30";
+    } else if (item.type === "CAUTION") {
+      style.icon = <Banknote className="h-4 w-4" />;
+      style.bg = "bg-amber-500/10";
+      style.border = "border-amber-500/30";
+      style.hoverBg = "group-hover:bg-amber-500/20";
+      style.iconColor = "text-amber-400";
+      style.badgeBg = "bg-amber-500/20";
+      style.badgeText = "text-amber-400";
+      style.badgeBorder = "border-amber-500/30";
+    } else if (item.type === "DOCUMENT") {
+      if (titleLower.includes("assurance")) {
+        style.icon = <ShieldAlert className="h-4 w-4" />;
+        style.bg = isUrgent ? "bg-red-500/10" : "bg-emerald-500/10";
+        style.border = isUrgent ? "border-red-500/30" : "border-emerald-500/30";
+        style.hoverBg = isUrgent ? "group-hover:bg-red-500/20" : "group-hover:bg-emerald-500/20";
+        style.iconColor = isUrgent ? "text-red-400" : "text-emerald-400";
+        style.badgeBg = isUrgent ? "bg-red-500/20" : "bg-emerald-500/20";
+        style.badgeText = isUrgent ? "text-red-400" : "text-emerald-400";
+        style.badgeBorder = isUrgent ? "border-red-500/30" : "border-emerald-500/30";
+      } else if (titleLower.includes("contrôle technique") || titleLower.includes("technique")) {
+        style.icon = <CheckSquare className="h-4 w-4" />;
+        style.bg = isUrgent ? "bg-rose-500/10" : "bg-slate-400/10";
+        style.border = isUrgent ? "border-rose-500/30" : "border-slate-400/30";
+        style.hoverBg = isUrgent ? "group-hover:bg-rose-500/20" : "group-hover:bg-slate-400/20";
+        style.iconColor = isUrgent ? "text-rose-400" : "text-slate-300";
+        style.badgeBg = isUrgent ? "bg-rose-500/20" : "bg-slate-400/20";
+        style.badgeText = isUrgent ? "text-rose-400" : "text-slate-300";
+        style.badgeBorder = isUrgent ? "border-rose-500/30" : "border-slate-400/30";
+      } else if (titleLower.includes("permis")) {
+        style.icon = <IdCard className="h-4 w-4" />;
+        style.bg = isUrgent ? "bg-red-500/10" : "bg-cyan-500/10";
+        style.border = isUrgent ? "border-red-500/30" : "border-cyan-500/30";
+        style.hoverBg = isUrgent ? "group-hover:bg-red-500/20" : "group-hover:bg-cyan-500/20";
+        style.iconColor = isUrgent ? "text-red-400" : "text-cyan-400";
+        style.badgeBg = isUrgent ? "bg-red-500/20" : "bg-cyan-500/20";
+        style.badgeText = isUrgent ? "text-red-400" : "text-cyan-400";
+        style.badgeBorder = isUrgent ? "border-red-500/30" : "border-cyan-500/30";
+      }
     }
+    
+    // Override border if urgent
+    if (isUrgent && !style.border.includes("border-dashed")) {
+        style.border += " border-l-[3px]"; 
+    }
+    
+    return style;
   };
 
   return (
@@ -195,8 +265,8 @@ export function NotificationBell() {
               </div>
             ) : (
               alerts.map((item) => {
-                const isUrgent = item.severity === "URGENT";
-
+                const style = getAlertStyle(item);
+                
                 return (
                   <Link
                     key={item.id}
@@ -205,24 +275,16 @@ export function NotificationBell() {
                     className={`flex items-start gap-4 p-4 transition-colors group block ${item.read ? 'opacity-50 hover:opacity-100 hover:bg-white/5' : 'bg-white/[0.02] hover:bg-white/10'}`}
                   >
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-colors ${
-                        isUrgent 
-                          ? "bg-red-500/10 border-red-500/20 group-hover:bg-red-500/20" 
-                          : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
-                      }`}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-colors ${style.bg} ${style.border} ${style.hoverBg} ${style.iconColor}`}
                     >
-                      {getAlertIcon(item.type)}
+                      {style.icon}
                     </div>
                     <div className="flex-1 min-w-0 pt-0.5">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className={`text-xs font-bold truncate ${item.read ? 'text-white/70' : 'text-white'}`}>{item.title}</p>
                         {!item.read && (
                           <span
-                            className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-accent uppercase tracking-widest font-bold border ${
-                              isUrgent
-                                ? "bg-red-500/20 text-red-400 border-red-500/30"
-                                : "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                            }`}
+                            className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-accent uppercase tracking-widest font-bold border ${style.badgeBg} ${style.badgeText} ${style.badgeBorder}`}
                           >
                             {item.badge_label}
                           </span>
