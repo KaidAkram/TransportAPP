@@ -36,8 +36,9 @@ export default function MaintenancePage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [docModal, setDocModal] = useState<{
     isOpen: boolean;
@@ -78,6 +79,7 @@ export default function MaintenancePage() {
       params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -92,12 +94,12 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter, page, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchInterventions();
@@ -250,6 +252,20 @@ export default function MaintenancePage() {
               { value: "EN_COURS", label: "En Cours" },
               { value: "TERMINEE", label: "Terminée" },
               { value: "ANNULEE", label: "Annulée" },
+            ]}
+          />
+        </div>
+
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
             ]}
           />
         </div>

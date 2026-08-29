@@ -126,16 +126,13 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     comp_info = [
         Paragraph(f"<b>{ent}</b>", header_bold),
         Paragraph(f"<b>{addr}</b>", header_bold),
+        Paragraph(f"RC: {rc} | NIF: {nif} | AI: {ai} | NIS: {nis}", header_norm),
         Paragraph(f"Tél: {phone}" if phone else "", header_norm),
         Paragraph(f"Email: {email}" if email else "", header_norm),
         Paragraph(f"Activité: {act}", header_norm),
     ]
     
     reg_info = [
-        Paragraph(f"RC: {rc}", reg_style),
-        Paragraph(f"NIF: {nif}", reg_style),
-        Paragraph(f"AI: {ai}", reg_style),
-        Paragraph(f"NIS: {nis}", reg_style),
         Paragraph(f"RIB: {rib}", reg_style),
     ]
 
@@ -273,16 +270,13 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     comp_info = [
         Paragraph(f"<b>{ent}</b>", header_bold),
         Paragraph(f"<b>{addr}</b>", header_bold),
+        Paragraph(f"RC: {rc} | NIF: {nif} | AI: {ai} | NIS: {nis}", header_norm),
         Paragraph(f"Tél: {phone}" if phone else "", header_norm),
         Paragraph(f"Email: {email}" if email else "", header_norm),
         Paragraph(f"Activité: {act}", header_norm),
     ]
     
     reg_info = [
-        Paragraph(f"RC: {rc}", reg_style),
-        Paragraph(f"NIF: {nif}", reg_style),
-        Paragraph(f"AI: {ai}", reg_style),
-        Paragraph(f"NIS: {nis}", reg_style),
         Paragraph(f"RIB: {rib}", reg_style),
     ]
 
@@ -424,16 +418,13 @@ def generate_bon_achat_pdf(
     comp_info = [
         Paragraph(f"<b>{company_name}</b>", header_bold),
         Paragraph(f"<b>{company_address}</b>", header_bold),
+        Paragraph(f"RC: {company_rc} | NIF: {company_nif} | AI: {company_ai} | NIS: {company_nis}", header_norm),
         Paragraph(f"Tél: {company_phone}" if company_phone else "", header_norm),
         Paragraph(f"Email: {company_email}" if company_email else "", header_norm),
         Paragraph(f"Activité: {company_activity}", header_norm),
     ]
     
     reg_info = [
-        Paragraph(f"RC: {company_rc}", reg_style),
-        Paragraph(f"NIF: {company_nif}", reg_style),
-        Paragraph(f"NIS: {company_nis}", reg_style),
-        Paragraph(f"AI: {company_ai}", reg_style),
         Paragraph(f"RIB: {company_rib}", reg_style),
     ]
 

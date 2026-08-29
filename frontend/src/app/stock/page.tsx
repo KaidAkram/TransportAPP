@@ -42,8 +42,9 @@ export default function StockPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
 
   // Modals
   const [isAddPieceModalOpen, setIsAddPieceModalOpen] = useState(false);
@@ -85,6 +86,7 @@ export default function StockPage() {
       params.page = page.toString();
       if (categoryFilter) params.categorie = categoryFilter;
       if (statusFilter) params.statut_stock = statusFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -105,12 +107,12 @@ export default function StockPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryFilter, statusFilter, page, sortBy, sortOrder]);
+  }, [search, categoryFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, categoryFilter, statusFilter, yearFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchStock();
@@ -287,6 +289,21 @@ export default function StockPage() {
               { value: "NORMAL", label: "Stock Normal" },
               { value: "FAIBLE", label: "Stock Faible" },
               { value: "RUPTURE", label: "Rupture de Stock" },
+            ]}
+          />
+        </div>
+
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            placeholder="Année"
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
             ]}
           />
         </div>

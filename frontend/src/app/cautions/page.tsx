@@ -36,6 +36,7 @@ export default function CautionsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isDemandeModalOpen, setIsDemandeModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -80,6 +81,7 @@ export default function CautionsPage() {
       params.page = page.toString();
       if (typeFilter) params.type = typeFilter;
       if (statusFilter) params.statut = statusFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -94,11 +96,11 @@ export default function CautionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter, page, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, typeFilter, statusFilter, yearFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchCautions();
@@ -240,6 +242,20 @@ export default function CautionsPage() {
               { value: "DEMANDE", label: "Demande" },
               { value: "SOUMISSION", label: "Soumission (AO)" },
               { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+            ]}
+          />
+        </div>
+
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
             ]}
           />
         </div>

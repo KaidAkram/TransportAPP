@@ -43,6 +43,7 @@ export default function PartenairesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -65,6 +66,7 @@ export default function PartenairesPage() {
       params.page = page.toString();
       if (roleFilter) params.role_partenaire = roleFilter;
       if (statusFilter) params.statut_crm = statusFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -79,12 +81,12 @@ export default function PartenairesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, yearFilter, page, sortBy, sortOrder]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, roleFilter, statusFilter, yearFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchPartners();
@@ -248,7 +250,7 @@ export default function PartenairesPage() {
               className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:bg-[var(--color-haiti)] focus:border-[var(--color-electric-violet)] focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
             />
           </div>
-          <div className="w-full md:w-56 shrink-0">
+          <div className="w-full md:w-56 shrink-0 flex gap-2">
             <GlassSelect
               value={statusFilter}
               onChange={setStatusFilter}
@@ -259,7 +261,19 @@ export default function PartenairesPage() {
                 { value: "Inactif", label: "Inactif" },
                 { value: "Bloqué", label: "Bloqué" },
               ]}
-              placeholder="Filtrer par statut"
+              placeholder="Statut"
+            />
+            <GlassSelect
+              value={yearFilter}
+              onChange={setYearFilter}
+              placeholder="Année"
+              options={[
+                { value: "", label: "Année" },
+                ...Array.from({ length: 10 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return { value: year.toString(), label: year.toString() };
+                }),
+              ]}
             />
           </div>
         </div>

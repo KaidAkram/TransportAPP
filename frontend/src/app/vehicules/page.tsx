@@ -23,6 +23,7 @@ import { api } from "@/lib/api";
 import { Vehicule, VehiculeListResponse, ConstatSummary } from "@/types/vehicule";
 import { Portal } from "@/components/shared/Portal";
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function VehiculesPage() {
@@ -31,6 +32,7 @@ export default function VehiculesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -68,6 +70,7 @@ export default function VehiculesPage() {
       if (search) params.search = search;
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type = typeFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -84,7 +87,7 @@ export default function VehiculesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, sortBy, sortOrder, viewMode]);
+  }, [search, statusFilter, typeFilter, yearFilter, sortBy, sortOrder, viewMode]);
 
   const [pendingConstats, setPendingConstats] = useState<ConstatSummary[]>([]);
 
@@ -235,6 +238,51 @@ export default function VehiculesPage() {
             <div className="text-3xl font-heading font-bold text-rose-400 drop-shadow-sm">{maintenance}</div>
             <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">Atelier ou immobilisés</p>
           </div>
+        </div>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="relative z-20 flex flex-col md:flex-row gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par immatriculation ou marque..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
+          />
+        </div>
+        
+        <div className="w-full sm:w-[200px]">
+          <GlassSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "Tous les statuts" },
+              { value: "DISPONIBLE", label: "Disponible" },
+              { value: "HORS_SERVICE", label: "Hors Service (Mission)" },
+              { value: "MAINTENANCE", label: "Maintenance" },
+              { value: "IMMOBILISE", label: "Immobilisé" },
+            ]}
+          />
+        </div>
+
+        <div className="w-full sm:w-[150px]">
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            placeholder="Année"
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 15 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
+            ]}
+          />
         </div>
       </div>
 

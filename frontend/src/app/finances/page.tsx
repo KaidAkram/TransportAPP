@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Facture, FactureListResponse } from "@/types/finance";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
+import { GlassSelect } from "@/components/ui/GlassSelect";
 import { AddFactureModal } from "@/components/modules/finances/AddFactureModal";
 import { EncaisserModal } from "@/components/modules/finances/AddPaiementModal";
 import { Portal } from "@/components/shared/Portal";
@@ -43,6 +45,7 @@ export default function FinancesPage() {
   const [isForbidden, setIsForbidden] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const [kpis, setKpis] = useState({ total_montant: 0, total_encaisse: 0, total_en_attente: 0 });
@@ -82,6 +85,7 @@ export default function FinancesPage() {
     try {
       const params: Record<string, string> = {};
       if (search) params.search = search;
+      if (yearFilter) params.annee = yearFilter;
       if (sortBy) {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
@@ -107,7 +111,7 @@ export default function FinancesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, canView, sortBy, sortOrder]);
+  }, [search, yearFilter, canView, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchFactures();
@@ -226,8 +230,8 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex justify-end">
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row justify-end gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
@@ -236,6 +240,20 @@ export default function FinancesPage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une facture..."
             className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:bg-[var(--color-haiti)] transition-all"
+          />
+        </div>
+        <div className="w-full sm:w-48">
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            placeholder="Année"
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
+            ]}
           />
         </div>
       </div>

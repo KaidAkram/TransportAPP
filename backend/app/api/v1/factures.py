@@ -31,6 +31,7 @@ def list_factures(
   search: Optional[str] = Query(None),
   statut: Optional[StatutFacture] = Query(None),
   client_id: Optional[str] = Query(None),
+  annee: Optional[int] = Query(None, description="Filter by year (annee_realisation)"),
   sort_by: Optional[str] = Query(None, description="Field to sort by"),
   sort_order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
   db: Session = Depends(get_db),
@@ -52,6 +53,9 @@ def list_factures(
         Partenaire.nom_commercial.ilike(search_pattern),
       )
     )
+
+  if annee:
+    query = query.filter(Facture.annee_realisation == annee)
 
   if sort_by and hasattr(Facture, sort_by):
     col = getattr(Facture, sort_by)

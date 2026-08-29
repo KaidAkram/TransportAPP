@@ -38,6 +38,7 @@ export default function EmployesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"actifs" | "archives">("actifs");
   const [sortBy, setSortBy] = useState<string | undefined>();
@@ -82,6 +83,8 @@ export default function EmployesPage() {
       } else if (statusFilter) {
         params.statut = statusFilter;
       }
+      
+      if (yearFilter) params.annee = yearFilter;
 
       if (sortBy) {
         params.sort_by = sortBy;
@@ -97,12 +100,12 @@ export default function EmployesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, page, sortBy, sortOrder, viewMode]);
+  }, [search, roleFilter, statusFilter, yearFilter, page, sortBy, sortOrder, viewMode]);
 
   
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, statusFilter, sortBy, sortOrder, viewMode]);
+  }, [search, roleFilter, statusFilter, yearFilter, sortBy, sortOrder, viewMode]);
 
   useEffect(() => {
     fetchEmployees();
@@ -294,6 +297,18 @@ export default function EmployesPage() {
               { value: "", label: "Tous les rôles" },
               { value: "CHAUFFEUR", label: "Chauffeurs" },
               { value: "MECANICIEN", label: "Mécaniciens" },
+            ]}
+          />
+          <GlassSelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            placeholder="Année"
+            options={[
+              { value: "", label: "Toutes les années" },
+              ...Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return { value: year.toString(), label: year.toString() };
+              }),
             ]}
           />
           {viewMode === "actifs" && (

@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, extract
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -36,6 +36,7 @@ def list_partenaires(
   role_partenaire: Optional[RolePartenaire] = Query(None, description="Filter by role (CLIENT or FOURNISSEUR)"),
   statut_crm: Optional[str] = Query(None, description="Filter by CRM status (Actif, Prospect, Inactif, Bloqué)"),
   type_client: Optional[TypePartenaire] = Query(None, description="Filter by client type"),
+  annee: Optional[int] = Query(None, description="Filter by year (created_at)"),
   include_archived: bool = Query(False, description="Include soft-deleted partners"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -68,6 +69,9 @@ def list_partenaires(
 
   if type_client:
     query = query.filter(Partenaire.type_client == type_client)
+
+  if annee:
+    query = query.filter(extract('year', Partenaire.created_at) == annee)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1

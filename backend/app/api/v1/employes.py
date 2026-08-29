@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, desc, func
+from sqlalchemy import or_, desc, func, extract
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -35,6 +35,7 @@ def list_employes(
   search: Optional[str] = Query(None, description="Search by nom, prenom, or matricule"),
   type_employe: Optional[TypeEmploye] = Query(None, description="Filter by employee type (CHAUFFEUR or MECANICIEN)"),
   statut: Optional[StatutEmploye] = Query(None, description="Filter by HR status"),
+  annee: Optional[int] = Query(None, description="Filter by year (date_embauche)"),
   include_archived: bool = Query(False, description="Include soft-deleted employees"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -63,6 +64,9 @@ def list_employes(
 
   if statut:
     query = query.filter(Employe.statut == statut)
+
+  if annee:
+    query = query.filter(extract('year', Employe.date_embauche) == annee)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total > 0 else 1

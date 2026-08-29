@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, extract
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
@@ -51,6 +51,7 @@ def list_pieces(
   search: Optional[str] = Query(None, description="Search by reference, designation, marque, or emplacement"),
   categorie: Optional[str] = Query(None, description="Filter by category"),
   statut_stock: Optional[str] = Query(None, description="Filter by stock status: NORMAL, FAIBLE, RUPTURE"),
+  annee: Optional[int] = Query(None, description="Filter by year (created_at)"),
   include_archived: bool = Query(False, description="Include archived pieces"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(20, ge=1, le=1000, description="Items per page"),
@@ -77,6 +78,9 @@ def list_pieces(
 
   if categorie:
     query = query.filter(Piece.categorie.ilike(categorie))
+
+  if annee:
+    query = query.filter(extract('year', Piece.created_at) == annee)
 
   if sort_by and hasattr(Piece, sort_by):
     col = getattr(Piece, sort_by)
@@ -626,6 +630,7 @@ def list_receptions(
   fournisseur_id: Optional[UUID] = Query(None),
   date_from: Optional[dt_date] = Query(None),
   date_to: Optional[dt_date] = Query(None),
+  annee: Optional[int] = Query(None, description="Filter by year (date)"),
   page: int = Query(1, ge=1),
   per_page: int = Query(10, ge=1, le=100),
   db: Session = Depends(get_db),
@@ -643,6 +648,8 @@ def list_receptions(
     query = query.filter(Reception.date >= date_from)
   if date_to:
     query = query.filter(Reception.date <= date_to)
+  if annee:
+    query = query.filter(extract('year', Reception.date) == annee)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total > 0 else 1

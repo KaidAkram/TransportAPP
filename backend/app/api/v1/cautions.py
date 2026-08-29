@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, extract
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -37,6 +37,7 @@ def list_cautions(
   statut: Optional[StatutCaution] = Query(None, description="Filter by caution status"),
   client_id: Optional[UUID] = Query(None, description="Filter by client ID"),
   contrat_id: Optional[UUID] = Query(None, description="Filter by contract ID"),
+  annee: Optional[int] = Query(None, description="Filter by year (date_emission)"),
   include_archived: bool = Query(False, description="Include soft-deleted cautions"),
   page: int = Query(1, ge=1, description="Page number"),
   per_page: int = Query(10, ge=1, le=100, description="Items per page"),
@@ -71,6 +72,9 @@ def list_cautions(
 
   if contrat_id:
     query = query.filter(Caution.contrat_id == contrat_id)
+
+  if annee:
+    query = query.filter(extract('year', Caution.date_emission) == annee)
 
   total = query.count()
   total_pages = math.ceil(total / per_page) if total >0 else 1

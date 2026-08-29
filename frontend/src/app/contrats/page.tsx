@@ -37,6 +37,7 @@ export default function ContratsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -68,6 +69,7 @@ export default function ContratsPage() {
       params.page = page.toString();
       if (statusFilter) params.statut = statusFilter;
       if (typeFilter) params.type_contrat = typeFilter;
+      if (yearFilter) params.annee = yearFilter;
       if (showArchived) params.include_archived = "true";
       if (sortBy) {
         params.sort_by = sortBy;
@@ -83,11 +85,11 @@ export default function ContratsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, page, showArchived, sortBy, sortOrder]);
+  }, [search, statusFilter, typeFilter, yearFilter, page, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, typeFilter, showArchived, sortBy, sortOrder]);
+  }, [search, statusFilter, typeFilter, yearFilter, showArchived, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchContracts();
@@ -282,6 +284,23 @@ export default function ContratsPage() {
                 <option value="Location" className="bg-[var(--color-haiti)] text-white">Location d'Autocars</option>
                 <option value="Fourniture" className="bg-[var(--color-haiti)] text-white">Fourniture de Pièces</option>
                 <option value="Maintenance" className="bg-[var(--color-haiti)] text-white">Prestations de Maintenance</option>
+              </select>
+
+              <select
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
+                style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+              >
+                <option value="" className="bg-[var(--color-haiti)] text-white">Toutes les années</option>
+                {Array.from({ length: 10 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year.toString()} className="bg-[var(--color-haiti)] text-white">
+                      {year}
+                    </option>
+                  );
+                })}
               </select>
             </>
           )}
