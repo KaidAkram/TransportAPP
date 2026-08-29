@@ -109,7 +109,7 @@ export default function FactureDetailPage() {
                 <p className="text-white mt-1 font-mono">{facture.date_reglement || "—"}</p>
               </div>
             </div>
-            {facture.url_document_reglement && (
+            {facture.url_document_reglement ? (
               <div className="mt-4">
                 <a
                   href={facture.url_document_reglement}
@@ -120,16 +120,24 @@ export default function FactureDetailPage() {
                   <Download className="h-4 w-4" /> Document Justificatif
                 </a>
               </div>
+            ) : (
+              <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-xl">
+                <p className="text-xs text-white/40 italic flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5" /> Aucun document de règlement attaché
+                </p>
+              </div>
             )}
           </div>
 
           {/* Remarques */}
-          {facture.remarques && (
-            <div className="glass-panel p-6">
-              <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-4">Remarques</h3>
+          <div className="glass-panel p-6">
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-4">Remarques</h3>
+            {facture.remarques ? (
               <p className="text-sm text-white/70 leading-relaxed">{facture.remarques}</p>
-            </div>
-          )}
+            ) : (
+              <p className="text-sm text-white/40 italic">Aucune remarque.</p>
+            )}
+          </div>
         </div>
 
         {/* Right Column - Summary */}
@@ -144,6 +152,10 @@ export default function FactureDetailPage() {
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/50">Mois Réalisation</span>
                 <span className="text-white/80 font-medium">{facture.mois_realisation}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-white/50">Année Réalisation</span>
+                <span className="font-mono text-white/80">{(facture as any).annee_realisation || "—"}</span>
               </div>
               <div className="h-px bg-white/10 my-2" />
               <div className="flex justify-between items-end">
