@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
 import {
   Receipt,
   DollarSign,
@@ -135,6 +135,16 @@ export default function FinancesPage() {
   const totalPages = Math.ceil(factures.length / ITEMS_PER_PAGE);
   const paginatedFactures = factures.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
+  const groupedFactures = paginatedFactures.reduce((acc, f) => {
+    // We provide a fallback year if for some reason it's missing (e.g. old data)
+    const annee = (f as any).annee_realisation || new Date(f.date_facture).getFullYear() || new Date().getFullYear();
+    if (!acc[annee]) acc[annee] = [];
+    acc[annee].push(f);
+    return acc;
+  }, {} as Record<number, Facture[]>);
+
+  const sortedYears = Object.keys(groupedFactures).map(Number).sort((a, b) => b - a);
+
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto overflow-x-hidden animate-in fade-in duration-300 contain-layout">
       {/* Header */}
@@ -254,11 +264,18 @@ export default function FinancesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {paginatedFactures.map((f) => {
-                  const statutCfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.EN_ATTENTE;
-                  const StatutIcon = statutCfg.icon;
-                  return (
-                    <tr key={f.id} className="hover:bg-white/5 transition-colors group">
+                {sortedYears.map((year) => (
+                  <Fragment key={year}>
+                    <tr className="bg-white/5 border-b border-white/10">
+                      <td colSpan={8} className="py-2 px-4 text-emerald-400 text-xs font-bold font-heading">
+                        Factures de l'année {year}
+                      </td>
+                    </tr>
+                    {groupedFactures[year].map((f) => {
+                      const statutCfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.EN_ATTENTE;
+                      const StatutIcon = statutCfg.icon;
+                      return (
+                        <tr key={f.id} className="hover:bg-white/5 transition-colors group">
                       <td className="py-3 px-4 font-mono font-bold text-white/80">{f.numero}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5 truncate">
@@ -309,6 +326,8 @@ export default function FinancesPage() {
                     </tr>
                   );
                 })}
+                </Fragment>
+                ))}
               </tbody>
             </table>
           </div>

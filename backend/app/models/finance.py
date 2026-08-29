@@ -7,6 +7,7 @@ from sqlalchemy import (
   Enum,
   ForeignKey,
   Text,
+  Integer,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -26,6 +27,7 @@ class Facture(Base, BaseModelMixin):
 
   date_facture = Column(Date, nullable=False, default=date.today)
   mois_realisation = Column(String(20), nullable=False)
+  annee_realisation = Column(Integer, nullable=False, server_default='2026')
   montant_facture = Column(Float, default=0.0, nullable=False)
   statut = Column(Enum(StatutFacture), default=StatutFacture.EN_ATTENTE, nullable=False)
   remarques = Column(Text, nullable=True)

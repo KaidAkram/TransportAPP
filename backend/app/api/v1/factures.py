@@ -121,6 +121,7 @@ def create_facture(payload: FactureCreate, db: Session = Depends(get_db)):
     client_id=client_uuid,
     date_facture=payload.date_facture,
     mois_realisation=payload.mois_realisation,
+    annee_realisation=payload.annee_realisation,
     montant_facture=payload.montant_facture,
     statut=StatutFacture.EN_ATTENTE,
     remarques=payload.remarques,

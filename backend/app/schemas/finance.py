@@ -15,6 +15,7 @@ class FactureCreate(BaseModel):
   client_id: Union[UUID, str]
   date_facture: dt_date = Field(default_factory=dt_date.today)
   mois_realisation: str
+  annee_realisation: int
   montant_facture: float
   remarques: Optional[str] = None
 
@@ -25,6 +26,7 @@ class FactureResponse(BaseModel):
   client_id: UUID
   date_facture: dt_date
   mois_realisation: str
+  annee_realisation: int
   montant_facture: float
   statut: StatutFacture
   remarques: Optional[str] = None

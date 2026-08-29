@@ -16,6 +16,7 @@ const factureSchema = z.object({
   client_id: z.string().min(1, "Le client est requis"),
   date_facture: z.string().min(1, "La date est requise"),
   mois_realisation: z.string().min(1, "Le mois de réalisation est requis"),
+  annee_realisation: z.coerce.number().int().min(2000, "L'année est requise"),
   montant_facture: z.coerce.number().positive("Le montant doit être supérieur à 0"),
   remarques: z.string().optional(),
 });
@@ -61,6 +62,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
       client_id: "",
       date_facture: new Date().toISOString().split("T")[0],
       mois_realisation: "",
+      annee_realisation: new Date().getFullYear(),
       montant_facture: 0,
       remarques: "",
     },
@@ -80,6 +82,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
         client_id: "",
         date_facture: new Date().toISOString().split("T")[0],
         mois_realisation: currentMonth,
+        annee_realisation: new Date().getFullYear(),
         montant_facture: 0,
         remarques: "",
       });
@@ -211,6 +214,18 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                     )}
                   />
                   {errors.mois_realisation && <p className="text-xs text-red-400 ml-1">{errors.mois_realisation.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Année de Réalisation *</label>
+                  <Controller
+                    name="annee_realisation"
+                    control={control}
+                    render={({ field }) => (
+                      <GlassNumberInput {...field} min={2000} max={2100} step={1} placeholder={new Date().getFullYear().toString()} />
+                    )}
+                  />
+                  {errors.annee_realisation && <p className="text-xs text-red-400 ml-1">{errors.annee_realisation.message}</p>}
                 </div>
               </div>
 
