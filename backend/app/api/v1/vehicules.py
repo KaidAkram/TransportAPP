@@ -237,6 +237,19 @@ def archive_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
   return vehicule
 
 
+@router.patch("/{vehicule_id}/restore", response_model=VehiculeRead, summary="Restore Archived Vehicle", dependencies=[Depends(require_feature("archive_vehicle"))])
+def restore_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
+  vehicule = db.query(Vehicule).filter(Vehicule.id == vehicule_id).first()
+  if not vehicule:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Véhicule introuvable.")
+
+  vehicule.archived_at = None
+  vehicule.statut = StatutVehicule.DISPONIBLE
+  db.commit()
+  db.refresh(vehicule)
+  return vehicule
+
+
 # ============================================
 # Sub-resources: Documents & Constats
 # ============================================

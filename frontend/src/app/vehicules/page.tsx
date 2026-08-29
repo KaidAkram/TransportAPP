@@ -22,6 +22,7 @@ import { AddVehicleModal } from "@/components/modules/vehicules/AddVehicleModal"
 import { api } from "@/lib/api";
 import { Vehicule, VehiculeListResponse } from "@/types/vehicule";
 import { Portal } from "@/components/shared/Portal";
+import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function VehiculesPage() {
@@ -44,6 +45,22 @@ export default function VehiculesPage() {
     }
   };
 
+  const [viewMode, setViewMode] = useState<"actifs" | "archives">("actifs");
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    vehicleId: string | null;
+    vehicleImmat: string;
+    isLoading: boolean;
+    action: "archive" | "restore";
+  }>({
+    isOpen: false,
+    vehicleId: null,
+    vehicleImmat: "",
+    isLoading: false,
+    action: "archive",
+  });
+
   // Fetch vehicles from API
   const fetchVehicles = useCallback(async () => {
     try {
@@ -56,6 +73,10 @@ export default function VehiculesPage() {
         params.sort_by = sortBy;
         params.sort_order = sortOrder;
       }
+      if (viewMode === "archives") {
+        params.include_archived = "true";
+        params.statut = "HORS_SERVICE";
+      }
 
       const res = await api.get<VehiculeListResponse>("/vehicules", params);
       setVehicles(res.data.items);
@@ -64,20 +85,26 @@ export default function VehiculesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter, sortBy, sortOrder]);
+  }, [search, statusFilter, typeFilter, sortBy, sortOrder, viewMode]);
 
   useEffect(() => {
     fetchVehicles();
   }, [fetchVehicles]);
 
-  const handleArchive = async (id: string, immat: string) => {
-    if (confirm(`Confirmez-vous la mise hors service et l'archivage du véhicule ${immat} ?`)) {
-      try {
-        await api.patch(`/vehicules/${id}/archive`, {});
-        fetchVehicles();
-      } catch (err) {
-        alert("Erreur lors de l'archivage du véhicule.");
+  const handleConfirmAction = async () => {
+    if (!confirmModal.vehicleId) return;
+    try {
+      setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+      if (confirmModal.action === "archive") {
+        await api.patch(`/vehicules/${confirmModal.vehicleId}/archive`, {});
+      } else {
+        await api.patch(`/vehicules/${confirmModal.vehicleId}/restore`, {});
       }
+      await fetchVehicles();
+      setConfirmModal({ isOpen: false, vehicleId: null, vehicleImmat: "", isLoading: false, action: "archive" });
+    } catch (err) {
+      alert(`Erreur lors de l'action (${confirmModal.action}).`);
+      setConfirmModal((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -105,6 +132,24 @@ export default function VehiculesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <div className="flex bg-black/40 p-1 rounded-xl backdrop-blur-md border border-white/10 mr-2">
+            <button
+              onClick={() => setViewMode("actifs")}
+              className={`px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-wider uppercase transition-all ${
+                viewMode === "actifs" ? "bg-[var(--color-turbo)] text-black shadow-lg" : "text-white/50 hover:text-white"
+              }`}
+            >
+              En Service
+            </button>
+            <button
+              onClick={() => setViewMode("archives")}
+              className={`px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-wider uppercase transition-all ${
+                viewMode === "archives" ? "bg-rose-500 text-white shadow-lg" : "text-white/50 hover:text-white"
+              }`}
+            >
+              Archivés
+            </button>
+          </div>
           <button
             onClick={fetchVehicles}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.2)]"
@@ -244,13 +289,21 @@ export default function VehiculesPage() {
                           >
                             <Eye className="h-3.5 w-3.5" /> Fiche
                           </Link>
-                          {v.statut !== "HORS_SERVICE" && (
+                          {v.statut !== "HORS_SERVICE" ? (
                             <button
-                              onClick={() => handleArchive(v.id, v.immatriculation)}
+                              onClick={() => setConfirmModal({ isOpen: true, vehicleId: v.id, vehicleImmat: v.immatriculation, isLoading: false, action: "archive" })}
                               className="p-1.5 rounded-lg text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                               title="Mettre hors service"
                             >
                               <Archive className="h-3.5 w-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmModal({ isOpen: true, vehicleId: v.id, vehicleImmat: v.immatriculation, isLoading: false, action: "restore" })}
+                              className="p-1.5 rounded-lg text-white/30 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                              title="Remettre en service"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
@@ -273,6 +326,21 @@ export default function VehiculesPage() {
         onSuccess={() => {
           fetchVehicles();
         }}
+      />
+      <GlassConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.action === "archive" ? "Mettre hors service" : "Remettre en service"}
+        message={
+          confirmModal.action === "archive"
+            ? `Êtes-vous sûr de vouloir archiver et mettre hors service le véhicule ${confirmModal.vehicleImmat} ?`
+            : `Êtes-vous sûr de vouloir restaurer et remettre en service le véhicule ${confirmModal.vehicleImmat} ?`
+        }
+        confirmText={confirmModal.action === "archive" ? "Archiver" : "Désarchiver"}
+        cancelText="Annuler"
+        type={confirmModal.action === "archive" ? "danger" : "info"}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, vehicleId: null, vehicleImmat: "", isLoading: false, action: "archive" })}
+        isLoading={confirmModal.isLoading}
       />
       </Portal>
     </div>
