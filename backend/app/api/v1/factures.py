@@ -109,8 +109,11 @@ def create_facture(payload: FactureCreate, db: Session = Depends(get_db)):
   if not client:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client spécifié introuvable")
 
-  count = db.query(Facture).count() + 1
-  numero = f"INV-{datetime.now().year}-{count:03d}"
+  existing_facture = db.query(Facture).filter(Facture.numero == payload.numero).first()
+  if existing_facture:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Une facture avec ce numéro existe déjà.")
+
+  numero = payload.numero
 
   facture = Facture(
     id=uuid4(),

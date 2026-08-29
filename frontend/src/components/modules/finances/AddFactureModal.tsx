@@ -12,6 +12,7 @@ import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 
 const factureSchema = z.object({
+  numero: z.string().min(1, "Le numéro est requis"),
   client_id: z.string().min(1, "Le client est requis"),
   date_facture: z.string().min(1, "La date est requise"),
   mois_realisation: z.string().min(1, "Le mois de réalisation est requis"),
@@ -56,6 +57,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
   } = useForm<FactureFormValues>({
     resolver: zodResolver(factureSchema),
     defaultValues: {
+      numero: "",
       client_id: "",
       date_facture: new Date().toISOString().split("T")[0],
       mois_realisation: "",
@@ -74,6 +76,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
 
       const currentMonth = MOIS_OPTIONS[new Date().getMonth()]?.label || "";
       reset({
+        numero: "",
         client_id: "",
         date_facture: new Date().toISOString().split("T")[0],
         mois_realisation: currentMonth,
@@ -147,6 +150,20 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                   {error}
                 </div>
               )}
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Numéro de Facture *</label>
+                <div className="relative">
+                  <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <input
+                    type="text"
+                    {...register("numero")}
+                    placeholder="ex: INV-2026-001"
+                    className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm"
+                  />
+                </div>
+                {errors.numero && <p className="text-xs text-red-400 ml-1">{errors.numero.message}</p>}
+              </div>
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Client *</label>

@@ -11,6 +11,7 @@ from app.models.enums import (
 
 # --- FACTURE SCHEMAS ---
 class FactureCreate(BaseModel):
+  numero: str
   client_id: Union[UUID, str]
   date_facture: dt_date = Field(default_factory=dt_date.today)
   mois_realisation: str
