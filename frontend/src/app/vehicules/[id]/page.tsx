@@ -22,6 +22,7 @@ import {
   X,
   Eye,
   ExternalLink,
+  Pencil,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -64,6 +65,10 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
+
+  const [isEditingKm, setIsEditingKm] = useState(false);
+  const [newKm, setNewKm] = useState("");
+  const [updatingKm, setUpdatingKm] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -113,8 +118,22 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
       setUpdateConstatModal(null);
       fetchDetail();
     } catch (err) {
-      console.error("Failed to update constat status:", err);
-      alert("Erreur lors de la mise à jour du statut.");
+      console.error("Failed to update constat");
+      alert("Erreur lors de la mise à jour du constat.");
+    }
+  };
+
+  const handleUpdateKm = async () => {
+    if (!vehicule) return;
+    try {
+      setUpdatingKm(true);
+      await api.put(`/vehicules/${vehicule.id}`, { kilometrage_actuel: parseFloat(newKm) });
+      setIsEditingKm(false);
+      await fetchDetail();
+    } catch (err) {
+      alert("Erreur lors de la mise à jour du kilométrage.");
+    } finally {
+      setUpdatingKm(false);
     }
   };
 
@@ -331,7 +350,42 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
             </div>
             <div>
               <InfoRow label="Date 1ère mise en circulation" value={vehicule.date_mise_circulation || "Non renseignée"} mono />
-              <InfoRow label="Kilométrage actuel" value={`${vehicule.kilometrage_actuel.toLocaleString("fr-FR")} km`} mono bold />
+              <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                <span className="text-xs text-white/50">Kilométrage actuel</span>
+                {isEditingKm ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={newKm}
+                      onChange={(e) => setNewKm(e.target.value)}
+                      className="bg-black/20 border border-white/10 rounded-md px-2 py-1 text-xs text-white w-24 focus:outline-none focus:border-[var(--color-electric-violet)] font-mono"
+                      autoFocus
+                      disabled={updatingKm}
+                    />
+                    <button
+                      onClick={handleUpdateKm}
+                      disabled={updatingKm}
+                      className="p-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 transition-colors"
+                      title="Valider"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingKm(false)}
+                      disabled={updatingKm}
+                      className="p-1 rounded bg-rose-500/20 text-rose-400 hover:bg-rose-500/40 transition-colors"
+                      title="Annuler"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { setNewKm(vehicule.kilometrage_actuel.toString()); setIsEditingKm(true); }} title="Modifier le kilométrage">
+                    <span className="text-xs text-white font-mono font-bold">{vehicule.kilometrage_actuel.toLocaleString("fr-FR")} km</span>
+                    <Pencil className="h-3 w-3 text-white/20 group-hover:text-[var(--color-turbo)] transition-colors" />
+                  </div>
+                )}
+              </div>
               <InfoRow label="Statut opérationnel" value={<StatusBadge status={vehicule.statut} />} />
               <InfoRow label="Coût total maintenance (TCO)" value={`${vehicule.cout_total.toLocaleString("fr-FR")} DZD`} mono bold />
               <InfoRow label="Date d&apos;enregistrement système" value={new Date(vehicule.created_at).toLocaleDateString("fr-FR")} mono />
