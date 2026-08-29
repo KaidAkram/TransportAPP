@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AddVehicleModal } from "@/components/modules/vehicules/AddVehicleModal";
 import { api } from "@/lib/api";
-import { Vehicule, VehiculeListResponse } from "@/types/vehicule";
+import { Vehicule, VehiculeListResponse, ConstatSummary } from "@/types/vehicule";
 import { Portal } from "@/components/shared/Portal";
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { SortableHeader } from "@/components/ui/SortableHeader";
@@ -61,7 +61,6 @@ export default function VehiculesPage() {
     action: "archive",
   });
 
-  // Fetch vehicles from API
   const fetchVehicles = useCallback(async () => {
     try {
       setLoading(true);
@@ -87,9 +86,21 @@ export default function VehiculesPage() {
     }
   }, [search, statusFilter, typeFilter, sortBy, sortOrder, viewMode]);
 
+  const [pendingConstats, setPendingConstats] = useState<ConstatSummary[]>([]);
+
+  const fetchPendingConstats = useCallback(async () => {
+    try {
+      const res = await api.get<ConstatSummary[]>("/vehicules/constats/pending");
+      setPendingConstats(res.data);
+    } catch (err) {
+      console.error("Error fetching pending constats:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchVehicles();
-  }, [fetchVehicles]);
+    fetchPendingConstats();
+  }, [fetchVehicles, fetchPendingConstats]);
 
   const handleConfirmAction = async () => {
     if (!confirmModal.vehicleId) return;
@@ -317,7 +328,56 @@ export default function VehiculesPage() {
         )}
       </div>
 
-            {/* Modals */}
+      {/* Pending Constats Section */}
+      {pendingConstats.length > 0 && (
+        <div className="mt-8 space-y-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.5s' }}>
+          <h2 className="text-xl font-heading font-bold text-white drop-shadow-md flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-rose-400" />
+            Sinistres en attente
+          </h2>
+          <div className="glass-panel overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs table-fixed">
+                <thead className="bg-rose-500/10 border-b border-rose-500/20 text-rose-300 font-accent uppercase tracking-widest">
+                  <tr>
+                    <th className="py-3 px-4 w-[15%]">Date</th>
+                    <th className="py-3 px-4 w-[20%]">Immatriculation</th>
+                    <th className="py-3 px-4 w-[20%]">Chauffeur</th>
+                    <th className="py-3 px-4 w-[30%]">Lieu / Circonstances</th>
+                    <th className="py-3 px-4 w-[15%] text-right">Statut</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rose-500/10">
+                  {pendingConstats.map((c) => (
+                    <tr key={c.id} className="hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4 font-mono text-white/70">
+                        {new Date(c.date).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td className="py-3 px-4 font-mono font-bold text-[var(--color-electric-violet)]">
+                        {c.vehicule_immatriculation}
+                      </td>
+                      <td className="py-3 px-4 text-white/80">
+                        {c.chauffeur_nom || "Non spécifié"}
+                      </td>
+                      <td className="py-3 px-4 text-white/60 truncate" title={c.circonstances}>
+                        <div className="font-bold text-white/80">{c.lieu}</div>
+                        {c.circonstances}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70">
+                          {c.statut_assurance || "En attente"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
       <Portal>
 {/* Add Vehicle Modal */}
       <AddVehicleModal

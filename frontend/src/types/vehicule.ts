@@ -25,6 +25,8 @@ export interface ConstatSummary {
  montant_rembourse?: number | null;
  url_document?: string | null;
  url_justificatif_assurance?: string | null;
+ vehicule_immatriculation: string;
+ chauffeur_nom?: string | null;
 }
 
 export interface InterventionSummary {

@@ -87,6 +87,19 @@ def list_vehicules(
   )
 
 
+@router.get("/constats/pending", response_model=List[ConstatSummary], summary="List all pending constats globally")
+def list_pending_constats(db: Session = Depends(get_db)):
+  return (
+    db.query(Constat)
+    .filter(
+      Constat.archived_at.is_(None),
+      or_(Constat.statut_assurance == "En attente", Constat.statut_assurance.is_(None))
+    )
+    .order_by(desc(Constat.date))
+    .all()
+  )
+
+
 @router.get("/{vehicule_id}", response_model=VehiculeDetail, summary="Get Vehicle Detail & Dossier", dependencies=[Depends(require_feature("view_vehicle"))])
 def get_vehicule(vehicule_id: UUID, db: Session = Depends(get_db)):
   vehicule = db.query(Vehicule).filter(Vehicule.id == vehicule_id).first()
