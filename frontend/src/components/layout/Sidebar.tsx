@@ -40,22 +40,34 @@ const iconMap: Record<string, React.ElementType> = {
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  mobileMenuOpen?: boolean;
+  onCloseMobileMenu?: () => void;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, mobileMenuOpen, onCloseMobileMenu }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const { company } = useSettingsStore();
 
   return (
-    <aside
-      className={cn(
-        "fixed left-4 top-4 z-40 h-[calc(100vh-32px)] flex flex-col transition-all duration-400 ease-out glass-panel",
-        collapsed ? "w-[72px]" : "w-[240px]"
+    <>
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+          onClick={onCloseMobileMenu}
+        />
       )}
-    >
-      {/* Logo / Brand */}
-      <div className="flex items-center gap-3 px-4 py-6 border-b border-white/10 relative min-h-[85px]">
+
+      <aside
+        className={cn(
+          "fixed left-0 top-0 md:left-4 md:top-4 z-50 h-full md:h-[calc(100vh-32px)] flex flex-col transition-all duration-400 ease-out glass-panel !rounded-none md:!rounded-[24px]",
+          collapsed ? "w-[72px]" : "w-[260px] md:w-[240px]",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        )}
+      >
+        {/* Logo / Brand */}
+        <div className="flex items-center gap-3 px-4 py-6 border-b border-white/10 relative min-h-[85px]">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--theme-glass)] border border-[var(--theme-border)] shadow-[0_0_10px_var(--theme-orb-primary)] overflow-hidden">
           {company.logoBase64 ? (
             <img src={company.logoBase64} alt="Company Logo" className="w-full h-full object-cover mix-blend-screen" />
@@ -90,6 +102,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300 relative overflow-hidden group",
                 isActive
@@ -180,7 +195,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </Link>
 
         <button
-          onClick={() => logout()}
+          onClick={() => { logout(); if (onCloseMobileMenu) onCloseMobileMenu(); }}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 group"
           title={collapsed ? "Déconnexion" : undefined}
         >
@@ -190,7 +205,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <button
           onClick={onToggleCollapse}
-          className="flex items-center justify-center w-full rounded-xl px-3 py-2 mt-2 text-white/40 hover:text-white hover:bg-white/5 transition-all duration-300"
+          className="hidden md:flex items-center justify-center w-full rounded-xl px-3 py-2 mt-2 text-white/40 hover:text-white hover:bg-white/5 transition-all duration-300"
         >
           <ChevronLeft
             className={cn(
@@ -202,7 +217,18 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <span className="ml-2 text-xs font-accent tracking-widest uppercase">Réduire</span>
           )}
         </button>
+
+        {/* Collapse Toggle Desktop */}
+        <button
+          onClick={onToggleCollapse}
+          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 items-center justify-center rounded-full bg-[var(--theme-orb-primary)] border border-white/20 text-white shadow-[0_0_10px_rgba(131,77,251,0.5)] hover:scale-110 transition-transform"
+        >
+          <ChevronLeft
+            className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")}
+          />
+        </button>
       </div>
     </aside>
+    </>
   );
 }

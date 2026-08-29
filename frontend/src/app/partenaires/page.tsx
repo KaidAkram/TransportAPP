@@ -310,7 +310,7 @@ export default function PartenairesPage() {
 
       {/* CRM Partner Table */}
         <div className="glass-panel overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-x-auto custom-scrollbar w-full">
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/10 bg-black/20">

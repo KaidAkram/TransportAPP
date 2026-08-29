@@ -186,8 +186,8 @@ export default function ReceptionHistoryPage() {
 
       {/* Table */}
       <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: "0.2s" }}>
-        <div className="w-full min-w-0">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="w-full min-w-0 overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">N° Réception</th>
