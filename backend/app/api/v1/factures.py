@@ -178,7 +178,7 @@ def encaisser_facture(
       os.makedirs(doc_dir, exist_ok=True)
       safe_name = f"reglement_{facture.numero}_{document.filename.replace(' ', '_')}"
       file_path = os.path.join(doc_dir, safe_name)
-      content = await_document_read(document)
+      content = document.file.read()
       with open(file_path, "wb") as f:
         f.write(content)
       facture.url_document_reglement = f"/assets/documents/reglements/{safe_name}"

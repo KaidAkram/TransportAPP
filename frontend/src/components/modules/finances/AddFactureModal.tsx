@@ -10,6 +10,7 @@ import { z } from "zod";
 import { api } from "@/lib/api";
 import { GlassNumberInput } from "@/components/ui/GlassNumberInput";
 import { GlassSelect } from "@/components/ui/GlassSelect";
+import { GlassMultiSelect } from "@/components/ui/GlassMultiSelect";
 
 const factureSchema = z.object({
   numero: z.string().min(1, "Le numéro est requis"),
@@ -205,11 +206,11 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                     name="mois_realisation"
                     control={control}
                     render={({ field }) => (
-                      <GlassSelect
-                        value={field.value}
-                        onChange={field.onChange}
+                      <GlassMultiSelect
+                        value={field.value ? field.value.split(", ") : []}
+                        onChange={(vals) => field.onChange(vals.join(", "))}
                         options={MOIS_OPTIONS}
-                        placeholder="Mois"
+                        placeholder="Mois (Ex: Janvier, Février)"
                       />
                     )}
                   />

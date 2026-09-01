@@ -26,7 +26,7 @@ class Facture(Base, BaseModelMixin):
   client_id = Column(UUID(as_uuid=True), ForeignKey("partenaires.id", ondelete="RESTRICT"), nullable=False)
 
   date_facture = Column(Date, nullable=False, default=date.today)
-  mois_realisation = Column(String(20), nullable=False)
+  mois_realisation = Column(String(255), nullable=False)
   annee_realisation = Column(Integer, nullable=False, server_default='2026')
   montant_facture = Column(Float, default=0.0, nullable=False)
   statut = Column(Enum(StatutFacture), default=StatutFacture.EN_ATTENTE, nullable=False)
