@@ -22,7 +22,7 @@ from app.schemas.finance import (
 router = APIRouter(prefix="/factures", tags=["Finances — Facturation"])
 
 STATIC_DOCS = os.path.join(
-  os.path.dirname(__file__), "..", "..", "..", "frontend", "public", "assets", "documents"
+  os.path.dirname(__file__), "..", "..", "..", "..", "frontend", "public", "assets", "documents"
 )
 
 
