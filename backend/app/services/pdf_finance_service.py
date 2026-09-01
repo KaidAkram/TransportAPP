@@ -56,7 +56,7 @@ def generate_devis_pdf(devis, client, output_dir: str = None) ->str:
   # 1. Header Company / Document Title
   header_data = [
     [
-      Paragraph("<b>E-TRANSPORT VOYAGES & LOGISTIQUE EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>Zone Industrielle Oued Smar, Alger<br/>Tél : +213 (0) 23 85 40 00 | contact@etransport.dz", header_style),
+      Paragraph("<b>E-TRANSPORT VOYAGES EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>Zone Industrielle Oued Smar, Alger<br/>Tél : +213 (0) 23 85 40 00", header_style),
       Paragraph(f"<b>DEVIS COMMERCIAL</b><br/><font size=14 color='#1E40AF'><b>N° {devis.numero}</b></font><br/>Date : {devis.date_emission.strftime('%d/%m/%Y')}<br/>Validité : {devis.date_validite.strftime('%d/%m/%Y')}", ParagraphStyle("RightHeader", parent=header_style, alignment=TA_RIGHT)),
     ]
   ]
@@ -207,7 +207,7 @@ def generate_facture_pdf(facture, client, output_dir: str = None) ->str:
   # 1. Header
   header_data = [
     [
-      Paragraph("<b>E-TRANSPORT VOYAGES & LOGISTIQUE EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>RIB BNA : 002 00612 0123456789 45<br/>Zone Industrielle Oued Smar, Alger", header_style),
+      Paragraph("<b>E-TRANSPORT VOYAGES EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>Zone Industrielle Oued Smar, Alger", header_style),
       Paragraph(f"<b>FACTURE OFFICIELLE</b><br/><font size=14 color='#1E40AF'><b>N° {facture.numero}</b></font><br/>Date Émission : {facture.date_emission.strftime('%d/%m/%Y')}<br/>Date Échéance : {facture.date_echeance.strftime('%d/%m/%Y')}", ParagraphStyle("RightHeader", parent=header_style, alignment=TA_RIGHT)),
     ]
   ]
@@ -294,7 +294,7 @@ def generate_facture_pdf(facture, client, output_dir: str = None) ->str:
   story.append(Spacer(1, 16))
 
   # 5. Payment details
-  story.append(Paragraph(f"<b>Mode de règlement :</b>{facture.mode_reglement.value if hasattr(facture.mode_reglement, 'value') else facture.mode_reglement} | RIB : BNA 002 00612 0123456789 45", header_style))
+  story.append(Paragraph(f"<b>Mode de règlement :</b>{facture.mode_reglement.value if hasattr(facture.mode_reglement, 'value') else facture.mode_reglement}", header_style))
   story.append(Spacer(1, 16))
 
   signatures_data = [
