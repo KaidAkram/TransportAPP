@@ -66,6 +66,14 @@ class ApiClient {
   }
 
   if (!response.ok) {
+   if (response.status === 401 && typeof window !== "undefined") {
+     localStorage.removeItem("etransport_token");
+     localStorage.removeItem("etransport_user");
+     window.location.href = "/login";
+     // We return a dummy error to prevent further execution in the current call stack
+     throw { detail: "Session expirée", status: 401, type: "unauthorized" };
+   }
+
    let errorData: any = {};
    try {
     errorData = await response.json();
