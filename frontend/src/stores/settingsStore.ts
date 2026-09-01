@@ -128,7 +128,7 @@ interface SettingsState {
   updatePreferences: (newPrefs: Partial<SettingsState['userPreferences']>) => void;
 
   fetchGlobalSettings: () => Promise<void>;
-  saveGlobalSettings: () => Promise<void>;
+  saveGlobalSettings: (newCompany?: CompanySettings) => Promise<void>;
 }
 
 const defaultCompany: CompanySettings = {
@@ -188,16 +188,17 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      saveGlobalSettings: async () => {
+      saveGlobalSettings: async (newCompany?: CompanySettings) => {
         const state = get();
         try {
           await api.put('/settings/global', {
             theme: state.adminTheme,
             typography: state.adminTypographyVibe,
-            company: state.company,
+            company: newCompany || state.company,
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error("Failed to save global settings:", error);
+          throw error;
         }
       },
     }),

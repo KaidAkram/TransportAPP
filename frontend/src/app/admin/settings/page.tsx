@@ -10,7 +10,7 @@ export default function AdminSettingsPage() {
   const { company, updateCompany } = useSettingsStore();
   const [formData, setFormData] = useState<CompanySettings>(company);
   const [isSaving, setIsSaving] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync state if store updates externally
@@ -31,6 +31,11 @@ export default function AdminSettingsPage() {
       return;
     }
 
+    if (file.size > 2 * 1024 * 1024) {
+      alert("L'image est trop volumineuse (Max 2MB).");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       setFormData(prev => ({ ...prev, logoBase64: event.target?.result as string }));
@@ -41,25 +46,34 @@ export default function AdminSettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setToastMessage(null);
     
-    // Simulate API save delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    updateCompany(formData);
-    await useSettingsStore.getState().saveGlobalSettings();
-    
-    setIsSaving(false);
-    setToastMessage("Paramètres de l'entreprise mis à jour avec succès !");
-    setTimeout(() => setToastMessage(null), 3000);
+    try {
+      await useSettingsStore.getState().saveGlobalSettings(formData);
+      updateCompany(formData);
+      setToastMessage({ type: 'success', text: "Paramètres de l'entreprise mis à jour avec succès !" });
+    } catch (err: any) {
+      setToastMessage({ type: 'error', text: err.detail || err.message || "Erreur lors de la sauvegarde." });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setToastMessage(null), 4000);
+    }
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
-      {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[var(--color-electric-violet)] text-white px-4 py-3 rounded-2xl shadow-xl shadow-[#7C3AED]/20 border border-white/20 flex items-center gap-2.5 text-sm font-medium animate-scale-in">
-          <ShieldCheck className="h-5 w-5 text-emerald-300 shrink-0" />
-          <span>{toastMessage}</span>
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-sm font-medium animate-scale-in ${
+          toastMessage.type === 'success' 
+            ? 'bg-[var(--color-electric-violet)] text-white shadow-[#7C3AED]/20 border-white/20' 
+            : 'bg-red-500/90 text-white shadow-red-500/20 border-red-500/20'
+        }`}>
+          {toastMessage.type === 'success' ? (
+            <ShieldCheck className="h-5 w-5 text-emerald-300 shrink-0" />
+          ) : (
+            <Building className="h-5 w-5 text-red-200 shrink-0" />
+          )}
+          <span>{toastMessage.text}</span>
         </div>
       )}
 
