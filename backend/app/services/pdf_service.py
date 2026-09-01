@@ -126,8 +126,8 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
     comp_info = [
         Paragraph(f"<b>{ent}</b>", header_bold),
         Paragraph(f"<b>{addr}</b>", header_bold),
-        Paragraph(f"RC: {rc} | NIF: {nif} | AI: {ai} | NIS: {nis}", header_norm),
-        Paragraph(f"Tél: {phone}" if phone else "", header_norm),
+        Paragraph(f"RC: {rc} &nbsp;&nbsp;|&nbsp;&nbsp; NIF: {nif} &nbsp;&nbsp;|&nbsp;&nbsp; AI: {ai} &nbsp;&nbsp;|&nbsp;&nbsp; NIS: {nis}", header_norm),
+        
     ]
     
     reg_info = [
@@ -268,8 +268,8 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
     comp_info = [
         Paragraph(f"<b>{ent}</b>", header_bold),
         Paragraph(f"<b>{addr}</b>", header_bold),
-        Paragraph(f"RC: {rc} | NIF: {nif} | AI: {ai} | NIS: {nis}", header_norm),
-        Paragraph(f"Tél: {phone}" if phone else "", header_norm),
+        Paragraph(f"RC: {rc} &nbsp;&nbsp;|&nbsp;&nbsp; NIF: {nif} &nbsp;&nbsp;|&nbsp;&nbsp; AI: {ai} &nbsp;&nbsp;|&nbsp;&nbsp; NIS: {nis}", header_norm),
+        
     ]
     
     reg_info = [
@@ -414,8 +414,7 @@ def generate_bon_achat_pdf(
     comp_info = [
         Paragraph(f"<b>{company_name}</b>", header_bold),
         Paragraph(f"<b>{company_address}</b>", header_bold),
-        Paragraph(f"RC: {company_rc} | NIF: {company_nif} | AI: {company_ai} | NIS: {company_nis}", header_norm),
-        Paragraph(f"Tél: {company_phone}" if company_phone else "", header_norm),
+        Paragraph(f"RC: {company_rc} &nbsp;&nbsp;|&nbsp;&nbsp; NIF: {company_nif} &nbsp;&nbsp;|&nbsp;&nbsp; AI: {company_ai} &nbsp;&nbsp;|&nbsp;&nbsp; NIS: {company_nis}", header_norm),
     ]
     
     reg_info = [

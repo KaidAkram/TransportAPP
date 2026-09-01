@@ -56,7 +56,7 @@ def generate_devis_pdf(devis, client, output_dir: str = None) ->str:
   # 1. Header Company / Document Title
   header_data = [
     [
-      Paragraph("<b>E-TRANSPORT VOYAGES EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>Zone Industrielle Oued Smar, Alger<br/>Tél : +213 (0) 23 85 40 00", header_style),
+      Paragraph("<b>E-TRANSPORT VOYAGES EURL</b><br/>Capital Social : 50 000 000 DZD<br/>NIF : 001916001234567 — RC : 16/00-1234567B19<br/>Zone Industrielle Oued Smar, Alger", header_style),
       Paragraph(f"<b>DEVIS COMMERCIAL</b><br/><font size=14 color='#1E40AF'><b>N° {devis.numero}</b></font><br/>Date : {devis.date_emission.strftime('%d/%m/%Y')}<br/>Validité : {devis.date_validite.strftime('%d/%m/%Y')}", ParagraphStyle("RightHeader", parent=header_style, alignment=TA_RIGHT)),
     ]
   ]
@@ -77,7 +77,7 @@ def generate_devis_pdf(devis, client, output_dir: str = None) ->str:
     [
       Paragraph("<b>DESTINATAIRE (CLIENT) :</b>", bold_style),
       Paragraph(f"<b>{client_name}</b><br/>"
-           f"NIF : {client_nif} | NIS : {client_nis}<br/>"
+           f"NIF : {client_nif} &nbsp;&nbsp;|&nbsp;&nbsp; NIS : {client_nis}<br/>"
            f"Adresse : {client_addr}<br/>"
            f"Tél : {client_tel}", header_style)
     ]
@@ -227,7 +227,7 @@ def generate_facture_pdf(facture, client, output_dir: str = None) ->str:
     [
       Paragraph("<b>CLIENT FACTURÉ :</b>", bold_style),
       Paragraph(f"<b>{client_name}</b><br/>"
-           f"NIF : {client_nif} | NIS : {client_nis}<br/>"
+           f"NIF : {client_nif} &nbsp;&nbsp;|&nbsp;&nbsp; NIS : {client_nis}<br/>"
            f"Adresse : {client_addr}", header_style)
     ]
   ]
