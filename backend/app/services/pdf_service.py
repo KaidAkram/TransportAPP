@@ -116,8 +116,8 @@ def _build_soumission(doc, caution_number, amount, devise, client_name,
                           alignment=0, fontName="Helvetica")
     body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1, fontName="Helvetica-Bold", fontSize=13)
-    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14)
-    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10)
+    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14, leading=18, spaceAfter=6)
+    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=14, spaceAfter=6)
     reg_style = ParagraphStyle('RegStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2)
 
     story = []
@@ -258,8 +258,8 @@ def _build_bonne_execution(doc, caution_number, amount, devise, client_name,
                           alignment=0, fontName="Helvetica")
     body_r = ParagraphStyle("BodyR", parent=body, alignment=2)
     body_c = ParagraphStyle("BodyC", parent=body, alignment=1, fontName="Helvetica-Bold", fontSize=13)
-    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14)
-    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10)
+    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14, leading=18, spaceAfter=6)
+    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=14, spaceAfter=6)
     reg_style = ParagraphStyle('RegStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2)
 
     story = []
@@ -402,8 +402,8 @@ def generate_bon_achat_pdf(
     styles = getSampleStyleSheet()
     
     # Custom styles
-    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14)
-    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10)
+    header_bold = ParagraphStyle('HeaderBold', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14, leading=18, spaceAfter=6)
+    header_norm = ParagraphStyle('HeaderNorm', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=14, spaceAfter=6)
     reg_style = ParagraphStyle('RegStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2)
     title_style = ParagraphStyle('TitleStyle', parent=styles['Title'], fontName='Helvetica-Bold', fontSize=18, spaceAfter=0)
     sub_title = ParagraphStyle('SubTitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
