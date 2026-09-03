@@ -122,13 +122,13 @@ export function TopBar() {
         <header className="flex h-16 w-full items-center justify-between px-6 glass-panel relative z-50">
           {/* Global Search */}
           <div className="relative w-72 md:w-96 group">
-            <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors z-20 ${isSearchOpen ? 'text-[var(--color-turbo)]' : 'text-white/40 group-focus-within:text-[var(--color-turbo)]'}`} />
+            <Search className={`absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors z-20 ${isSearchOpen ? 'text-[var(--color-turbo)]' : 'text-white/40 group-focus-within:text-[var(--color-turbo)]'}`} />
             
             {/* Search Input Wrapper for Ghost Text */}
             <div className="relative w-full z-10">
               {/* Ghost text background */}
               {isSearchOpen && ghostText && ghostText.toLowerCase().startsWith(query.toLowerCase()) && (
-                <div className="absolute inset-y-0 left-9 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 start-9 flex items-center pointer-events-none">
                   <span className="text-transparent">{query}</span>
                   <span className="text-white/20">{ghostText.slice(query.length)}</span>
                 </div>
@@ -141,7 +141,7 @@ export function TopBar() {
                 id="global-search-input"
                 placeholder="Recherche globale (Ctrl+K)"
                 onFocus={() => setIsSearchOpen(true)}
-                className={`w-full rounded-xl bg-white/5 py-2 pl-9 pr-4 text-xs text-white placeholder:text-white/40 border transition-all relative z-10 focus:outline-none ${
+                className={`w-full rounded-xl bg-white/5 py-2 ps-9 pe-4 text-xs text-white placeholder:text-white/40 border transition-all relative z-10 focus:outline-none ${
                   isSearchOpen ? 'border-[var(--color-turbo)]/50 shadow-[0_0_15px_rgba(240,225,0,0.1)] bg-[var(--color-haiti)]' : 'border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-white/20'
                 }`}
               />
@@ -206,7 +206,7 @@ export function TopBar() {
                                     </>
                                   ) : choice.text}
                                 </span>
-                                {isSelected && <ArrowRight className="w-3 h-3 text-white/50 ml-auto" />}
+                                {isSelected && <ArrowRight className="w-3 h-3 text-white/50 ms-auto" />}
                               </Link>
                             </li>
                           );
@@ -247,11 +247,11 @@ export function TopBar() {
             <NotificationBell />
 
             {/* User Profile / Status */}
-            <div className="flex items-center gap-3 border-l border-white/10 pl-4">
+            <div className="flex items-center gap-3 border-s border-white/10 ps-4">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-electric-violet)]/20 text-white font-semibold text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
                 {user ? user.email.slice(0, 2).toUpperCase() : <User className="h-4 w-4" />}
               </div>
-              <div className="hidden text-left md:block">
+              <div className="hidden text-start md:block">
                 <p className="text-xs font-bold text-white tracking-wide">
                   {user ? user.email : "Direction Générale"}
                 </p>
@@ -266,7 +266,7 @@ export function TopBar() {
                     router.push("/login");
                   }}
                   title="Déconnexion"
-                  className="ml-2 p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="ms-2 p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>

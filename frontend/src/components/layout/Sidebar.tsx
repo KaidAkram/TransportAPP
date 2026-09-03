@@ -50,7 +50,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-4 top-4 z-40 h-[calc(100vh-32px)] flex flex-col transition-all duration-400 ease-out glass-panel",
+        "fixed start-4 top-4 z-40 h-[calc(100vh-32px)] flex flex-col transition-all duration-400 ease-out glass-panel",
         collapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
@@ -110,7 +110,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               
               {/* Active Indicator Glow */}
               {isActive && !collapsed && (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-l-full bg-[var(--color-turbo)] shadow-[0_0_10px_var(--color-turbo)]" />
+                <div className="absolute end-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-s-full bg-[var(--color-turbo)] shadow-[0_0_10px_var(--color-turbo)]" />
               )}
             </Link>
           );
@@ -195,11 +195,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           <ChevronLeft
             className={cn(
               "h-4 w-4 transition-transform duration-500",
-              collapsed && "rotate-180"
+              collapsed ? "rotate-180" : ""
             )}
           />
           {!collapsed && (
-            <span className="ml-2 text-xs font-accent tracking-widest uppercase">Réduire</span>
+            <span className="ms-2 text-xs font-accent tracking-widest uppercase">Réduire</span>
           )}
         </button>
       </div>

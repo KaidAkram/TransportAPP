@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useAuthStore } from "@/stores/authStore";
 import { Settings, Bell, User, Monitor, CheckCircle2, Globe, LayoutList, Database, HardDrive, RefreshCw, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function UserSettingsPage() {
   const { userPreferences, updatePreferences } = useSettingsStore();
@@ -62,6 +63,9 @@ export default function UserSettingsPage() {
 
   if (!mounted) return null;
 
+  const currentLang = userPreferences.language as SupportedLanguage;
+  const t = translations[currentLang] || translations.fr;
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
       {/* Toast Notification */}
@@ -76,14 +80,14 @@ export default function UserSettingsPage() {
       <div className="flex flex-wrap md:items-end justify-between gap-4">
         <div>
           <span className="text-[10px] font-accent text-[var(--color-turbo)] uppercase tracking-widest mb-1 block font-bold">
-            Profil Utilisateur
+            {t.userProfile}
           </span>
           <h1 className="text-3xl font-heading font-bold text-white tracking-tight drop-shadow-md flex items-center gap-3">
             <Settings className="h-8 w-8 text-[var(--color-turbo)]" />
-            Mes Préférences
+            {t.settingsTitle}
           </h1>
           <p className="text-sm text-white/60 mt-2 max-w-xl">
-            Gérez vos paramètres d'affichage, vos préférences de notifications et consultez les informations de votre profil.
+            {t.settingsDesc}
           </p>
         </div>
       </div>
@@ -94,7 +98,7 @@ export default function UserSettingsPage() {
         <div className="glass-panel p-6 rounded-2xl">
           <h3 className="text-sm font-heading font-bold text-white mb-6 flex items-center gap-2">
             <User className="w-4 h-4 text-white/60" />
-            Mon Profil
+            {t.userProfile}
           </h3>
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-2xl bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)] font-bold text-2xl flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
@@ -103,12 +107,12 @@ export default function UserSettingsPage() {
             <div>
               <p className="text-sm font-bold text-white">{user?.email || "utilisateur@etransport.dz"}</p>
               <span className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-white/10 text-white/70 uppercase tracking-widest border border-white/5">
-                Rôle : {user?.role || "Gestionnaire"}
+                {user?.role === 'admin' ? t.roleAdmin : t.roleUser}
               </span>
             </div>
           </div>
           <p className="text-xs text-white/40 mt-6 leading-relaxed">
-            Les informations de votre profil sont gérées par votre administrateur. Veuillez le contacter si vous souhaitez modifier votre adresse email ou vos droits d'accès.
+            {t.profileInfo}
           </p>
         </div>
 
@@ -118,7 +122,7 @@ export default function UserSettingsPage() {
           <div className="glass-panel p-6 rounded-2xl">
             <h3 className="text-sm font-heading font-bold text-white mb-4 flex items-center gap-2">
               <Globe className="w-4 h-4 text-white/60" />
-              Langue de l'interface
+              {t.interfaceLang}
             </h3>
             <div className="grid grid-cols-3 gap-3">
               <button
@@ -130,7 +134,7 @@ export default function UserSettingsPage() {
                 }`}
               >
                 <span className="text-xl">🇫🇷</span>
-                <span className="text-xs font-bold">Français</span>
+                <span className="text-xs font-bold">{t.langFrench}</span>
               </button>
               
               <button
@@ -142,7 +146,7 @@ export default function UserSettingsPage() {
                 }`}
               >
                 <span className="text-xl">🇬🇧</span>
-                <span className="text-xs font-bold">Anglais</span>
+                <span className="text-xs font-bold">{t.langEnglish}</span>
               </button>
               
               <button
@@ -154,21 +158,16 @@ export default function UserSettingsPage() {
                 }`}
               >
                 <span className="text-xl">🇩🇿</span>
-                <span className="text-xs font-bold">Arabe</span>
+                <span className="text-xs font-bold">{t.langArabic}</span>
               </button>
             </div>
-            {userPreferences.language !== 'fr' && (
-              <p className="text-[10px] text-[var(--color-turbo)] mt-3 text-center uppercase tracking-widest font-accent opacity-80">
-                La traduction {userPreferences.language === 'en' ? 'anglaise' : 'arabe'} sera implémentée prochainement.
-              </p>
-            )}
           </div>
 
           {/* Table Density */}
           <div className="glass-panel p-6 rounded-2xl">
             <h3 className="text-sm font-heading font-bold text-white mb-4 flex items-center gap-2">
               <LayoutList className="w-4 h-4 text-white/60" />
-              Densité d'affichage (Tableaux)
+              {t.tableDensity}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -184,7 +183,7 @@ export default function UserSettingsPage() {
                   <div className="h-2 w-3/4 bg-white/20 rounded"></div>
                   <div className="h-2 w-full bg-white/20 rounded mt-1"></div>
                 </div>
-                <span className="text-xs font-bold">Confortable</span>
+                <span className="text-xs font-bold">{t.densityComfortable}</span>
               </button>
               
               <button
@@ -202,7 +201,7 @@ export default function UserSettingsPage() {
                   <div className="h-1.5 w-5/6 bg-white/20 rounded"></div>
                   <div className="h-1.5 w-full bg-white/20 rounded"></div>
                 </div>
-                <span className="text-xs font-bold">Compact</span>
+                <span className="text-xs font-bold">{t.densityCompact}</span>
               </button>
             </div>
           </div>
@@ -212,10 +211,10 @@ export default function UserSettingsPage() {
             <div>
               <h3 className="text-sm font-heading font-bold text-white flex items-center gap-2">
                 <Bell className="w-4 h-4 text-white/60" />
-                Notifications Sonores
+                {t.notificationsTitle}
               </h3>
               <p className="text-xs text-white/40 mt-1">
-                Jouer un son lors d'une nouvelle notification ou alerte
+                {t.notificationsDesc}
               </p>
             </div>
             <button
@@ -245,16 +244,16 @@ export default function UserSettingsPage() {
             <div>
               <h3 className="text-lg font-heading font-bold text-white flex items-center gap-2">
                 <HardDrive className="w-5 h-5 text-[var(--color-turbo)]" />
-                Storage & System Health
+                {t.storageHealthTitle}
               </h3>
               <p className="text-xs text-white/60 mt-1">
-                Monitor database and file storage consumption against free tier limits.
+                {t.storageHealthDesc}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {statsLastUpdated && (
                 <span className="text-[10px] text-white/40">
-                  Last updated: {statsLastUpdated.toLocaleTimeString()}
+                  {t.lastUpdated} {statsLastUpdated.toLocaleTimeString()}
                 </span>
               )}
               <button
@@ -263,7 +262,7 @@ export default function UserSettingsPage() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isStatsLoading ? "animate-spin" : ""}`} />
-                Refresh
+                {t.refresh}
               </button>
             </div>
           </div>
@@ -281,7 +280,7 @@ export default function UserSettingsPage() {
                 <div className="flex justify-between items-center relative z-10">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-[var(--color-electric-violet)]" />
-                    <span className="text-sm font-bold text-white">Database Storage</span>
+                    <span className="text-sm font-bold text-white">{t.databaseStorage}</span>
                   </div>
                   <span className="text-xs font-mono text-white/80">
                     {systemStats.database.used_formatted} / {systemStats.database.free_tier_limit_formatted}
@@ -301,13 +300,13 @@ export default function UserSettingsPage() {
                 
                 <div className="flex justify-between items-center relative z-10 text-[10px]">
                   <span className="text-white/40">PostgreSQL (Supabase)</span>
-                  <span className="text-white/80 font-bold">{systemStats.database.usage_percentage}% Used</span>
+                  <span className="text-white/80 font-bold">{systemStats.database.usage_percentage}% {t.used}</span>
                 </div>
 
                 {systemStats.database.usage_percentage > 90 && (
                   <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Upgrade Recommended</span>
+                    <span>{t.upgradeRecommended}</span>
                   </div>
                 )}
               </div>
@@ -317,7 +316,7 @@ export default function UserSettingsPage() {
                 <div className="flex justify-between items-center relative z-10">
                   <div className="flex items-center gap-2">
                     <HardDrive className="w-4 h-4 text-cyan-400" />
-                    <span className="text-sm font-bold text-white">File Storage</span>
+                    <span className="text-sm font-bold text-white">{t.fileStorage}</span>
                   </div>
                   <span className="text-xs font-mono text-white/80">
                     {systemStats.file_storage.used_formatted} / {systemStats.file_storage.free_tier_limit_formatted}
@@ -337,13 +336,13 @@ export default function UserSettingsPage() {
                 
                 <div className="flex justify-between items-center relative z-10 text-[10px]">
                   <span className="text-white/40">Storage Buckets</span>
-                  <span className="text-white/80 font-bold">{systemStats.file_storage.usage_percentage}% Used</span>
+                  <span className="text-white/80 font-bold">{systemStats.file_storage.usage_percentage}% {t.used}</span>
                 </div>
 
                 {systemStats.file_storage.usage_percentage > 90 && (
                   <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Upgrade Recommended</span>
+                    <span>{t.upgradeRecommended}</span>
                   </div>
                 )}
               </div>
@@ -352,12 +351,12 @@ export default function UserSettingsPage() {
               <div className="md:col-span-2 mt-2 pt-4 border-t border-white/5 flex flex-wrap gap-4 text-[10px]">
                 <div className="px-3 py-1.5 rounded-full bg-white/5 flex items-center gap-2 border border-white/5">
                   <Monitor className="w-3 h-3 text-white/40" />
-                  <span className="text-white/60">Server Memory: </span>
+                  <span className="text-white/60">{t.serverMemory} </span>
                   <span className="text-white font-mono font-bold">{systemStats.server.memory_usage_mb} MB</span>
                 </div>
                 <div className="px-3 py-1.5 rounded-full bg-white/5 flex items-center gap-2 border border-white/5">
                   <HardDrive className="w-3 h-3 text-white/40" />
-                  <span className="text-white/60">Server Disk: </span>
+                  <span className="text-white/60">{t.serverDisk} </span>
                   <span className="text-white font-mono font-bold">{systemStats.server.disk_used_formatted} / {systemStats.server.disk_total_formatted}</span>
                 </div>
               </div>
@@ -365,7 +364,7 @@ export default function UserSettingsPage() {
           ) : (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
-              Failed to load system metrics. Check connection.
+              {t.failedToLoad}
             </div>
           )}
         </div>

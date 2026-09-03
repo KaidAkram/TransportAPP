@@ -1105,3 +1105,14 @@ body, p, .font-sans, .font-accent {
 .will-change-transform {
   will-change: transform, opacity;
 }
+
+
+/* Arabic Language Overrides */
+html.lang-ar body {
+  --font-sans: 'Tajawal', system-ui, sans-serif !important;
+  --font-heading: 'Tajawal', system-ui, sans-serif !important;
+  --font-accent: 'Tajawal', system-ui, sans-serif !important;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+}

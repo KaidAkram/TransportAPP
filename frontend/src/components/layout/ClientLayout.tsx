@@ -24,6 +24,20 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     useSettingsStore.getState().fetchGlobalSettings();
   }, [initAuth]);
 
+  // Apply language, RTL direction, and typographic class
+  useEffect(() => {
+    if (!mounted) return;
+    const lang = userPreferences?.language || 'fr';
+    document.documentElement.lang = lang;
+    if (lang === 'ar') {
+      document.documentElement.dir = 'rtl';
+      document.documentElement.classList.add('lang-ar');
+    } else {
+      document.documentElement.dir = 'ltr';
+      document.documentElement.classList.remove('lang-ar');
+    }
+  }, [mounted, userPreferences?.language]);
+
   // Apply theme to <body>
   useEffect(() => {
     if (!mounted) return;
@@ -106,7 +120,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           "flex flex-1 flex-col min-w-0 w-full max-w-full overflow-x-hidden transition-all duration-400 ease-out",
-          sidebarCollapsed ? "pl-[104px]" : "pl-[104px] md:pl-[272px]"
+          sidebarCollapsed ? "ps-[104px]" : "ps-[104px] md:ps-[272px]"
         )}
       >
         <TopBar />
