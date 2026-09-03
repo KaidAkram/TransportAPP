@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useAuthStore } from "@/stores/authStore";
-import { Settings, Bell, User, Monitor, CheckCircle2, Globe, LayoutList } from "lucide-react";
+import { Settings, Bell, User, Monitor, CheckCircle2, Globe, LayoutList, Database, HardDrive, RefreshCw, AlertTriangle } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function UserSettingsPage() {
   const { userPreferences, updatePreferences } = useSettingsStore();
@@ -12,7 +13,30 @@ export default function UserSettingsPage() {
 
   // Local state to prevent hydration mismatch for theme
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [systemStats, setSystemStats] = useState<any>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
+  const [statsLastUpdated, setStatsLastUpdated] = useState<Date | null>(null);
+
+  const fetchSystemStats = async () => {
+    if (user?.role !== 'admin') return;
+    try {
+      setIsStatsLoading(true);
+      const res = await api.get<any>("/admin/system/storage-usage");
+      setSystemStats(res.data);
+      setStatsLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to load system stats", err);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    if (user?.role === 'admin') {
+      fetchSystemStats();
+    }
+  }, [user]);
 
   const handleLanguageChange = (language: 'fr' | 'en' | 'ar') => {
     updatePreferences({ language });
@@ -213,6 +237,139 @@ export default function UserSettingsPage() {
         </div>
 
       </div>
+
+      {/* Storage & System Health (Admin Only) */}
+      {user?.role === 'admin' && (
+        <div className="glass-panel p-6 rounded-2xl mt-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-lg font-heading font-bold text-white flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-[var(--color-turbo)]" />
+                Storage & System Health
+              </h3>
+              <p className="text-xs text-white/60 mt-1">
+                Monitor database and file storage consumption against free tier limits.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {statsLastUpdated && (
+                <span className="text-[10px] text-white/40">
+                  Last updated: {statsLastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+              <button
+                onClick={fetchSystemStats}
+                disabled={isStatsLoading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isStatsLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          {!systemStats && isStatsLoading ? (
+            <div className="animate-pulse space-y-4">
+              <div className="h-12 bg-white/5 rounded-xl"></div>
+              <div className="h-12 bg-white/5 rounded-xl"></div>
+            </div>
+          ) : systemStats ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Database Storage */}
+              <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-3 relative overflow-hidden">
+                <div className="flex justify-between items-center relative z-10">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-[var(--color-electric-violet)]" />
+                    <span className="text-sm font-bold text-white">Database Storage</span>
+                  </div>
+                  <span className="text-xs font-mono text-white/80">
+                    {systemStats.database.used_formatted} / {systemStats.database.free_tier_limit_formatted}
+                  </span>
+                </div>
+                
+                <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden relative z-10">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      systemStats.database.usage_percentage > 90 ? 'bg-red-500' :
+                      systemStats.database.usage_percentage > 75 ? 'bg-yellow-500' :
+                      'bg-[var(--color-electric-violet)]'
+                    }`}
+                    style={{ width: `${Math.min(systemStats.database.usage_percentage, 100)}%` }}
+                  ></div>
+                </div>
+                
+                <div className="flex justify-between items-center relative z-10 text-[10px]">
+                  <span className="text-white/40">PostgreSQL (Supabase)</span>
+                  <span className="text-white/80 font-bold">{systemStats.database.usage_percentage}% Used</span>
+                </div>
+
+                {systemStats.database.usage_percentage > 90 && (
+                  <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Upgrade Recommended</span>
+                  </div>
+                )}
+              </div>
+
+              {/* File Storage */}
+              <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-3 relative overflow-hidden">
+                <div className="flex justify-between items-center relative z-10">
+                  <div className="flex items-center gap-2">
+                    <HardDrive className="w-4 h-4 text-cyan-400" />
+                    <span className="text-sm font-bold text-white">File Storage</span>
+                  </div>
+                  <span className="text-xs font-mono text-white/80">
+                    {systemStats.file_storage.used_formatted} / {systemStats.file_storage.free_tier_limit_formatted}
+                  </span>
+                </div>
+                
+                <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden relative z-10">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      systemStats.file_storage.usage_percentage > 90 ? 'bg-red-500' :
+                      systemStats.file_storage.usage_percentage > 75 ? 'bg-yellow-500' :
+                      'bg-cyan-400'
+                    }`}
+                    style={{ width: `${Math.min(systemStats.file_storage.usage_percentage, 100)}%` }}
+                  ></div>
+                </div>
+                
+                <div className="flex justify-between items-center relative z-10 text-[10px]">
+                  <span className="text-white/40">Storage Buckets</span>
+                  <span className="text-white/80 font-bold">{systemStats.file_storage.usage_percentage}% Used</span>
+                </div>
+
+                {systemStats.file_storage.usage_percentage > 90 && (
+                  <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Upgrade Recommended</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Server Metrics (Small info pill) */}
+              <div className="md:col-span-2 mt-2 pt-4 border-t border-white/5 flex flex-wrap gap-4 text-[10px]">
+                <div className="px-3 py-1.5 rounded-full bg-white/5 flex items-center gap-2 border border-white/5">
+                  <Monitor className="w-3 h-3 text-white/40" />
+                  <span className="text-white/60">Server Memory: </span>
+                  <span className="text-white font-mono font-bold">{systemStats.server.memory_usage_mb} MB</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-full bg-white/5 flex items-center gap-2 border border-white/5">
+                  <HardDrive className="w-3 h-3 text-white/40" />
+                  <span className="text-white/60">Server Disk: </span>
+                  <span className="text-white font-mono font-bold">{systemStats.server.disk_used_formatted} / {systemStats.server.disk_total_formatted}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Failed to load system metrics. Check connection.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

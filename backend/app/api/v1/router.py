@@ -15,6 +15,7 @@ from app.api.v1.analytics import router as analytics_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.utils import router as utils_router
+from app.api.v1.system_stats import router as system_stats_router
 
 api_v1_router = APIRouter()
 
@@ -35,3 +36,4 @@ api_v1_router.include_router(interventions_router)
 api_v1_router.include_router(factures_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(documents_router)
+api_v1_router.include_router(system_stats_router)
