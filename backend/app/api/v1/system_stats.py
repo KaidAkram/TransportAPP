@@ -57,18 +57,30 @@ def get_system_storage_usage(
     except Exception as e:
         print(f"Error fetching database size: {e}")
 
-    # 2. File Storage Usage (Supabase Storage)
+    # 2. File Storage Usage (Local uploads directory or DB)
     try:
-        # Supabase stores object metadata in storage.objects
-        storage_size_query = text("SELECT COALESCE(SUM((metadata->>'size')::bigint), 0) FROM storage.objects")
-        storage_size_bytes = db.execute(storage_size_query).scalar()
-        if storage_size_bytes is not None:
-            storage_size_bytes = int(storage_size_bytes)
-            response["file_storage"]["used_bytes"] = storage_size_bytes
-            response["file_storage"]["used_formatted"] = format_bytes(storage_size_bytes)
-            # 1 GB limit
-            storage_limit_bytes = 1024 * 1024 * 1024
-            response["file_storage"]["usage_percentage"] = round((storage_size_bytes / storage_limit_bytes) * 100, 1)
+        # Check size of the 'uploads' directory
+        uploads_dir = "uploads"
+        total_size = 0
+        if os.path.exists(uploads_dir):
+            for dirpath, _, filenames in os.walk(uploads_dir):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    if not os.path.islink(fp):
+                        total_size += os.path.getsize(fp)
+        
+        # If total_size is 0, fallback to checking the database documents table
+        if total_size == 0:
+            doc_size_query = text("SELECT COALESCE(SUM(size), 0) FROM documents")
+            db_doc_size = db.execute(doc_size_query).scalar()
+            if db_doc_size:
+                total_size = int(db_doc_size)
+
+        response["file_storage"]["used_bytes"] = total_size
+        response["file_storage"]["used_formatted"] = format_bytes(total_size)
+        # 1 GB limit
+        storage_limit_bytes = 1024 * 1024 * 1024
+        response["file_storage"]["usage_percentage"] = round((total_size / storage_limit_bytes) * 100, 1)
     except Exception as e:
         print(f"Error fetching file storage size: {e}")
 
