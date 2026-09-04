@@ -108,8 +108,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           <>
             <div className="my-2 h-[1px] w-full bg-white/10" />
             <Link
-              href="/admin/permissions"
-              className={cn("group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-300", pathname === "/admin/permissions" ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:bg-white/5 hover:text-white")}
+              href="/admin/features"
+              className={cn("group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-300", pathname === "/admin/features" ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:bg-white/5 hover:text-white")}
               title={collapsed ? t.navPermissions : undefined}
             >
               <CheckSquare className="h-4 w-4" />
