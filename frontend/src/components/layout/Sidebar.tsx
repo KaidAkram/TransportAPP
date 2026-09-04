@@ -24,23 +24,14 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { translations, SupportedLanguage } from "@/lib/i18n";
-import { useState } from "react";
 
-const iconMap: Record<string, React.ElementType> = {
-  LayoutDashboard,
-  Bus,
-  Users,
-  Building2,
-  Wrench,
-  Shield,
-  FileText,
-  Package,
-  Receipt,
-  BarChart3,
-};
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+}
+
+export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuthStore();
   const { company, userPreferences } = useSettingsStore();
 
@@ -150,7 +141,7 @@ export function Sidebar() {
         </button>
 
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggleCollapse}
           className="flex items-center justify-center w-full rounded-xl px-3 py-2 mt-2 text-white/40 hover:text-white hover:bg-white/5 transition-all duration-300"
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform duration-500", collapsed ? "rotate-180" : "")} />
