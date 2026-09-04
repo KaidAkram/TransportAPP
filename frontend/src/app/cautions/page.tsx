@@ -26,8 +26,13 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function CautionsPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [cautions, setCautions] = useState<Caution[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -140,13 +145,13 @@ export default function CautionsPage() {
         <div>
           <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <ShieldCheck className="w-3 h-3" />
-            Engagements Financiers
+            {t.cautionsHeaderPrefix}
           </p>
           <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
-            Gestion des Cautions Bancaires
+            {t.cautionsTitle}
           </h1>
           <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
-            Suivi des garanties et génération d'actes
+            {t.cautionsSubtitle}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -155,14 +160,14 @@ export default function CautionsPage() {
             className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
             <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
-            Actualiser
+            {t.refresh}
           </button>
           <button
             onClick={() => setIsDemandeModalOpen(true)}
             className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
             <Plus className="h-4 w-4" />
-            Nouvelle Demande
+            {t.newRequest || 'Nouvelle Demande'}
           </button>
         </div>
       </div>
@@ -171,11 +176,11 @@ export default function CautionsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Cautions</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalCautions}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Actes de garantie émis</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.totalCautionsDesc}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
             <ShieldCheck className="h-5 w-5 text-white/80 group-hover:text-white" />
@@ -184,11 +189,11 @@ export default function CautionsPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Création</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.inCreation}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] drop-shadow-[0_0_10px_rgba(131,77,251,0.3)]">{creationCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">En attente caution originale</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.inCreationDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
             <FileText className="h-5 w-5 text-[var(--color-electric-violet)]" />
@@ -197,11 +202,11 @@ export default function CautionsPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Chez le Client</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.atClient}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{chezClientCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">En attente preuve client</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.atClientDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
             <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
@@ -210,12 +215,12 @@ export default function CautionsPage() {
 
         <div className="glass-panel px-6 py-5 hover:bg-white/[0.02] transition-colors group overflow-hidden">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Encours Cautionné</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.guaranteedAmount}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalGarantiDZD.toLocaleString("fr-DZ")}</span>
               <span className="text-[10px] font-bold text-white/40 shrink-0">DZD</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Garanties globales</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.guaranteedAmountDesc}</p>
           </div>
         </div>
       </div>
@@ -230,7 +235,7 @@ export default function CautionsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par n° caution, client, contrat..."
+            placeholder={t.searchCaution}
             className="w-full bg-white/5 border border-white/10 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
@@ -240,10 +245,10 @@ export default function CautionsPage() {
             value={typeFilter}
             onChange={setTypeFilter}
             options={[
-              { value: "", label: "Tous les types de caution" },
-              { value: "DEMANDE", label: "Demande" },
-              { value: "SOUMISSION", label: "Soumission (AO)" },
-              { value: "BONNE_EXECUTION", label: "Bonne Exécution" },
+              { value: "", label: t.allCautionTypes },
+              { value: "DEMANDE", label: t.typeDemande },
+              { value: "SOUMISSION", label: t.typeSoumission },
+              { value: "BONNE_EXECUTION", label: t.typeBonneExec },
             ]}
           />
         </div>
@@ -253,7 +258,7 @@ export default function CautionsPage() {
             value={yearFilter}
             onChange={setYearFilter}
             options={[
-              { value: "", label: "Toutes les années" },
+              { value: "", label: t.allYears || "Toutes les années" },
               ...Array.from({ length: 10 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
@@ -265,9 +270,9 @@ export default function CautionsPage() {
           <GlassSelect
             value={monthFilter}
             onChange={setMonthFilter}
-            placeholder="Mois"
+            placeholder={t.allMonths}
             options={[
-              { value: "", label: "Tous les mois" },
+              { value: "", label: t.allMonths },
               { value: "1", label: "Janvier" },
               { value: "2", label: "Février" },
               { value: "3", label: "Mars" },
@@ -289,11 +294,11 @@ export default function CautionsPage() {
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: "", label: "Tous les statuts" },
-              { value: "CREATION", label: "En Création" },
-              { value: "CHEZ_CLIENT", label: "Chez le Client" },
-              { value: "RETOURNEE", label: "Récupéré" },
-              { value: "MAIN_LEVEE", label: "Mainlevée Accordée" },
+              { value: "", label: t.allCautionStatuses },
+              { value: "CREATION", label: "{t.inCreation}" },
+              { value: "CHEZ_CLIENT", label: "{t.atClient}" },
+              { value: "RETOURNEE", label: t.statusReturned },
+              { value: "MAIN_LEVEE", label: t.statusReleased },
             ]}
           />
         </div>
@@ -305,12 +310,12 @@ export default function CautionsPage() {
           <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <SortableHeader label="N° Caution" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Client / Bénéficiaire" field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Type & Objet" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Montant" field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap">Actions</th>
+                <SortableHeader label={t.colCautionNum} field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colClient} field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colTypeObjet} field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colMontant} field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colStatut} field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap">{t.colActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -324,8 +329,8 @@ export default function CautionsPage() {
                 <tr>
                   <td colSpan={6} className="p-0">
                     <EmptyState
-                      title="Aucune caution"
-                      message="Aucune caution enregistrée ne correspond à vos filtres."
+                      title={t.noCautions}
+                      message={t.noCautionsDesc}
                       icon={ShieldCheck}
                     />
                   </td>
@@ -349,7 +354,7 @@ export default function CautionsPage() {
                             <td colSpan={6} className="py-2 px-5 border-y border-white/5">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-3.5 w-3.5 text-white/40" />
-                                <span className="text-xs font-heading font-bold text-white/70 tracking-wider">ANNÉE {year}</span>
+                                <span className="text-xs font-heading font-bold text-white/70 tracking-wider">{t.yearPrefix} {year}</span>
                               </div>
                             </td>
                           </tr>
@@ -393,7 +398,7 @@ export default function CautionsPage() {
                               : "bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border-[var(--color-turbo)]/20"
                           }`}
                         >
-                          {isDemande ? "Demande" : isBonneExec ? "Bonne Exécution" : "Soumission"}
+                          {isDemande ? t.typeDemande : isBonneExec ? t.typeBonneExec : t.typeSoumission}
                         </span>
                         <p className="text-xs text-white/60 truncate" title={c.objet}>
                           {c.objet}
@@ -415,7 +420,7 @@ export default function CautionsPage() {
                           }`}
                         >
                           {isChezClient
-                            ? "Chez le Client"
+                            ? "{t.atClient}"
                             : isRetournee
                             ? "Récupéré"
                             : "Création"}
@@ -430,7 +435,7 @@ export default function CautionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--color-turbo)]/30 bg-[var(--color-turbo)]/10 px-3 py-1.5 text-xs text-[var(--color-turbo)] font-medium hover:bg-[var(--color-turbo)]/20 transition-colors shadow-sm whitespace-nowrap"
                               title="Téléverser la caution originale de la banque"
                             >
-                              <Upload className="h-3 w-3" /> Caution Originale
+                              <Upload className="h-3 w-3" /> {t.btnOriginal}
                             </button>
                           )}
                           {isChezClient && (
@@ -439,7 +444,7 @@ export default function CautionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors shadow-sm whitespace-nowrap"
                               title="Téléverser la preuve client"
                             >
-                              <Upload className="h-3 w-3" /> Preuve Client
+                              <Upload className="h-3 w-3" /> {t.btnClientProof}
                             </button>
                           )}
 
@@ -459,7 +464,7 @@ export default function CautionsPage() {
                           <button
                             onClick={() => handleDeleteClick(c.id, c.numero)}
                             className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
-                            title="Archiver la caution"
+                            title={t.archiveCaution}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -507,7 +512,7 @@ export default function CautionsPage() {
           isOpen={confirmModal.isOpen}
           onCancel={() => setConfirmModal({ isOpen: false, cautionId: null, cautionNum: "", isLoading: false })}
           onConfirm={handleDeleteConfirm}
-          title="Archiver la caution"
+          title={t.archiveCaution}
           message={`Êtes-vous sûr de vouloir archiver la caution ${confirmModal.cautionNum} ? Cette action la masquera des listes actives.`}
           confirmText="Archiver"
           cancelText="Annuler"

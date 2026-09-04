@@ -5,6 +5,7 @@ import { useSettingsStore, CompanySettings } from "@/stores/settingsStore";
 import { Building2, Save, Upload, MapPin, Building, Hash, Phone, Key, ShieldCheck } from "lucide-react";
 import { ThemeSwitcher } from "@/components/shared/ThemeSwitcher";
 import { TypographySwitcher } from "@/components/shared/TypographySwitcher";
+import { SystemHealthSection } from "@/components/shared/SystemHealthSection";
 
 export default function AdminSettingsPage() {
   const { company, updateCompany } = useSettingsStore();
@@ -282,6 +283,9 @@ export default function AdminSettingsPage() {
 
       {/* Theme Switcher — Admin only, below the form */}
       <ThemeSwitcher />
+
+      {/* System Health Section */}
+      <SystemHealthSection />
 
       {/* Typography Switcher — Admin only */}
       <TypographySwitcher />

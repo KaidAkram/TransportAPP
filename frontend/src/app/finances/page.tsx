@@ -29,6 +29,8 @@ import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 const STATUT_CONFIG: Record<string, { label: string; color: string; border: string; icon: any }> = {
   EN_ATTENTE: { label: "En attente", color: "text-yellow-400", border: "border-yellow-500/20", icon: Clock },
@@ -38,6 +40,9 @@ const STATUT_CONFIG: Record<string, { label: string; color: string; border: stri
 };
 
 export default function FinancesPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const router = useRouter();
   const { hasPermission, setDeniedAction } = useAuthStore();
   const [factures, setFactures] = useState<Facture[]>([]);
@@ -161,7 +166,7 @@ export default function FinancesPage() {
           <span className="text-[10px] font-accent text-emerald-400 uppercase tracking-widest mb-1 font-bold flex items-center gap-2">
             <DollarSign className="w-3 h-3" /> Module Facturation
           </span>
-          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight drop-shadow-md">Factures</h1>
+          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight drop-shadow-md">{t.invoicesTitle}</h1>
           <p className="text-sm text-white/60 mt-1 max-w-xl">
             Suivi des factures clients, statuts de paiement et encaissements
           </p>
@@ -185,7 +190,7 @@ export default function FinancesPage() {
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-xl bg-emerald-500 text-white hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:shadow-[0_0_25px_rgba(16,185,129,0.6)]"
           >
             <Plus className="h-4 w-4" />
-            Nouvelle Facture
+            {t.newInvoiceBtn}
           </button>
         </div>
       </div>
@@ -194,7 +199,7 @@ export default function FinancesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Montant Total Factures</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalInvoiceAmount}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white">{kpis.total_montant.toLocaleString("fr-FR")}</span>
               <span className="text-xs text-white/40 font-bold">DZD</span>
@@ -207,7 +212,7 @@ export default function FinancesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Encaissé</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalCashedInF}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-emerald-400">{kpis.total_encaisse.toLocaleString("fr-FR")}</span>
               <span className="text-xs text-emerald-400/60 font-bold">DZD</span>
@@ -220,7 +225,7 @@ export default function FinancesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Attente de Paiement</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.pendingPaymentF}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-yellow-400">{kpis.total_en_attente.toLocaleString("fr-FR")}</span>
               <span className="text-xs text-yellow-400/60 font-bold">DZD</span>
@@ -240,7 +245,7 @@ export default function FinancesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher une facture..."
+            placeholder={t.searchInvoicePh}
             className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:bg-[var(--color-haiti)] transition-all"
           />
         </div>
@@ -287,8 +292,8 @@ export default function FinancesPage() {
         <TableSkeleton rows={6} />
       ) : factures.length === 0 ? (
         <EmptyState
-          title="Aucune facture"
-          message="Créez votre première facture pour commencer le suivi."
+          title={t.noInvoicesTitle}
+          message={t.noInvoicesDesc}
           icon={Receipt}
         />
       ) : (
@@ -297,13 +302,13 @@ export default function FinancesPage() {
             <table className="w-full text-start text-xs">
               <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                 <tr>
-                  <SortableHeader label="N° Facture" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[13%]" />
-                  <SortableHeader label="Client" field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[17%]" />
-                  <SortableHeader label="Date" field="date_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
-                  <SortableHeader label="Mois Réalis." field="mois_prestation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[11%]" />
-                  <SortableHeader label="Montant" field="montant_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-end w-[13%]" />
-                  <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[10%]" />
-                  <SortableHeader label="Mode Règl." field="mode_paiement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[12%]" />
+                  <SortableHeader label={t.colInvoiceNum} field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[13%]" />
+                  <SortableHeader label={t.colClientF} field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[17%]" />
+                  <SortableHeader label={t.colDateF} field="date_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                  <SortableHeader label={t.colMonthDone} field="mois_prestation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[11%]" />
+                  <SortableHeader label={t.colAmountF} field="montant_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-end w-[13%]" />
+                  <SortableHeader label={t.colStatusF} field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[10%]" />
+                  <SortableHeader label={t.colPaymentMethod} field="mode_paiement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[12%]" />
                   <th className="py-3 px-4 text-center w-[8%] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
@@ -312,7 +317,7 @@ export default function FinancesPage() {
                   <Fragment key={year}>
                     <tr className="bg-white/5 border-b border-white/10">
                       <td colSpan={8} className="py-2 px-4 text-emerald-400 text-xs font-bold font-heading">
-                        Factures de l'année {year}
+                        {t.invoicesOfYear} {year}
                       </td>
                     </tr>
                     {groupedFactures[year].map((f) => {
@@ -353,7 +358,7 @@ export default function FinancesPage() {
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEncaisser(f); }}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 border border-emerald-500/20 transition-all text-[9px] font-bold font-accent uppercase tracking-wider"
-                              title="Encaisser"
+                              title={t.btnCashIn}
                             >
                               <CreditCard className="h-3 w-3" /> Encaisser
                             </button>
@@ -365,7 +370,7 @@ export default function FinancesPage() {
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className="p-1 rounded-lg border border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
-                              title="Document justificatif"
+                              title={t.docProof}
                             >
                               <Download className="h-3.5 w-3.5" />
                             </a>

@@ -3,8 +3,14 @@
 import Link from "next/link";
 import { Home, Search, Map } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function NotFound() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
+
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500 font-sans">
       <div className="relative mb-8 flex justify-center items-center">
@@ -25,7 +31,7 @@ export default function NotFound() {
         <motion.div
           animate={{ y: [-5, 5, -5] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-          className="absolute -top-6 -right-6 text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-[var(--color-turbo)] to-rose-400 opacity-90 drop-shadow-[0_0_15px_rgba(240,225,0,0.3)] z-20 select-none"
+          className="absolute -top-6 -end-6 text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-[var(--color-turbo)] to-rose-400 opacity-90 drop-shadow-[0_0_15px_rgba(240,225,0,0.3)] z-20 select-none"
         >
           404
         </motion.div>
@@ -38,11 +44,10 @@ export default function NotFound() {
         className="max-w-md mx-auto space-y-4 relative z-10"
       >
         <h1 className="text-2xl md:text-3xl font-heading font-bold text-white tracking-tight">
-          Destination Inconnue
+          {t.notFoundTitle}
         </h1>
         <p className="text-white/50 text-sm leading-relaxed">
-          La page que vous cherchez n&apos;existe plus ou a été déplacée. 
-          Vérifiez l&apos;URL ou retournez au tableau de bord.
+          {t.notFoundDesc}
         </p>
 
         <div className="pt-6 flex flex-wrap items-center justify-center gap-3">
@@ -51,7 +56,7 @@ export default function NotFound() {
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#9d6cfc] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(131,77,251,0.3)] transition-all flex items-center justify-center gap-2 group"
           >
             <Home className="w-4 h-4" />
-            Tableau de Bord
+            {t.btnDashboard}
           </Link>
           <button
             onClick={() => {
@@ -62,7 +67,7 @@ export default function NotFound() {
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium glass-panel border-white/10 hover:bg-white/10 text-white/80 hover:text-white transition-all flex items-center justify-center gap-2 group"
           >
             <Search className="w-4 h-4 text-white/50 group-hover:text-[var(--color-turbo)] transition-colors" />
-            Lancer une recherche
+            {t.btnSearch}
           </button>
         </div>
       </motion.div>

@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { StrategicBIKpi } from "@/types/analytics";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 // Quantum 2025 Palette
 const COLOR_PRIMARY = "#834dfb"; // Electric Violet
@@ -27,6 +29,9 @@ const PIE_COLORS = [
 ];
 
 export default function AnalyticsPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [data, setData] = useState<StrategicBIKpi | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,11 +103,11 @@ export default function AnalyticsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 mt-1 border-t border-white/5 pt-3">
                 <div>
-                  <p className="text-[10px] text-white/40 uppercase">Missions</p>
+                  <p className="text-[10px] text-white/40 uppercase">{t.missionsLabel}</p>
                   <p className="font-mono text-sm text-white font-bold">{entryData.nombre_missions}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-white/40 uppercase">Contrats</p>
+                  <p className="text-[10px] text-white/40 uppercase">{t.contractsLabel}</p>
                   <p className="font-mono text-sm text-white font-bold">{entryData.nombre_contrats}</p>
                 </div>
               </div>
@@ -117,7 +122,7 @@ export default function AnalyticsPage() {
                 <p className="text-sm font-bold text-white uppercase tracking-wider">{entryData.name}</p>
               </div>
               <div className="flex flex-col gap-1 mt-1 border-t border-white/5 pt-3">
-                <p className="text-[10px] text-white/40 uppercase">Montant Alloué</p>
+                <p className="text-[10px] text-white/40 uppercase">{t.allocatedAmount}</p>
                 <p className="font-mono text-lg text-white font-bold">{formatDZD(entryData.value)}</p>
                 <div className="inline-block px-2 py-1 bg-white/5 rounded text-xs font-bold text-white/70 w-fit mt-1">
                   {((entryData.value / totalExpenses) * 100).toFixed(1)}% du TCO
@@ -167,7 +172,7 @@ export default function AnalyticsPage() {
             <Activity className="h-8 w-8 text-[var(--color-electric-violet)]" />
             Trésorerie & Rentabilité
           </h1>
-          <p className="mt-2 text-sm text-white/50">Vue financière globale épurée.</p>
+          <p className="mt-2 text-sm text-white/50">{t.analyticsSubtitle}</p>
         </div>
       </div>
 
@@ -181,7 +186,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div className="relative z-10 mt-6">
-            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">CA Annuel (Facturé)</p>
+            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">{t.annualRevenue}</p>
             <p className="mt-1 font-mono text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{formatDZD(data.chiffre_affaires_annuel_dzd)}</p>
           </div>
         </motion.div>
@@ -193,10 +198,10 @@ export default function AnalyticsPage() {
             <div className="rounded-xl bg-[var(--color-turbo)]/10 p-3 text-[var(--color-turbo)] shadow-[0_0_15px_rgba(240,225,0,0.1)]">
               <Activity className="h-6 w-6" />
             </div>
-            <p className="text-[10px] font-accent font-bold text-[var(--color-turbo)] opacity-80">CA - Dépenses</p>
+            <p className="text-[10px] font-accent font-bold text-[var(--color-turbo)] opacity-80">{t.revenueVsExpenses}</p>
           </div>
           <div className="relative z-10 mt-6">
-            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">Marge Nette Globale</p>
+            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">{t.netMarginGlobal}</p>
             <p className="mt-1 font-mono text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{formatDZD(data.marge_nette_globale_dzd)}</p>
           </div>
         </motion.div>
@@ -210,7 +215,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div className="relative z-10 mt-6">
-            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">Total Encaissé (Cash-in)</p>
+            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">{t.totalCashedIn}</p>
             <p className="mt-1 font-mono text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{formatDZD(data.total_encaisse_dzd)}</p>
           </div>
         </motion.div>
@@ -227,7 +232,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div className="relative z-10 mt-6">
-            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">Créances Clients</p>
+            <p className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-white/40">{t.clientReceivables}</p>
             <p className="mt-1 font-mono text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{formatDZD(data.total_creances_clients_dzd)}</p>
           </div>
         </motion.div>
@@ -244,8 +249,8 @@ export default function AnalyticsPage() {
           className="lg:col-span-3 glass-panel rounded-2xl border border-white/5 p-6"
         >
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white">Évolution Mensuelle (Cash Flow)</h2>
-            <p className="text-xs text-white/40 font-medium">Comparaison Chiffre d'Affaires vs Marge vs Dépenses</p>
+            <h2 className="text-lg font-bold text-white">{t.monthlyEvolution}</h2>
+            <p className="text-xs text-white/40 font-medium">{t.monthlyEvolDesc}</p>
           </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -281,9 +286,9 @@ export default function AnalyticsPage() {
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                 
                 {/* activeDot={{ stroke: 'none' }} removes the annoying white borders on hover dots */}
-                <Area type="monotone" name="Chiffre d'Affaires" dataKey="chiffre_affaires" stroke={COLOR_PRIMARY} strokeWidth={3} fillOpacity={1} fill="url(#colorCA)" activeDot={{ r: 6, stroke: 'none', fill: COLOR_PRIMARY }} />
-                <Area type="monotone" name="Marge Nette" dataKey="marge_nette" stroke={COLOR_SECONDARY} strokeWidth={3} fillOpacity={1} fill="url(#colorMarge)" activeDot={{ r: 6, stroke: 'none', fill: COLOR_SECONDARY }} />
-                <Area type="monotone" name="Dépenses Exploitation" dataKey="depenses_exploitation" stroke={COLOR_MUTED} strokeWidth={2} fillOpacity={0} activeDot={{ r: 4, stroke: 'none', fill: COLOR_MUTED }} />
+                <Area type="monotone" name={t.revenueLabel} dataKey="chiffre_affaires" stroke={COLOR_PRIMARY} strokeWidth={3} fillOpacity={1} fill="url(#colorCA)" activeDot={{ r: 6, stroke: 'none', fill: COLOR_PRIMARY }} />
+                <Area type="monotone" name={t.netMarginLabel} dataKey="marge_nette" stroke={COLOR_SECONDARY} strokeWidth={3} fillOpacity={1} fill="url(#colorMarge)" activeDot={{ r: 6, stroke: 'none', fill: COLOR_SECONDARY }} />
+                <Area type="monotone" name={t.operatingExpenses} dataKey="depenses_exploitation" stroke={COLOR_MUTED} strokeWidth={2} fillOpacity={0} activeDot={{ r: 4, stroke: 'none', fill: COLOR_MUTED }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -298,8 +303,8 @@ export default function AnalyticsPage() {
         >
           <div className="mb-6 flex items-center justify-between z-10">
             <div>
-              <h2 className="text-lg font-bold text-white">Top Clients</h2>
-              <p className="text-xs text-white/40 font-medium">Survolez un client pour voir les détails (Missions, Contrats)</p>
+              <h2 className="text-lg font-bold text-white">{t.topClientsTitle}</h2>
+              <p className="text-xs text-white/40 font-medium">{t.topClientsDesc}</p>
             </div>
             <Users className="h-5 w-5 text-white/20" />
           </div>
@@ -356,8 +361,8 @@ export default function AnalyticsPage() {
           className="glass-panel rounded-2xl border border-white/5 p-6 flex flex-col relative overflow-hidden"
         >
           <div className="mb-6 z-10">
-            <h2 className="text-lg font-bold text-white">Charges (TCO)</h2>
-            <p className="text-xs text-white/40 font-medium">Survolez pour les détails financiers</p>
+            <h2 className="text-lg font-bold text-white">{t.tcoTitle}</h2>
+            <p className="text-xs text-white/40 font-medium">{t.tcoDesc}</p>
           </div>
           <div className="h-[350px] w-full z-10 transition-all duration-300">
             {pieData.length > 0 ? (
@@ -393,7 +398,7 @@ export default function AnalyticsPage() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-white/40 font-medium text-sm flex items-center justify-center h-full">Aucune dépense</div>
+              <div className="text-white/40 font-medium text-sm flex items-center justify-center h-full">{t.noExpenses}</div>
             )}
           </div>
         </motion.div>

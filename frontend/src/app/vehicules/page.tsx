@@ -25,8 +25,13 @@ import { Portal } from "@/components/shared/Portal";
 import { GlassConfirmModal } from "@/components/ui/GlassConfirmModal";
 import { GlassSelect } from "@/components/ui/GlassSelect";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function VehiculesPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [vehicles, setVehicles] = useState<Vehicule[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -189,56 +194,56 @@ export default function VehiculesPage() {
         <div className="glass-panel p-5 relative overflow-hidden group hover:border-white/20 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors" />
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">Total Véhicules</h3>
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">{t.totalVehicles}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-white/70">
               <Bus className="h-4 w-4" />
             </div>
           </div>
           <div>
             <div className="text-3xl font-heading font-bold text-white drop-shadow-sm">{totalCount}</div>
-            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">Flotte active sous gestion</p>
+            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">{t.activeFleet}</p>
           </div>
         </div>
 
         <div className="glass-panel p-5 relative overflow-hidden group hover:border-[var(--color-turbo)]/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(240,225,0,0.1)]">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--color-turbo)]/10 rounded-full blur-2xl group-hover:bg-[var(--color-turbo)]/20 transition-colors" />
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">Disponibles</h3>
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">{t.availableVehicles}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-turbo)]/10 text-[var(--color-turbo)]">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
           <div>
             <div className="text-3xl font-heading font-bold text-[var(--color-turbo)] drop-shadow-sm">{disponibles}</div>
-            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">Prêts pour affectation</p>
+            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">{t.readyForAssignment}</p>
           </div>
         </div>
 
         <div className="glass-panel p-5 relative overflow-hidden group hover:border-[var(--color-electric-violet)]/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(138,43,226,0.1)]">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[var(--color-electric-violet)]/10 rounded-full blur-2xl group-hover:bg-[var(--color-electric-violet)]/20 transition-colors" />
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">En Mission</h3>
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">{t.onMission}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)]">
               <Clock className="h-4 w-4" />
             </div>
           </div>
           <div>
             <div className="text-3xl font-heading font-bold text-[var(--color-electric-violet)] drop-shadow-sm">{enMission}</div>
-            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">Sur route actuellement</p>
+            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">{t.onRoadCurrently}</p>
           </div>
         </div>
 
         <div className="glass-panel p-5 relative overflow-hidden group hover:border-rose-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(244,63,94,0.1)]">
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-colors" />
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">Maintenance / Arrêt</h3>
+            <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold">{t.maintenanceStop}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400">
               <Wrench className="h-4 w-4" />
             </div>
           </div>
           <div>
             <div className="text-3xl font-heading font-bold text-rose-400 drop-shadow-sm">{maintenance}</div>
-            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">Atelier ou immobilisés</p>
+            <p className="text-[10px] text-white/40 mt-1 font-accent tracking-wider uppercase">{t.workshopOrImmobilized}</p>
           </div>
         </div>
       </div>
@@ -253,7 +258,7 @@ export default function VehiculesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par immatriculation ou marque..."
+            placeholder={t.searchVehiclePh}
             className="w-full bg-white/5 border border-white/10 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
@@ -321,8 +326,8 @@ export default function VehiculesPage() {
           </div>
         ) : vehicles.length === 0 ? (
           <EmptyState 
-            title="Aucun véhicule trouvé" 
-            message="Ajustez vos filtres ou ajoutez un nouveau véhicule à la flotte." 
+            title={t.noVehiclesFound} 
+            message={t.noVehiclesDesc} 
             icon={Bus} 
           />
         ) : (
@@ -331,11 +336,11 @@ export default function VehiculesPage() {
               <table className="w-full text-start text-xs table-fixed">
                 <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                   <tr>
-                    <SortableHeader label="Immatriculation" field="immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[16%]" />
-                    <SortableHeader label="Véhicule" field="marque" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[20%]" />
+                    <SortableHeader label={t.colImmat} field="immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[16%]" />
+                    <SortableHeader label={t.colBrand} field="marque" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[20%]" />
                     <SortableHeader label="Type" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
-                    <SortableHeader label="Places" field="nombre_places" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%] text-center" />
-                    <SortableHeader label="Kilométrage" field="kilometrage_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-end" />
+                    <SortableHeader label={t.colSeats} field="nombre_places" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%] text-center" />
+                    <SortableHeader label={t.colMileage} field="kilometrage_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-end" />
                     <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-center" />
                     <th className="py-3 px-4 w-[12%] text-end font-accent uppercase tracking-widest text-white/50 text-[10px]">Actions</th>
                   </tr>
@@ -368,7 +373,7 @@ export default function VehiculesPage() {
                           <Link
                             href={`/vehicules/${v.id}`}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white/50 hover:text-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/10 transition-colors text-[10px] font-bold font-accent uppercase tracking-wider"
-                            title="Voir la fiche"
+                            title={t.btnViewSheet}
                           >
                             <Eye className="h-3.5 w-3.5" /> Fiche
                           </Link>
@@ -376,7 +381,7 @@ export default function VehiculesPage() {
                             <button
                               onClick={() => setConfirmModal({ isOpen: true, vehicleId: v.id, vehicleImmat: v.immatriculation, isLoading: false, action: "archive" })}
                               className="p-1.5 rounded-lg text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                              title="Mettre hors service"
+                              title={t.btnOutOfService}
                             >
                               <Archive className="h-3.5 w-3.5" />
                             </button>
@@ -384,7 +389,7 @@ export default function VehiculesPage() {
                             <button
                               onClick={() => setConfirmModal({ isOpen: true, vehicleId: v.id, vehicleImmat: v.immatriculation, isLoading: false, action: "restore" })}
                               className="p-1.5 rounded-lg text-white/30 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                              title="Remettre en service"
+                              title={t.btnBackInService}
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                             </button>
@@ -414,8 +419,8 @@ export default function VehiculesPage() {
                   <tr>
                     <th className="py-3 px-4 w-[15%]">Date</th>
                     <th className="py-3 px-4 w-[20%]">Immatriculation</th>
-                    <th className="py-3 px-4 w-[20%]">Chauffeur</th>
-                    <th className="py-3 px-4 w-[30%]">Lieu / Circonstances</th>
+                    <th className="py-3 px-4 w-[20%]">{t.colDriver}</th>
+                    <th className="py-3 px-4 w-[30%]">{t.colLocationCircumstances}</th>
                     <th className="py-3 px-4 w-[15%] text-end">Statut</th>
                   </tr>
                 </thead>
@@ -461,14 +466,12 @@ export default function VehiculesPage() {
       />
       <GlassConfirmModal
         isOpen={confirmModal.isOpen}
-        title={confirmModal.action === "archive" ? "Mettre hors service" : "Remettre en service"}
+        title={confirmModal.action === "archive" ? t.confirmOutOfServiceTitle : t.confirmBackInServiceTitle}
         message={
-          confirmModal.action === "archive"
-            ? `Êtes-vous sûr de vouloir archiver et mettre hors service le véhicule ${confirmModal.vehicleImmat} ?`
-            : `Êtes-vous sûr de vouloir restaurer et remettre en service le véhicule ${confirmModal.vehicleImmat} ?`
+          confirmModal.action === "archive" ? t.confirmOutOfServiceMsg.replace("{immat}", confirmModal.vehicleImmat) : t.confirmBackInServiceMsg.replace("{immat}", confirmModal.vehicleImmat)
         }
-        confirmText={confirmModal.action === "archive" ? "Archiver" : "Désarchiver"}
-        cancelText="Annuler"
+        confirmText={confirmModal.action === "archive" ? t.btnArchiveVehicle : t.btnRestoreVehicle}
+        cancelText={t.cancel}
         type={confirmModal.action === "archive" ? "danger" : "info"}
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmModal({ isOpen: false, vehicleId: null, vehicleImmat: "", isLoading: false, action: "archive" })}

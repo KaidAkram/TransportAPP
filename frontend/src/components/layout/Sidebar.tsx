@@ -40,11 +40,15 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   const NAV_ITEMS = [
     { name: t.navDashboard, href: "/", icon: LayoutDashboard },
+    { name: t.navFinances, href: "/finances", icon: Receipt },
+    { name: t.navAnalytics, href: "/analytics", icon: BarChart3 },
     { name: t.navVehicles, href: "/vehicules", icon: Bus },
     { name: t.navEmployees, href: "/employes", icon: Users },
     { name: t.navCRM, href: "/partenaires", icon: Building2 },
     { name: t.navContracts, href: "/contrats", icon: FileText },
     { name: t.navCautions, href: "/cautions", icon: Shield },
+    { name: t.navMaintenance, href: "/maintenance", icon: Wrench },
+    { name: t.navStock, href: "/stock", icon: Package },
   ];
 
   return (

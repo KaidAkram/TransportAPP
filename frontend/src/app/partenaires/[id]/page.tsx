@@ -38,9 +38,14 @@ import { api } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/constants";
 import { PartenaireDetail } from "@/types/partenaire";
 import { Portal } from "@/components/shared/Portal";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function PartenaireDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [partner, setPartner] = useState<PartenaireDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"infos" | "contacts" | "documents" | "crm">("infos");
@@ -74,8 +79,8 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
   const handleDeleteContact = (contactId: string, name: string) => {
     setConfirmModal({
       isOpen: true,
-      title: "Confirmer la suppression",
-      message: `Êtes-vous sûr de vouloir supprimer l'interlocuteur ${name} de ce compte ? Cette action est irréversible.`,
+      title: t.deleteContactTitle,
+      message: t.deleteContactMsg.replace("{name}", name),
       type: "danger",
       onConfirm: async () => {
         try {
@@ -99,7 +104,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <Building2 className="h-10 w-10 animate-bounce text-[var(--color-electric-violet)]" />
-        <p className="text-sm font-accent uppercase tracking-widest text-white/50 font-bold">Chargement du dossier partenaire...</p>
+        <p className="text-sm font-accent uppercase tracking-widest text-white/50 font-bold">{t.loadingPartner}</p>
       </div>
     );
   }
@@ -108,12 +113,12 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
     return (
       <div className="text-center py-20 space-y-6">
         <AlertTriangle className="h-12 w-12 text-red-400 mx-auto" />
-        <h2 className="text-lg font-bold text-white">Partenaire introuvable</h2>
+        <h2 className="text-lg font-bold text-white">{t.partnerNotFound}</h2>
         <Link
           href="/partenaires"
           className="inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 px-5 py-2.5 text-sm font-bold text-white border border-white/10 transition-all"
         >
-          Retour au portefeuille CRM
+          {t.backToCRM}
         </Link>
       </div>
     );
@@ -131,7 +136,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
             className="inline-flex items-center gap-2 text-xs font-bold text-white/50 hover:text-white transition-colors w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à l'annuaire
+            {t.backToDirectory}
           </Link>
 
           <div>
@@ -147,7 +152,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
                 }`}
               >
                 {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
-                {isClient ? "Client B2B" : "Fournisseur"}
+                {isClient ? t.roleClient : t.roleSupplier}
               </span>
               <span className="scale-90 origin-left"><StatusBadge status={partner.statut_crm || "Actif"} /></span>
             </div>
@@ -189,7 +194,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel p-6 relative overflow-hidden group flex flex-col justify-between">
           <div className="flex flex-row items-center justify-between mb-4 relative z-10">
-            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">Interlocuteur Principal</h3>
+            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">{t.mainContact}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-white border border-white/10">
               <Users className="h-4 w-4" />
             </div>
@@ -198,7 +203,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
             <div className="text-base font-bold text-white truncate">
               {partner.contact_principal
                 ? `${partner.contact_principal.nom} ${partner.contact_principal.prenom}`
-                : "Non défini"}
+                : "{t.notDefined}"}
             </div>
             <p className="text-[11px] text-white/40 mt-1 font-mono tracking-wider">
               {partner.contact_principal?.telephone || partner.telephone_principal || "—"}
@@ -208,40 +213,40 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
 
         <div className="glass-panel p-6 relative overflow-hidden group flex flex-col justify-between">
           <div className="flex flex-row items-center justify-between mb-4 relative z-10">
-            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">Contacts Répertoire</h3>
+            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">{t.directoryContacts}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/20">
               <Building2 className="h-4 w-4" />
             </div>
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-[var(--color-electric-violet)] font-mono">{partner.total_contacts}</div>
-            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">Interlocuteurs enregistrés</p>
+            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">{t.registeredContacts}</p>
           </div>
         </div>
 
         <div className="glass-panel p-6 relative overflow-hidden group flex flex-col justify-between">
           <div className="flex flex-row items-center justify-between mb-4 relative z-10">
-            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">Échanges & Notes CRM</h3>
+            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">{t.crmNotesExchanges}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
               <MessageSquare className="h-4 w-4" />
             </div>
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-amber-400 font-mono">{partner.total_notes}</div>
-            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">Appels & négociations</p>
+            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">{t.callsAndNegotiations}</p>
           </div>
         </div>
 
         <div className="glass-panel p-6 relative overflow-hidden group flex flex-col justify-between">
           <div className="flex flex-row items-center justify-between mb-4 relative z-10">
-            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">Documents Juridiques</h3>
+            <h3 className="text-[10px] font-accent uppercase tracking-widest text-white/50">{t.legalDocuments}</h3>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <FileText className="h-4 w-4" />
             </div>
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-emerald-400 font-mono">{partner.total_documents}</div>
-            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">RC, NIF & attestations</p>
+            <p className="text-[11px] text-white/40 mt-1 font-mono uppercase tracking-wider">{t.rcNifAttestations}</p>
           </div>
         </div>
       </div>
@@ -299,30 +304,30 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-150">
           <div className="glass-panel overflow-hidden">
             <div className="px-8 py-6 border-b border-white/5 bg-white/[0.02]">
-              <h3 className="text-sm font-bold font-heading text-white">Identité Fiscale & Juridique</h3>
+              <h3 className="text-sm font-bold font-heading text-white">{t.legalFiscalIdentity}</h3>
               <p className="text-xs text-white/40 mt-1.5">Données réglementaires de l&apos;entreprise</p>
             </div>
             <div className="p-0">
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Raison Sociale</span>
+                  <span className="text-white/40 font-medium">{t.corporateName}</span>
                   <span className="font-bold text-white text-end">{partner.nom_commercial}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">NIF (Fiscal)</span>
-                  <span className="font-mono font-bold text-[var(--color-electric-violet)] text-end">{partner.nif || "Non renseigné"}</span>
+                  <span className="text-white/40 font-medium">{t.nifFiscal}</span>
+                  <span className="font-mono font-bold text-[var(--color-electric-violet)] text-end">{partner.nif || "{t.notProvided}"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Registre de Commerce (RC)</span>
-                  <span className="font-mono text-white text-end">{partner.registre_commerce || "Non renseigné"}</span>
+                  <span className="text-white/40 font-medium">{t.rcTradeRegister}</span>
+                  <span className="font-mono text-white text-end">{partner.registre_commerce || "{t.notProvided}"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">NIS (Statistique)</span>
-                  <span className="font-mono text-white text-end">{partner.nis || "Non renseigné"}</span>
+                  <span className="text-white/40 font-medium">{t.nisStat}</span>
+                  <span className="font-mono text-white text-end">{partner.nis || "{t.notProvided}"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Article d&apos;Imposition</span>
-                  <span className="font-mono text-white text-end">{partner.article_imposition || "Non renseigné"}</span>
+                  <span className="font-mono text-white text-end">{partner.article_imposition || "{t.notProvided}"}</span>
                 </div>
               </div>
             </div>
@@ -330,31 +335,31 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
 
           <div className="glass-panel overflow-hidden">
             <div className="px-8 py-6 border-b border-white/5 bg-white/[0.02]">
-              <h3 className="text-sm font-bold font-heading text-white">Localisation & Coordonnées</h3>
-              <p className="text-xs text-white/40 mt-1.5">Siège et canaux de communication</p>
+              <h3 className="text-sm font-bold font-heading text-white">{t.locationContact}</h3>
+              <p className="text-xs text-white/40 mt-1.5">{t.locationContactDesc}</p>
             </div>
             <div className="p-0">
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Wilaya & Commune</span>
+                  <span className="text-white/40 font-medium">{t.wilayaCommune}</span>
                   <span className="font-medium text-white text-end">
                     {partner.wilaya} {partner.commune ? `(${partner.commune})` : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Adresse Siège</span>
-                  <span className="text-white text-end">{partner.adresse || "Non renseignée"}</span>
+                  <span className="text-white/40 font-medium">{t.hqAddress}</span>
+                  <span className="text-white text-end">{partner.adresse || "{t.notProvided}e"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Téléphone Standard</span>
+                  <span className="text-white/40 font-medium">{t.standardPhone}</span>
                   <span className="font-mono font-bold text-white text-end">{partner.telephone_principal || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Email Général</span>
+                  <span className="text-white/40 font-medium">{t.generalEmail}</span>
                   <span className="text-white text-end">{partner.email || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 font-medium">Site Web</span>
+                  <span className="text-white/40 font-medium">{t.website}</span>
                   <span className="text-end justify-self-end">
                     {partner.site_web ? (
                       <a
@@ -401,7 +406,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/20 mb-4">
                 <Users className="h-8 w-8" />
               </div>
-              <p className="text-sm font-bold text-white">Aucun contact enregistré</p>
+              <p className="text-sm font-bold text-white">{t.noContactsFound}</p>
               <p className="text-xs text-white/40 mt-1.5 max-w-md">
                 Ajoutez les coordonnées des interlocuteurs clés pour faciliter le suivi opérationnel.
               </p>
@@ -412,12 +417,12 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b border-white/5">
-                      <TableHead>Nom & Prénom</TableHead>
-                      <TableHead>Fonction</TableHead>
-                      <TableHead>Téléphone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Rôle</TableHead>
-                      <TableHead className="text-end">Actions</TableHead>
+                      <TableHead>{t.colNameFirstname}</TableHead>
+                      <TableHead>{t.colFunction}</TableHead>
+                      <TableHead>{t.colPhone}</TableHead>
+                      <TableHead>{t.colEmail}</TableHead>
+                      <TableHead>{t.colRole}</TableHead>
+                      <TableHead className="text-end">{t.colActions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -484,7 +489,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/20 mb-4">
                 <FileText className="h-8 w-8" />
               </div>
-              <p className="text-sm font-bold text-white">Aucun document juridique rattaché</p>
+              <p className="text-sm font-bold text-white">{t.noDocsFound}</p>
               <p className="text-xs text-white/40 mt-1.5 max-w-md">
                 Joignez le Registre de Commerce (RC), l&apos;attestation NIF ou les statuts d&apos;entreprise.
               </p>
@@ -506,7 +511,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
                   </div>
                   <div className="p-5 flex-1 flex flex-col gap-4">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-white/40">Émission</span>
+                      <span className="text-white/40">{t.emissionDate}</span>
                       <span className="font-mono font-bold text-white">{doc.date_emission || "—"}</span>
                     </div>
                     <div className="mt-auto pt-2">
@@ -552,7 +557,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/20 mb-4">
                 <MessageSquare className="h-8 w-8" />
               </div>
-              <p className="text-sm font-bold text-white">Aucun échange consigné</p>
+              <p className="text-sm font-bold text-white">{t.noCRMNotes}</p>
               <p className="text-xs text-white/40 mt-1.5 max-w-md">
                 Consignez les appels téléphoniques, réunions de travail ou comptes-rendus de négociation.
               </p>
@@ -615,8 +620,8 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
         <GlassDocumentManager
           entityType="partenaire"
           entityId={partner.id}
-          title="Fichiers & Documents Joints"
-          subtitle="Gérez les copies scannées (Registre de commerce, RIB, Contrats, etc.)"
+          title={t.fileManagerTitle}
+          subtitle={t.fileManagerSubtitle}
         />
       </div>
       {/* Confirm Modal */}

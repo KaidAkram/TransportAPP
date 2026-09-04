@@ -27,9 +27,14 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 import { SortableHeader } from "@/components/ui/SortableHeader";
 
 export default function StockPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [kpiData, setKpiData] = useState({
     total_references: 0,
@@ -199,11 +204,11 @@ export default function StockPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Références</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalReferences}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white">{kpiData.total_references}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Articles au catalogue magasin</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.catalogItems}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
             <Package className="h-5 w-5 text-white/80 group-hover:text-white" />
@@ -212,11 +217,11 @@ export default function StockPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Stock Normal</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.normalStock}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{kpiData.total_stock_normal}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Niveau de stock optimal</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.optimalStockLevel}</p>
           </div>
           <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/40 group-hover:border-emerald-500/60 transition-colors">
             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
@@ -225,11 +230,11 @@ export default function StockPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Stock Faible (&le; Min)</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.lowStock}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{kpiData.total_stock_faible}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">À commander rapidement</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.orderQuickly}</p>
           </div>
           <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
             <AlertTriangle className="h-5 w-5 text-[var(--color-turbo)]" />
@@ -238,11 +243,11 @@ export default function StockPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Rupture de Stock</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.stockOutage}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)]">{kpiData.total_rupture}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Stock épuisé (0 dispo)</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.outOfStockDesc}</p>
           </div>
           <div className="p-3 bg-red-500/10 rounded-full border border-red-500/20 group-hover:border-red-500/40 transition-colors">
             <Package className="h-5 w-5 text-red-500" />
@@ -260,7 +265,7 @@ export default function StockPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par réf, désignation, marque, emplacement..."
+            placeholder={t.searchPiecePh}
             className="w-full bg-white/5 border border-white/10 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
@@ -270,14 +275,14 @@ export default function StockPage() {
             value={categoryFilter}
             onChange={setCategoryFilter}
             options={[
-              { value: "", label: "Toutes les catégories" },
-              { value: "Filtres", label: "Filtres" },
-              { value: "Freinage", label: "Freinage" },
-              { value: "Moteur", label: "Moteur & Courroies" },
-              { value: "Lubrifiants", label: "Huiles & Lubrifiants" },
-              { value: "Carrosserie", label: "Carrosserie & Vitrage" },
-              { value: "Pneumatiques", label: "Pneumatiques" },
-              { value: "Autre", label: "Autre..." },
+              { value: "", label: t.allCategories },
+              { value: "Filtres", label: t.filtersLabel },
+              { value: "Freinage", label: t.brakingLabel },
+              { value: "Moteur", label: t.engineBelts },
+              { value: "Lubrifiants", label: t.oilsLubricants },
+              { value: "Carrosserie", label: t.bodyworkGlass },
+              { value: "Pneumatiques", label: t.tiresLabel },
+              { value: "Autre", label: t.otherLabel },
             ]}
           />
         </div>
@@ -287,7 +292,7 @@ export default function StockPage() {
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: "", label: "Tous les niveaux de stock" },
+              { value: "", label: t.allStockLevels },
               { value: "NORMAL", label: "Stock Normal" },
               { value: "FAIBLE", label: "Stock Faible" },
               { value: "RUPTURE", label: "Rupture de Stock" },
@@ -301,7 +306,7 @@ export default function StockPage() {
             onChange={setYearFilter}
             placeholder="Année"
             options={[
-              { value: "", label: "Toutes les années" },
+              { value: "", label: t.allYears || "Toutes les années" },
               ...Array.from({ length: 10 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
@@ -339,14 +344,14 @@ export default function StockPage() {
           <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <SortableHeader label="Référence" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Désignation & Marque" field="designation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[25%] sm:w-[35%]" />
-                <SortableHeader label="Catégorie" field="categorie" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Emplacement" field="emplacement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Stock Actuel" field="stock_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Seuil Min" field="stock_minimum" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">État Stock</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap min-w-[130px] w-[130px]">Actions</th>
+                <SortableHeader label={t.colRef} field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colDesignationBrand} field="designation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[25%] sm:w-[35%]" />
+                <SortableHeader label={t.colCategory} field="categorie" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colLocation} field="emplacement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colCurrentStock} field="stock_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colMinThreshold} field="stock_minimum" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">{t.colStockState}</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap min-w-[130px] w-[130px]">{t.colActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -360,8 +365,8 @@ export default function StockPage() {
                 <tr>
                   <td colSpan={8} className="p-0">
                     <EmptyState 
-                      title="Aucune pièce trouvée" 
-                      message="Aucune référence ne correspond à vos filtres de recherche." 
+                      title={t.noPieceFound} 
+                      message={t.noPieceMatch} 
                       icon={Package} 
                     />
                   </td>
@@ -383,7 +388,7 @@ export default function StockPage() {
                           {p.designation}
                         </p>
                         <p className="text-[10px] text-white/40 mt-1 break-words">
-                          Marque : {p.marque || "—"}
+                          {t.brandLabel} {p.marque || "—"}
                         </p>
                       </td>
                       <td className="py-4 px-5">
@@ -397,12 +402,12 @@ export default function StockPage() {
                       </td>
                       <td className="py-4 px-5">
                         <span className="font-mono text-sm font-extrabold text-white">
-                          {p.stock_actuel} <span className="text-[10px] text-white/40 font-normal">Pièce(s)</span>
+                          {p.stock_actuel} <span className="text-[10px] text-white/40 font-normal">{t.pieceUnit}</span>
                         </span>
                       </td>
                       <td className="py-4 px-5">
                         <span className="font-mono text-xs text-white/60">
-                          {p.stock_minimum} <span className="text-[10px] text-white/30 font-normal">Pièce(s)</span>
+                          {p.stock_minimum} <span className="text-[10px] text-white/30 font-normal">{t.pieceUnit}</span>
                         </span>
                       </td>
                       <td className="py-4 px-5">
@@ -417,9 +422,9 @@ export default function StockPage() {
                         >
                           {p.statut_stock === "RUPTURE" && <AlertTriangle className="h-3.5 w-3.5" />}
                           {p.statut_stock === "FAIBLE" && <AlertTriangle className="h-3.5 w-3.5" />}
-                          {p.statut_stock === "NORMAL" && "Normal"}
-                          {p.statut_stock === "RUPTURE" && "Rupture"}
-                          {p.statut_stock === "FAIBLE" && "Faible"}
+                          {p.statut_stock === "NORMAL" && t.stateNormal}
+                          {p.statut_stock === "RUPTURE" && t.stateOutage}
+                          {p.statut_stock === "FAIBLE" && t.stateLow}
                         </span>
                       </td>
                       <td className="py-4 px-5 text-end">
@@ -427,21 +432,21 @@ export default function StockPage() {
                           <button
                             onClick={() => handleOpenEntry(p)}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors shadow-sm"
-                            title="Ajouter du stock"
+                            title={t.addStockTitle}
                           >
                             <ArrowDownRight className="h-3.5 w-3.5" /> Entrée
                           </button>
                           <button
                             onClick={() => handleOpenAudit(p)}
                             className="p-1.5 rounded-xl border border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-colors shadow-sm"
-                            title="Historique des mouvements"
+                            title={t.historyTitle}
                           >
                             <History className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(p.id, p.reference)}
                             className="p-1.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shadow-sm"
-                            title="Archiver"
+                            title={t.btnArchive}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -495,8 +500,8 @@ export default function StockPage() {
         isOpen={confirmModal.isOpen}
         onCancel={() => setConfirmModal({ isOpen: false, pieceId: null, pieceRef: "", isLoading: false })}
         onConfirm={handleDeleteConfirm}
-        title="Archiver la Pièce"
-        message={`Êtes-vous sûr de vouloir archiver la pièce ${confirmModal.pieceRef} ?`}
+        title={t.archivePieceConfirmTitle}
+        message={t.archivePieceConfirmMsg.replace("{ref}", confirmModal.pieceRef)}
         confirmText="Confirmer"
         cancelText="Annuler"
         isLoading={confirmModal.isLoading}

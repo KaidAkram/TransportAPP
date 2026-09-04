@@ -27,9 +27,14 @@ import { api } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/constants";
 import { ContratDetail } from "@/types/contrat";
 import { Portal } from "@/components/shared/Portal";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function ContratDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [contrat, setContrat] = useState<ContratDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"infos" | "avenants" | "cautions" | "documents">("infos");
@@ -57,7 +62,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-3">
         <FileText className="h-8 w-8 animate-pulse text-[var(--color-electric-violet)]" />
-        <p className="text-xs text-white/50">Chargement du dossier contractuel...</p>
+        <p className="text-xs text-white/50">{t.loadingContract}</p>
       </div>
     );
   }
@@ -66,9 +71,9 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="text-center py-16 space-y-4">
         <AlertTriangle className="h-10 w-10 text-red-500 mx-auto" />
-        <h2 className="text-lg font-bold text-white">Contrat introuvable</h2>
+        <h2 className="text-lg font-bold text-white">{t.contractNotFound}</h2>
         <Link href="/contrats" className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors">
-          Retour au registre des contrats
+          {t.backToContractsList}
         </Link>
       </div>
     );
@@ -86,7 +91,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
         <div className="flex flex-col gap-3 flex-1 min-w-0 me-4">
           <Link href="/contrats" className="inline-flex w-fit items-center text-[10px] font-accent uppercase tracking-widest text-white/50 hover:text-[var(--color-electric-violet)] transition-colors">
             <ArrowLeft className="h-3 w-3 me-1" />
-            Retour aux contrats
+            {t.backToContracts}
           </Link>
 
           <div>
@@ -162,7 +167,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
-          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Montant Révisé Total</p>
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">{t.totalRevisedAmount}</p>
           <p className="text-xl font-heading font-extrabold text-white truncate my-1">
             {contrat.montant_total_avec_avenants.toLocaleString("fr-DZ")} {contrat.devise}
           </p>
@@ -172,27 +177,27 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
-          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Avenants</p>
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">{t.avenantsCount}</p>
           <p className="text-xl font-heading font-extrabold text-[var(--color-electric-violet)] my-1">
             {contrat.avenants.length}
           </p>
-          <p className="text-[10px] text-white/40 mt-0.5">Modifications validées</p>
+          <p className="text-[10px] text-white/40 mt-0.5">{t.validatedMods}</p>
         </div>
 
         <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
-          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Couverture / Caution</p>
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">{t.coverageGuarantee}</p>
           <p className="text-xl font-heading font-extrabold text-[var(--color-turbo)] my-1">
             {contrat.cautions.length}
           </p>
-          <p className="text-[10px] text-white/40 mt-0.5">Garanties associées</p>
+          <p className="text-[10px] text-white/40 mt-0.5">{t.associatedGuarantees}</p>
         </div>
 
         <div className="glass-panel px-5 py-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors rounded-2xl">
-          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">Date de Fin Actuelle</p>
+          <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1 font-bold">{t.currentEndDate}</p>
           <p className="text-xl font-heading font-extrabold text-white my-1 truncate">
             {new Date(contrat.date_fin).toLocaleDateString("fr-FR")}
           </p>
-          <p className="text-[10px] text-white/40 mt-0.5">Prorogations incluses</p>
+          <p className="text-[10px] text-white/40 mt-0.5">{t.prorogationsIncluded}</p>
         </div>
       </div>
 
@@ -204,10 +209,10 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
           {/* Navigation Tabs */}
           <div className="flex flex-nowrap border-b border-white/10 pb-px">
             {[
-              { id: "infos", label: "Informations Générales", icon: FileText },
-              { id: "avenants", label: "Avenants", icon: FileEdit, count: contrat.avenants.length },
-              { id: "cautions", label: "Cautions / Garanties", icon: ShieldCheck, count: contrat.cautions.length },
-              { id: "documents", label: "Documents", icon: Download, count: contrat.documents.length },
+              { id: "infos", label: t.tabGeneralInfo, icon: FileText },
+              { id: "avenants", label: t.tabAvenants, icon: FileEdit, count: contrat.avenants.length },
+              { id: "cautions", label: t.tabCautions, icon: ShieldCheck, count: contrat.cautions.length },
+              { id: "documents", label: t.tabDocuments, icon: Download, count: contrat.documents.length },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -248,11 +253,11 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Raison Sociale</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.corporateName}</p>
                       <p className="text-sm font-bold text-white">{contrat.partenaire_nom || "N/A"}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Rôle</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.colRole}</p>
                       <p className="text-sm font-bold text-white">{contrat.partenaire_role}</p>
                     </div>
                     {/* These fields might be missing if API doesn't return full partner object inside detail */}
@@ -274,15 +279,15 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-6 gap-x-8">
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Type de Contrat</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.contractType}</p>
                       <p className="text-sm font-bold text-white">{contrat.type_contrat}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Périodicité Facturation</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.billingPeriod}</p>
                       <p className="text-sm font-bold text-white">{contrat.mode_facturation || "N/A"}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Délai Paiement (Jours)</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.paymentDelay}</p>
                       <p className="text-sm font-bold text-white font-mono">{contrat.conditions_paiement}</p>
                     </div>
                   </div>
@@ -294,7 +299,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
                     <div>
-                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Taux Pénalité Retard (%)</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{t.latePenaltyRate}</p>
                       <p className="text-sm font-bold text-white font-mono">{'N/A'}%</p>
                     </div>
                   </div>
@@ -305,7 +310,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
             {activeTab === "avenants" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-white">Avenants Enregistrés</h3>
+                  <h3 className="text-sm font-bold text-white">{t.registeredAvenants}</h3>
                   <button
                     onClick={() => setIsAvenantModalOpen(true)}
                     className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/30 hover:bg-[var(--color-electric-violet)]/20 transition-all"
@@ -316,8 +321,8 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 {contrat.avenants.length === 0 ? (
                   <div className="text-center py-12 glass-panel rounded-2xl">
                     <FileEdit className="h-8 w-8 text-white/20 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-white/80">Aucun avenant</p>
-                    <p className="text-xs text-white/40">Ce contrat n'a subi aucune modification.</p>
+                    <p className="text-sm font-bold text-white/80">{t.noAvenant}</p>
+                    <p className="text-xs text-white/40">{t.noAvenantDesc}</p>
                   </div>
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
@@ -325,10 +330,10 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                       <table className="w-full text-start border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Avenant</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Date Signature</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Type Modif</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Nouveau Montant / Fin</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colRefAvenant}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colSignatureDate}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colModifType}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colNewAmountEnd}</th>
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut</th>
                           </tr>
                         </thead>
@@ -344,7 +349,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                                 )}
                                 {a.nouvelle_date_fin && (
                                   <span className="text-[10px] text-[var(--color-turbo)]">
-                                    Fin repoussée : {new Date(a.nouvelle_date_fin).toLocaleDateString("fr-FR")}
+                                    {t.endDatePushed} {new Date(a.nouvelle_date_fin).toLocaleDateString("fr-FR")}
                                   </span>
                                 )}
                               </td>
@@ -368,7 +373,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
             {activeTab === "cautions" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-white">Garanties & Cautions</h3>
+                  <h3 className="text-sm font-bold text-white">{t.tabCautions}</h3>
                   <button
                     onClick={() => setIsCautionModalOpen(true)}
                     className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/30 hover:bg-[var(--color-turbo)]/20 transition-all"
@@ -379,8 +384,8 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 {contrat.cautions.length === 0 ? (
                   <div className="text-center py-12 glass-panel rounded-2xl">
                     <ShieldCheck className="h-8 w-8 text-white/20 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-white/80">Aucune caution</p>
-                    <p className="text-xs text-white/40">Ce contrat n'a aucune garantie associée.</p>
+                    <p className="text-sm font-bold text-white/80">{t.noCaution}</p>
+                    <p className="text-xs text-white/40">{t.noCautionDesc}</p>
                   </div>
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
@@ -388,11 +393,11 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                       <table className="w-full text-start border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Caution</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Type</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Montant</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Banque</th>
-                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Validité</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colRefCaution}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colTypeObjet.replace(' & Objet', '')}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colMontant}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colBank}</th>
+                            <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">{t.colValidity}</th>
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Statut</th>
                           </tr>
                         </thead>
@@ -448,7 +453,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
             <div className="relative ps-6 border-s-2 border-white/10 space-y-6">
               <div className="relative">
                 <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-[1.65rem] top-1 shadow-[0_0_10px_rgba(52,211,153,0.5)] border border-emerald-900" />
-                <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 font-bold">Début du contrat</p>
+                <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 font-bold">{t.contractStart}</p>
                 <p className="text-sm font-bold text-white mt-0.5">
                   {new Date(contrat.date_debut).toLocaleDateString("fr-FR", { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
@@ -457,7 +462,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
               {contrat.avenants.map((av, idx) => (
                 <div key={av.id} className="relative">
                   <div className="absolute w-2.5 h-2.5 bg-[var(--color-electric-violet)] rounded-full -left-[1.55rem] top-1 shadow-[0_0_10px_rgba(131,77,251,0.5)]" />
-                  <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold">Avenant {av.numero}</p>
+                  <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold">{t.avenantLabel} {av.numero}</p>
                   <p className="text-[11px] text-white/70 mt-0.5">{av.objet}</p>
                   <p className="text-[11px] font-mono text-white/50">{new Date(av.date).toLocaleDateString("fr-FR")}</p>
                 </div>
@@ -474,11 +479,11 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 <div className="mt-2">
                   {isExpired ? (
                     <span className="inline-block px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-bold text-red-400">
-                      Expiré depuis {Math.abs(contrat.jours_restants || 0)} jours
+                      {t.expiredSince.replace("{days}", Math.abs(contrat.jours_restants || 0).toString())}
                     </span>
                   ) : (
                     <span className="inline-block px-2.5 py-1 rounded-lg bg-[var(--color-turbo)]/10 border border-[var(--color-turbo)]/20 text-xs font-bold text-[var(--color-turbo)]">
-                      Finit dans {contrat.jours_restants} jours
+                      {t.endsIn.replace("{days}", (contrat.jours_restants || 0).toString())}
                     </span>
                   )}
                 </div>

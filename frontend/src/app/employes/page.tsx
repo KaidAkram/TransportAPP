@@ -28,8 +28,13 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function EmployesPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [employees, setEmployees] = useState<Employe[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -159,14 +164,14 @@ export default function EmployesPage() {
           <div className="flex items-center gap-2 mb-2">
             <span className="h-2 w-2 rounded-full bg-[var(--color-electric-violet)] animate-pulse" />
             <span className="text-[10px] font-accent font-bold uppercase tracking-[0.2em] text-[var(--color-electric-violet)]">
-              Capital Humain
+              {t.employesHeaderPrefix}
             </span>
           </div>
           <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight drop-shadow-md">
-            Ressources Humaines
+            {t.employesTitle}
           </h1>
           <p className="text-sm text-white/50 mt-1 max-w-xl">
-            Gestion du personnel naviguant et technique de l'entreprise.
+            {t.employesSubtitle}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -175,14 +180,14 @@ export default function EmployesPage() {
             className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
             <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
-            Actualiser
+            {t.refresh}
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
           >
             <Plus className="h-4 w-4" />
-            Nouveau Collaborateur
+            {t.newPartner || 'Nouveau'}
           </button>
         </div>
       </div>
@@ -191,11 +196,11 @@ export default function EmployesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Effectif Total</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalEmployees}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Personnel enregistré</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.totalEmployeesDesc}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
             <Users className="h-5 w-5 text-white/80 group-hover:text-white" />
@@ -204,11 +209,11 @@ export default function EmployesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">En Service</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.activeEmployees}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] drop-shadow-[0_0_10px_rgba(131,77,251,0.3)]">{actifs}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Collaborateurs actifs</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.activeEmployeesDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
             <CheckCircle2 className="h-5 w-5 text-[var(--color-electric-violet)]" />
@@ -217,11 +222,11 @@ export default function EmployesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Absents / Congé</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.absentEmployees}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)]">{absents}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Non disponibles</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.absentEmployeesDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
             <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
@@ -230,11 +235,11 @@ export default function EmployesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Inactifs</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.inactiveEmployees}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white/60">{suspendus}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Quitté ou Suspendu</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.inactiveEmployeesDesc}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-full border border-white/10 group-hover:border-white/20 transition-colors">
             <UserX className="h-5 w-5 text-white/40" />
@@ -246,15 +251,15 @@ export default function EmployesPage() {
       <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10 w-fit min-w-0 max-w-full opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.15s' }}>
         <button onClick={() => setRoleFilter("")} className={roleTabClass(roleFilter === "")}>
           <Users className="h-3.5 w-3.5" />
-          Tous les collaborateurs
+          {t.allEmployees}
         </button>
         <button onClick={() => setRoleFilter("CHAUFFEUR")} className={roleTabClass(roleFilter === "CHAUFFEUR")}>
           <Shield className="h-3.5 w-3.5" />
-          Chauffeurs Professionnels
+          {t.professionalDrivers}
         </button>
         <button onClick={() => setRoleFilter("MECANICIEN")} className={roleTabClass(roleFilter === "MECANICIEN")}>
           <Wrench className="h-3.5 w-3.5" />
-          Mécaniciens & Atelier
+          {t.mechanicsWorkshop}
         </button>
       </div>
 
@@ -266,7 +271,7 @@ export default function EmployesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par nom, prénom, matricule ou téléphone..."
+            placeholder={t.searchEmployee}
             className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
           />
         </div>
@@ -296,9 +301,9 @@ export default function EmployesPage() {
             onChange={setRoleFilter}
             placeholder="Rôle / Métier"
             options={[
-              { value: "", label: "Tous les rôles" },
-              { value: "CHAUFFEUR", label: "Chauffeurs" },
-              { value: "MECANICIEN", label: "Mécaniciens" },
+              { value: "", label: "{t.allRoles}" },
+              { value: "CHAUFFEUR", label: "{t.roleDriver}" },
+              { value: "MECANICIEN", label: "{t.roleMechanic}" },
             ]}
           />
           <GlassSelect
@@ -306,7 +311,7 @@ export default function EmployesPage() {
             onChange={setYearFilter}
             placeholder="Année"
             options={[
-              { value: "", label: "Toutes les années" },
+              { value: "", label: t.allYears || "Toutes les années" },
               ...Array.from({ length: 10 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return { value: year.toString(), label: year.toString() };
@@ -319,10 +324,10 @@ export default function EmployesPage() {
               onChange={setStatusFilter}
               placeholder="Statut RH"
               options={[
-                { value: "", label: "Tous statuts" },
-                { value: "ACTIF", label: "Actifs" },
-                { value: "ABSENT", label: "Absents" },
-                { value: "SUSPENDU", label: "Suspendus" },
+                { value: "", label: "{t.allHRStatuses}" },
+                { value: "ACTIF", label: t.statusActive },
+                { value: "ABSENT", label: t.statusAbsent },
+                { value: "SUSPENDU", label: t.statusSuspended },
               ]}
             />
           )}
@@ -335,13 +340,13 @@ export default function EmployesPage() {
           <table className="w-full text-start text-xs table-fixed">
             <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
               <tr>
-                <SortableHeader label="Matricule" field="matricule" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
-                <SortableHeader label="Collaborateur" field="nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[22%]" />
-                <SortableHeader label="Rôle / Métier" field="type_employe" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
-                <th className="py-3 px-3 w-[22%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Spécialité / Fonction</th>
-                <SortableHeader label="Téléphone" field="telephone" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
-                <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
-                <th className="py-3 px-3 text-end w-[14%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Actions</th>
+                <SortableHeader label={t.colMatricule} field="matricule" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <SortableHeader label={t.colCollaborator} field="nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[22%]" />
+                <SortableHeader label={t.colRoleJob} field="type_employe" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
+                <th className="py-3 px-3 w-[22%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">{t.colSpecialtyFunc}</th>
+                <SortableHeader label={t.colPhone} field="telephone" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <SortableHeader label={t.colStatut} field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
+                <th className="py-3 px-3 text-end w-[14%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">{t.colActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -355,8 +360,8 @@ export default function EmployesPage() {
                 <tr>
                   <td colSpan={7} className="p-0">
                     <EmptyState 
-                      title="Aucun collaborateur" 
-                      message="Aucun collaborateur ne correspond à vos critères de recherche." 
+                      title={t.noEmployees} 
+                      message={t.noEmployeesDesc} 
                       icon={Users} 
                     />
                   </td>
@@ -396,7 +401,7 @@ export default function EmployesPage() {
                               <div className="absolute -top-1.5 -right-1.5 group/tooltip flex items-center justify-center z-20">
                                 <AlertTriangle className="h-4 w-4 text-[var(--color-turbo)] fill-[var(--color-turbo)]/20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                                 <div className="absolute start-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover/tooltip:block w-max bg-[var(--color-turbo)] text-black text-[10px] py-0.5 px-1.5 rounded font-bold shadow-lg z-50">
-                                  Dossier incomplet
+                                  {t.incompleteFile}
                                 </div>
                               </div>
                             )}
@@ -410,7 +415,7 @@ export default function EmployesPage() {
                             </Link>
                             {e.date_embauche && (
                               <p className="text-[10px] text-white/40 truncate">
-                                Embauché le {new Date(e.date_embauche).toLocaleDateString("fr-FR")}
+                                {t.hiredOn} {new Date(e.date_embauche).toLocaleDateString("fr-FR")}
                               </p>
                             )}
                           </div>
@@ -430,8 +435,8 @@ export default function EmployesPage() {
                       </td>
                       <td className="py-3 px-3 text-xs text-white/60 truncate">
                         {isChauffeur
-                          ? e.fonction || "Chauffeur Professionnel"
-                          : e.specialite || e.fonction || "Atelier Mécanique"}
+                          ? e.fonction || "{t.driverProf}"
+                          : e.specialite || e.fonction || "{t.mechanicWorkshopTxt}"}
                       </td>
                       <td className="py-3 px-3 text-xs font-mono text-white/80 truncate">
                         {e.telephone || "—"}
@@ -445,13 +450,13 @@ export default function EmployesPage() {
                             href={`/employes/${e.id}`}
                             className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--color-electric-violet)]/20 text-white border border-[var(--color-electric-violet)]/50 hover:bg-[var(--color-electric-violet)]/30 hover:border-[var(--color-electric-violet)]/70 transition-all text-[10px] font-bold font-accent uppercase tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(131,77,251,0.2)]"
                           >
-                            <Eye className="h-3.5 w-3.5" /> Fiche RH
+                            <Eye className="h-3.5 w-3.5" /> {t.btnHRProfile}
                           </Link>
                           {e.statut !== "QUITTE" ? (
                             <button
                               onClick={() => handleArchiveClick(e.id, `${e.nom} ${e.prenom}`)}
                               className="p-1 rounded-lg border border-white/10 bg-white/5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all"
-                              title="Archiver l'employé"
+                              title={t.archiveEmployee}
                             >
                               <Archive className="h-3.5 w-3.5" />
                             </button>
@@ -459,7 +464,7 @@ export default function EmployesPage() {
                             <button
                               onClick={() => handleRestoreClick(e.id, `${e.nom} ${e.prenom}`)}
                               className="p-1 rounded-lg border border-white/10 bg-white/5 text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
-                              title="Désarchiver l'employé"
+                              title={t.restoreEmployee}
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                             </button>
@@ -493,14 +498,14 @@ export default function EmployesPage() {
       {/* Archive Confirmation Modal */}
       <GlassConfirmModal
         isOpen={confirmModal.isOpen}
-        title={confirmModal.action === "archive" ? "Archiver le collaborateur" : "Désarchiver le collaborateur"}
+        title={confirmModal.action === "archive" ? t.archiveEmployeeTitle : t.restoreEmployeeTitle}
         message={
           confirmModal.action === "archive"
-            ? `Confirmez-vous le départ et l'archivage du collaborateur ${confirmModal.employeeName} ? Cette action changera son statut en "Quitté".`
-            : `Confirmez-vous le retour du collaborateur ${confirmModal.employeeName} ? Son profil redeviendra "Actif".`
+            ? t.archiveEmployeeMsg.replace("{name}", confirmModal.employeeName)
+            : t.restoreEmployeeMsg.replace("{name}", confirmModal.employeeName)
         }
-        confirmText={confirmModal.action === "archive" ? "Confirmer l'archivage" : "Désarchiver"}
-        cancelText="Annuler"
+        confirmText={confirmModal.action === "archive" ? t.confirmArchive : t.confirmRestore}
+        cancelText={t.cancel || "Annuler"}
         type={confirmModal.action === "archive" ? "danger" : "info"}
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmModal({ isOpen: false, employeeId: null, employeeName: "", isLoading: false, action: "archive" })}

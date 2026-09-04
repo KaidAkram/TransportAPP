@@ -27,8 +27,13 @@ import { GlassPagination } from "@/components/ui/GlassPagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function ContratsPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [contracts, setContracts] = useState<Contrat[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -104,10 +109,10 @@ export default function ContratsPage() {
 
   const handleArchive = async (id: string, ref: string) => {
     openConfirm({
-      title: "Archiver le contrat",
-      message: `Archiver le contrat ${ref} ? Il n'apparaîtra plus dans la liste principale mais restera dans la base de données.`,
+      title: t.archiveTitle,
+      message: t.archiveMessage.replace("{ref}", ref),
       type: "warning",
-      confirmText: "Archiver",
+      confirmText: t.archive || "Archiver",
       onConfirm: async () => {
         try {
           await api.post(`/contrats/${id}/archive`, {});
@@ -121,10 +126,10 @@ export default function ContratsPage() {
 
   const handleUnarchive = async (id: string, ref: string) => {
     openConfirm({
-      title: "Restaurer le contrat",
-      message: `Restaurer le contrat ${ref} ? Il réapparaîtra dans la liste principale.`,
+      title: t.restoreTitle,
+      message: t.restoreMessage.replace("{ref}", ref),
       type: "success",
-      confirmText: "Restaurer",
+      confirmText: t.btnRestore,
       onConfirm: async () => {
         try {
           await api.post(`/contrats/${id}/unarchive`, {});
@@ -152,13 +157,13 @@ export default function ContratsPage() {
         <div>
           <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <FileText className="w-3 h-3" />
-            Suivi Contractuel
+            {t.contratsHeaderPrefix}
           </p>
           <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
-            Gestion des Contrats & Conventions
+            {t.contratsTitle}
           </h1>
           <p className="text-sm text-white/60 mt-1 font-sans max-w-xl">
-            {showArchived ? "Contrats archivés — vous pouvez les restaurer" : "Suivi des accords commerciaux, avenants d'extension et alertes d'échéances"}
+            {showArchived ? t.archiveModeDesc : t.contratsSubtitle}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -171,14 +176,14 @@ export default function ContratsPage() {
             }`}
           >
             <Archive className="h-4 w-4" />
-            {showArchived ? "Archives" : "Archives"}
+            {showArchived ? "{t.archiveBtn}" : "{t.archiveBtn}"}
           </button>
           <button
             onClick={fetchContracts}
             className="flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group"
           >
             <RefreshCw className={`h-4 w-4 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
-            Actualiser
+            {t.refresh}
           </button>
           {!showArchived && (
             <button
@@ -186,7 +191,7 @@ export default function ContratsPage() {
               className="flex items-center gap-2 rounded-xl bg-[var(--color-electric-violet)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#6c3ce0] transition-colors shadow-[0_0_15px_rgba(131,77,251,0.4)] hover:shadow-[0_0_25px_rgba(131,77,251,0.6)]"
             >
               <Plus className="h-4 w-4" />
-              Nouveau Contrat
+              {t.newContract}
             </button>
           )}
         </div>
@@ -197,11 +202,11 @@ export default function ContratsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
           <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
             <div>
-              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Contrats</p>
+              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalContracts}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
               </div>
-              <p className="text-[10px] text-white/40 mt-1">Conventions enregistrées</p>
+              <p className="text-[10px] text-white/40 mt-1">{t.totalContractsDesc}</p>
             </div>
             <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
               <FileText className="h-5 w-5 text-white/80 group-hover:text-white" />
@@ -210,11 +215,11 @@ export default function ContratsPage() {
 
           <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
             <div>
-              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Contrats Actifs</p>
+              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.activeContracts}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{actifsCount}</span>
               </div>
-              <p className="text-[10px] text-white/40 mt-1">En cours de validité</p>
+              <p className="text-[10px] text-white/40 mt-1">{t.activeContractsDesc}</p>
             </div>
             <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
               <CheckCircle2 className="h-5 w-5 text-emerald-400" />
@@ -223,11 +228,11 @@ export default function ContratsPage() {
 
           <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
             <div>
-              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Échéances Proches</p>
+              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.expiringContracts}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{expirantBientotCount}</span>
               </div>
-              <p className="text-[10px] text-white/40 mt-1">Expirant dans &lt; 30 jours</p>
+              <p className="text-[10px] text-white/40 mt-1">{t.expiringContractsDesc}</p>
             </div>
             <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
               <AlertTriangle className="h-5 w-5 text-[var(--color-turbo)]" />
@@ -236,12 +241,12 @@ export default function ContratsPage() {
 
           <div className="glass-panel px-6 py-5 hover:bg-white/[0.02] transition-colors group overflow-hidden">
             <div>
-              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Volume Financier (Actif)</p>
+              <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.financialVolume}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[var(--color-electric-violet)] whitespace-nowrap">{totalVolumeDZD.toLocaleString("fr-FR")}</span>
                 <span className="text-[10px] font-bold text-white/40 shrink-0">DZD</span>
               </div>
-              <p className="text-[10px] text-white/40 mt-1">Valeur totale cumulée</p>
+              <p className="text-[10px] text-white/40 mt-1">{t.financialVolumeDesc}</p>
             </div>
           </div>
         </div>
@@ -255,7 +260,7 @@ export default function ContratsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher une référence, un partenaire, un objet..."
+            placeholder={t.searchContract}
             className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
           />
         </div>
@@ -269,9 +274,9 @@ export default function ContratsPage() {
                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
                 style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
               >
-                <option value="" className="bg-[var(--color-haiti)] text-white">Tous les statuts</option>
-                <option value="ACTIF" className="bg-[var(--color-haiti)] text-white">Contrats Actifs</option>
-                <option value="EXPIRE" className="bg-[var(--color-haiti)] text-white">Contrats Expirés</option>
+                <option value="" className="bg-[var(--color-haiti)] text-white">{t.allContractStatuses}</option>
+                <option value="ACTIF" className="bg-[var(--color-haiti)] text-white">{t.activeContracts}</option>
+                <option value="EXPIRE" className="bg-[var(--color-haiti)] text-white">{t.statusExpiredContract}</option>
               </select>
 
               <select
@@ -280,12 +285,12 @@ export default function ContratsPage() {
                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
                 style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
               >
-                <option value="" className="bg-[var(--color-haiti)] text-white">Tous les types de contrat</option>
-                <option value="Transport" className="bg-[var(--color-haiti)] text-white">Transport Régulier / Navettes</option>
-                <option value="Tourisme" className="bg-[var(--color-haiti)] text-white">Circuits Touristiques</option>
-                <option value="Location" className="bg-[var(--color-haiti)] text-white">Location d'Autocars</option>
-                <option value="Fourniture" className="bg-[var(--color-haiti)] text-white">Fourniture de Pièces</option>
-                <option value="Maintenance" className="bg-[var(--color-haiti)] text-white">Prestations de Maintenance</option>
+                <option value="" className="bg-[var(--color-haiti)] text-white">{t.allContractTypes}</option>
+                <option value="Transport" className="bg-[var(--color-haiti)] text-white">{t.typeTransport}</option>
+                <option value="Tourisme" className="bg-[var(--color-haiti)] text-white">{t.typeTourisme}</option>
+                <option value="Location" className="bg-[var(--color-haiti)] text-white">{t.typeLocation}</option>
+                <option value="Fourniture" className="bg-[var(--color-haiti)] text-white">{t.typeFourniture}</option>
+                <option value="Maintenance" className="bg-[var(--color-haiti)] text-white">{t.typeMaintenance}</option>
               </select>
 
               <select
@@ -294,7 +299,7 @@ export default function ContratsPage() {
                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] transition-all cursor-pointer appearance-none font-medium"
                 style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff40%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
               >
-                <option value="" className="bg-[var(--color-haiti)] text-white">Toutes les années</option>
+                <option value="" className="bg-[var(--color-haiti)] text-white">{t.allYears || "Toutes les années"}</option>
                 {Array.from({ length: 10 }, (_, i) => {
                   const year = new Date().getFullYear() - i;
                   return (
@@ -314,21 +319,21 @@ export default function ContratsPage() {
         {showArchived && (
           <div className="px-5 py-3 bg-amber-500/5 border-b border-amber-500/20 flex items-center gap-2">
             <Archive className="h-4 w-4 text-amber-400" />
-            <span className="text-xs font-bold text-amber-400">Mode Archive</span>
-            <span className="text-xs text-white/50">— Contrats archivés, cliquez restaurer pour réactiver</span>
+            <span className="text-xs font-bold text-amber-400">{t.archiveMode}</span>
+            <span className="text-xs text-white/50">{t.archiveModeDesc}</span>
           </div>
         )}
         <div className="w-full min-w-0">
           <table className="w-full text-start border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
-                <SortableHeader label="Réf. Contrat" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Partenaire" field="partenaire_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Type & Objet" field="type_contrat" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <SortableHeader label="Montant" field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Période</th>
-                <SortableHeader label="Statut / Échéance" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap">Actions</th>
+                <SortableHeader label={t.colRefContract} field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colPartner} field="partenaire_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colTypeObjet} field="type_contrat" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <SortableHeader label={t.colMontant} field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">{t.colPeriod}</th>
+                <SortableHeader label={t.colStatusExpiry} field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap">{t.colActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -342,8 +347,8 @@ export default function ContratsPage() {
                 <tr>
                   <td colSpan={7} className="p-0">
                     <EmptyState
-                      title={showArchived ? "Aucun contrat archivé" : "Aucun contrat"}
-                      message={showArchived ? "Aucun contrat n'a été archivé." : "Aucun contrat ou convention ne correspond à vos critères de recherche."}
+                      title={showArchived ? t.noArchivedContracts : t.noContracts}
+                      message={showArchived ? t.noArchivedContractsDesc : t.noContractsDesc}
                       icon={showArchived ? Archive : FileText}
                     />
                   </td>
@@ -370,7 +375,7 @@ export default function ContratsPage() {
                         </Link>
                         {isArchived && (
                           <span className="ms-2 inline-flex items-center gap-1 text-[9px] font-bold text-amber-400/70 uppercase">
-                            <Archive className="h-2.5 w-2.5" /> archivé
+                            <Archive className="h-2.5 w-2.5" /> {t.archivedBadge}
                           </span>
                         )}
                       </td>
@@ -381,7 +386,7 @@ export default function ContratsPage() {
                             isClient ? "bg-white/10 text-white" : "bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)]"
                           }`}>
                             {isClient ? <Users className="h-2.5 w-2.5" /> : <Factory className="h-2.5 w-2.5" />}
-                            {isClient ? "Client" : "Fournisseur"}
+                            {isClient ? t.roleClient : t.roleSupplier}
                           </span>
                         </div>
                       </td>
@@ -418,7 +423,7 @@ export default function ContratsPage() {
 
                           {isExpired ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-400">
-                              <AlertTriangle className="h-3 w-3" /> Expiré
+                              <AlertTriangle className="h-3 w-3" /> {t.expiredBadge}
                             </span>
                           ) : isUrgent ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-400 animate-pulse">
@@ -430,7 +435,7 @@ export default function ContratsPage() {
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-white/50">
-                              Valide ({c.jours_restants} j)
+                              {c.jours_restants !== undefined && c.jours_restants !== null && c.jours_restants < 0 ? t.expiredBadge : t.validBadge.replace("{days}", (c.jours_restants || 0).toString())}
                             </span>
                           )}
                         </div>
@@ -440,26 +445,26 @@ export default function ContratsPage() {
                           <Link href={`/contrats/${c.id}`}>
                             <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white transition-all">
                               <Eye className="w-3.5 h-3.5" />
-                              DOSSIER
+                              {t.btnDossier}
                             </button>
                           </Link>
                           {isArchived ? (
                             <button
                               onClick={() => handleUnarchive(c.id, c.reference)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors"
-                              title="Restaurer"
+                              title={t.btnRestore}
                             >
                               <ArchiveRestore className="h-3.5 w-3.5" />
-                              RESTAURER
+                              {t.btnRestore}
                             </button>
                           ) : isExpired ? (
                             <button
                               onClick={() => handleArchive(c.id, c.reference)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-colors"
-                              title="Archiver ce contrat expiré"
+                              title={t.btnArchive}
                             >
                               <Archive className="h-3.5 w-3.5" />
-                              ARCHIVER
+                              {t.btnArchive}
                             </button>
                           ) : null}
                         </div>
