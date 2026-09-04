@@ -30,7 +30,7 @@ export function ThemeSwitcher() {
             <button
               key={theme.id}
               onClick={() => handleSelect(theme.id)}
-              className={`group relative flex flex-col gap-3 p-4 rounded-2xl border text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+              className={`group relative flex flex-col gap-3 p-4 rounded-2xl border text-start transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
                 isActive
                   ? "border-white/30 shadow-[0_0_20px_rgba(0,0,0,0.4)] scale-[1.02]"
                   : "border-white/5 hover:border-white/15"
@@ -73,7 +73,7 @@ export function ThemeSwitcher() {
               {/* Active check mark */}
               {isActive && (
                 <CheckCircle2
-                  className="absolute top-3 right-3 w-4 h-4"
+                  className="absolute top-3 end-3 w-4 h-4"
                   style={{ color: theme.colors.primary }}
                 />
               )}

@@ -33,8 +33,13 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { TableSkeleton } from "@/components/shared/Skeleton";
 import { Portal } from "@/components/shared/Portal";
 import { SortableHeader } from "@/components/ui/SortableHeader";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 
 export default function PartenairesPage() {
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
   const [partners, setPartners] = useState<Partenaire[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -116,15 +121,15 @@ export default function PartenairesPage() {
       {/* Header */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <Users className="w-3 h-3" />
             Annuaire & Relations B2B
           </p>
           <h1 className="text-3xl font-heading font-extrabold tracking-tight text-white drop-shadow-md">
-            Gestion des Partenaires & CRM
+            {t.crmTitle}
           </h1>
           <p className="text-sm text-white/50 mt-1 font-sans max-w-xl">
-            Répertoire centralisé des clients conventions, agences de voyages et fournisseurs de pièces
+            {t.crmSubtitle}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -132,15 +137,15 @@ export default function PartenairesPage() {
             onClick={fetchPartners}
             className="inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 px-4 py-2.5 text-sm font-bold text-white border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all group"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
-            Actualiser
+            <RefreshCw className={`h-4 w-4 me-2 text-[var(--color-electric-violet)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
+            {t.refresh}
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center justify-center rounded-xl bg-[var(--color-electric-violet)] hover:bg-[#6c3ce0] px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(131,77,251,0.4)] border border-[var(--color-electric-violet)]/50 hover:shadow-[0_0_25px_rgba(131,77,251,0.6)] transition-all"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Nouveau Partenaire
+            <Plus className="h-5 w-5 me-2" />
+            {t.newPartner}
           </button>
         </div>
       </div>
@@ -149,11 +154,11 @@ export default function PartenairesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Total Entreprises</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.totalCompanies}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-white">{totalCount}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Comptes partenaires créés</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.totalCompaniesDesc}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-full border border-white/5 group-hover:border-white/10 transition-colors">
             <Building2 className="h-5 w-5 text-white/80 group-hover:text-white" />
@@ -162,11 +167,11 @@ export default function PartenairesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Clients Actifs</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.activeClients}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">{clientsActifs}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Conventions & circuits</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.activeClientsDesc}</p>
           </div>
           <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
@@ -175,11 +180,11 @@ export default function PartenairesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Prospects CRM</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.crmProspects}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-turbo)] drop-shadow-[0_0_10px_rgba(240,225,0,0.3)]">{prospects}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">En cours de négociation</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.prospectsDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-turbo)]/10 rounded-full border border-[var(--color-turbo)]/20 group-hover:border-[var(--color-turbo)]/40 transition-colors">
             <Clock className="h-5 w-5 text-[var(--color-turbo)]" />
@@ -188,11 +193,11 @@ export default function PartenairesPage() {
 
         <div className="glass-panel px-6 py-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
           <div>
-            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">Fournisseurs</p>
+            <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-1">{t.suppliers}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-heading font-extrabold text-[var(--color-electric-violet)]">{fournisseurs}</span>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Pièces & prestataires</p>
+            <p className="text-[10px] text-white/40 mt-1">{t.suppliersDesc}</p>
           </div>
           <div className="p-3 bg-[var(--color-electric-violet)]/10 rounded-full border border-[var(--color-electric-violet)]/20 group-hover:border-[var(--color-electric-violet)]/40 transition-colors">
             <Factory className="h-5 w-5 text-[var(--color-electric-violet)]" />
@@ -214,7 +219,7 @@ export default function PartenairesPage() {
             }`}
           >
             <Building2 className="h-4 w-4" />
-            Tous les comptes CRM
+            {t.filterAll}
           </button>
           <button
             onClick={() => setRoleFilter("CLIENT")}
@@ -225,7 +230,7 @@ export default function PartenairesPage() {
             }`}
           >
             <Users className="h-4 w-4" />
-            Clients & Agences B2B
+            {t.filterClients}
           </button>
           <button
             onClick={() => setRoleFilter("FOURNISSEUR")}
@@ -236,20 +241,20 @@ export default function PartenairesPage() {
             }`}
           >
             <Factory className="h-4 w-4" />
-            Fournisseurs & Pièces
+            {t.filterSuppliers}
           </button>
         </div>
 
         {/* Search & Status Filters */}
         <div className="flex flex-wrap gap-3 relative z-50 w-full">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
+            <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par raison sociale, NIF, email, téléphone ou RC..."
-              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:bg-[var(--color-haiti)] focus:border-[var(--color-electric-violet)] focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+              placeholder={t.searchPartnerPlaceholder}
+              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 ps-11 pe-4 text-sm text-white placeholder:text-white/30 focus:bg-[var(--color-haiti)] focus:border-[var(--color-electric-violet)] focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
             />
           </div>
           
@@ -258,10 +263,10 @@ export default function PartenairesPage() {
               value={statusFilter}
               onChange={setStatusFilter}
               options={[
-                { value: "", label: "Tous les statuts CRM" },
-                { value: "Actif", label: "Actif" },
-                { value: "Prospect", label: "Prospect" },
-                { value: "Inactif", label: "Inactif" },
+                { value: "", label: t.allCrmStatuses },
+                { value: "Actif", label: t.statusActive },
+                { value: "Prospect", label: t.statusProspect },
+                { value: "Inactif", label: t.statusInactive },
                 { value: "Bloqué", label: "Bloqué" },
               ]}
               placeholder="Statut"
@@ -272,9 +277,9 @@ export default function PartenairesPage() {
             <GlassSelect
               value={yearFilter}
               onChange={setYearFilter}
-              placeholder="Année"
+              placeholder={t.year}
               options={[
-                { value: "", label: "Année" },
+                { value: "", label: t.year },
                 ...Array.from({ length: 10 }, (_, i) => {
                   const year = new Date().getFullYear() - i;
                   return { value: year.toString(), label: year.toString() };
@@ -287,9 +292,9 @@ export default function PartenairesPage() {
             <GlassSelect
               value={monthFilter}
               onChange={setMonthFilter}
-              placeholder="Mois"
+              placeholder={t.allMonths}
               options={[
-                { value: "", label: "Tous les mois" },
+                { value: "", label: t.allMonths },
                 { value: "1", label: "Janvier" },
                 { value: "2", label: "Février" },
                 { value: "3", label: "Mars" },
@@ -314,13 +319,13 @@ export default function PartenairesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/10 bg-black/20">
-                  <SortableHeader label="Entreprise / Raison Sociale" field="nom_commercial" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Rôle" field="role_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Catégorie / Spécialité" field="type_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Interlocuteur Principal</TableHead>
-                  <SortableHeader label="Ville / Wilaya" field="ville" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Statut CRM" field="statut_crm" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap select-none">Actions</TableHead>
+                  <SortableHeader label={t.colCompany} field="nom_commercial" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label={t.colRole} field="role_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label={t.colCategory} field="type_partenaire" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">{t.colContact}</TableHead>
+                  <SortableHeader label={t.colCity} field="ville" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label={t.colStatus} field="statut_crm" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <TableHead className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap select-none">{t.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>
@@ -374,44 +379,44 @@ export default function PartenairesPage() {
                               : "bg-[var(--color-turbo)] text-black"
                           } relative z-20`}
                         >
-                          {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
-                          {isClient ? "Client" : "Fournisseur"}
+                        {isClient ? <Users className="h-3 w-3" /> : <Factory className="h-3 w-3" />}
+                        {isClient ? t.roleClient : t.roleSupplier}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-white/70">
+                      {isClient
+                        ? p.type_client || "Entreprise"
+                        : p.specialite || "Catalogue Fournisseur"}
+                    </TableCell>
+                    <TableCell className="glass-td">
+                      {p.contact_principal ? (
+                        <div>
+                          <p className="text-xs font-bold text-white">
+                            {p.contact_principal.nom} {p.contact_principal.prenom}
+                          </p>
+                          <p className="text-[10px] text-white/50 font-mono mt-0.5">
+                            {p.contact_principal.telephone || p.telephone_principal || "—"}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-white/40 italic">
+                          {p.telephone_principal || t.noContact}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-white/70">
-                        {isClient
-                          ? p.type_client || "Entreprise"
-                          : p.specialite || "Catalogue Fournisseur"}
-                      </TableCell>
-                      <TableCell className="glass-td">
-                        {p.contact_principal ? (
-                          <div>
-                            <p className="text-xs font-bold text-white">
-                              {p.contact_principal.nom} {p.contact_principal.prenom}
-                            </p>
-                            <p className="text-[10px] text-white/50 font-mono mt-0.5">
-                              {p.contact_principal.telephone || p.telephone_principal || "—"}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-white/40 italic">
-                            {p.telephone_principal || "Aucun contact"}
-                          </span>
-                        )}
-                      </TableCell>
+                      )}
+                    </TableCell>
                       <TableCell className="border-none text-white/70">
                         {p.wilaya || "—"}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={p.statut_crm || "Actif"} />
                       </TableCell>
-                      <TableCell className="border-none text-right">
+                      <TableCell className="border-none text-end">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => window.location.href = `/partenaires/${p.id}`}
                             className="inline-flex items-center px-3 py-1.5 text-[11px] font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
                           >
-                            <Eye className="h-3.5 w-3.5 mr-1.5 text-white/50" /> Dossier
+                            <Eye className="h-3.5 w-3.5 me-1.5 text-white/50" /> {t.btnDossier}
                           </button>
                           <button
                             onClick={() => handleArchive(p.id, p.nom_commercial)}

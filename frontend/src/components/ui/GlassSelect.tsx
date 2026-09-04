@@ -53,7 +53,7 @@ export function GlassSelect({
       >
         <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
         <ChevronDown
-          className={`h-4 w-4 ml-2 text-white/50 transition-transform duration-200 shrink-0 ${
+          className={`h-4 w-4 ms-2 text-white/50 transition-transform duration-200 shrink-0 ${
             isOpen ? "rotate-180 text-white" : ""
           }`}
         />
@@ -83,7 +83,7 @@ export function GlassSelect({
                         setIsOpen(false);
                       }
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors text-start ${
                       option.disabled
                         ? "text-white/20 cursor-not-allowed"
                         : value === option.value

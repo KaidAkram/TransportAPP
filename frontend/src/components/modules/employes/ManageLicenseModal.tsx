@@ -136,7 +136,7 @@ export function ManageLicenseModal({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ml-1">
+                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ms-1">
                   Numéro de Permis *
                 </label>
                 <input
@@ -144,11 +144,11 @@ export function ManageLicenseModal({
                   placeholder="ex: DZ-31-987654"
                   className={`${inputClass} font-mono font-bold`}
                 />
-                {errors.numero && <p className="text-[10px] text-red-400 mt-1.5 ml-1">{errors.numero.message}</p>}
+                {errors.numero && <p className="text-[10px] text-red-400 mt-1.5 ms-1">{errors.numero.message}</p>}
               </div>
 
               <div>
-                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ml-1">
+                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ms-1">
                   Catégories Validées (ex: B, D, CE) *
                 </label>
                 <input
@@ -156,12 +156,12 @@ export function ManageLicenseModal({
                   placeholder="ex: B, D, D1"
                   className={`${inputClass} font-mono`}
                 />
-                {errors.categories && <p className="text-[10px] text-red-400 mt-1.5 ml-1">{errors.categories.message}</p>}
+                {errors.categories && <p className="text-[10px] text-red-400 mt-1.5 ms-1">{errors.categories.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ml-1">
+                  <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ms-1">
                     Date d&apos;obtention
                   </label>
                   <input
@@ -172,7 +172,7 @@ export function ManageLicenseModal({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ml-1">
+                  <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ms-1">
                     Date d&apos;expiration
                   </label>
                   <input
@@ -184,7 +184,7 @@ export function ManageLicenseModal({
               </div>
 
               <div>
-                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ml-1">
+                <label className="block text-[10px] font-accent uppercase tracking-widest text-white/50 mb-1.5 ms-1">
                   Scan / Photo du Permis
                 </label>
                 <div className="mb-2">

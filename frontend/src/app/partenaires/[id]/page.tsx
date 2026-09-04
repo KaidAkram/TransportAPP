@@ -165,21 +165,21 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
             onClick={() => setIsNoteModalOpen(true)}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm"
           >
-            <MessageSquare className="h-4 w-4 mr-2 text-white/50" />
+            <MessageSquare className="h-4 w-4 me-2 text-white/50" />
             Note CRM
           </button>
           <button
             onClick={() => setIsDocModalOpen(true)}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm"
           >
-            <FileText className="h-4 w-4 mr-2 text-white/50" />
+            <FileText className="h-4 w-4 me-2 text-white/50" />
             Document
           </button>
           <button
             onClick={() => setIsContactModalOpen(true)}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-xs font-bold text-white border border-white/20 transition-all shadow-md"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 me-2" />
             Ajouter Contact
           </button>
         </div>
@@ -306,23 +306,23 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Raison Sociale</span>
-                  <span className="font-bold text-white text-right">{partner.nom_commercial}</span>
+                  <span className="font-bold text-white text-end">{partner.nom_commercial}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">NIF (Fiscal)</span>
-                  <span className="font-mono font-bold text-[var(--color-electric-violet)] text-right">{partner.nif || "Non renseigné"}</span>
+                  <span className="font-mono font-bold text-[var(--color-electric-violet)] text-end">{partner.nif || "Non renseigné"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Registre de Commerce (RC)</span>
-                  <span className="font-mono text-white text-right">{partner.registre_commerce || "Non renseigné"}</span>
+                  <span className="font-mono text-white text-end">{partner.registre_commerce || "Non renseigné"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">NIS (Statistique)</span>
-                  <span className="font-mono text-white text-right">{partner.nis || "Non renseigné"}</span>
+                  <span className="font-mono text-white text-end">{partner.nis || "Non renseigné"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Article d&apos;Imposition</span>
-                  <span className="font-mono text-white text-right">{partner.article_imposition || "Non renseigné"}</span>
+                  <span className="font-mono text-white text-end">{partner.article_imposition || "Non renseigné"}</span>
                 </div>
               </div>
             </div>
@@ -337,25 +337,25 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Wilaya & Commune</span>
-                  <span className="font-medium text-white text-right">
+                  <span className="font-medium text-white text-end">
                     {partner.wilaya} {partner.commune ? `(${partner.commune})` : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Adresse Siège</span>
-                  <span className="text-white text-right">{partner.adresse || "Non renseignée"}</span>
+                  <span className="text-white text-end">{partner.adresse || "Non renseignée"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Téléphone Standard</span>
-                  <span className="font-mono font-bold text-white text-right">{partner.telephone_principal || "—"}</span>
+                  <span className="font-mono font-bold text-white text-end">{partner.telephone_principal || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Email Général</span>
-                  <span className="text-white text-right">{partner.email || "—"}</span>
+                  <span className="text-white text-end">{partner.email || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Site Web</span>
-                  <span className="text-right justify-self-end">
+                  <span className="text-end justify-self-end">
                     {partner.site_web ? (
                       <a
                         href={partner.site_web}
@@ -392,7 +392,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               onClick={() => setIsContactModalOpen(true)}
               className="inline-flex items-center justify-center rounded-xl bg-[var(--color-electric-violet)] hover:bg-[var(--color-electric-violet)]/80 px-4 py-2.5 text-xs font-bold text-white shadow-[0_0_15px_rgba(131,77,251,0.3)] border border-white/10 transition-all shrink-0"
             >
-              <Plus className="h-4 w-4 mr-2" /> Nouveau Contact
+              <Plus className="h-4 w-4 me-2" /> Nouveau Contact
             </button>
           </div>
 
@@ -417,7 +417,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
                       <TableHead>Téléphone</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Rôle</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-end">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -440,7 +440,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           <button
                             onClick={() => handleDeleteContact(c.id, `${c.nom} ${c.prenom}`)}
                             className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -475,7 +475,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               onClick={() => setIsDocModalOpen(true)}
               className="inline-flex items-center justify-center rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-4 py-2.5 text-xs font-bold text-emerald-400 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0"
             >
-              <Plus className="h-4 w-4 mr-2" /> Nouveau Document
+              <Plus className="h-4 w-4 me-2" /> Nouveau Document
             </button>
           </div>
 
@@ -543,7 +543,7 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               onClick={() => setIsNoteModalOpen(true)}
               className="inline-flex items-center justify-center rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-4 py-2.5 text-xs font-bold text-amber-400 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0"
             >
-              <Plus className="h-4 w-4 mr-2" /> Nouvelle Interaction
+              <Plus className="h-4 w-4 me-2" /> Nouvelle Interaction
             </button>
           </div>
 
@@ -558,11 +558,11 @@ export default function PartenaireDetailPage({ params }: { params: Promise<{ id:
               </p>
             </div>
           ) : (
-            <div className="space-y-4 relative before:absolute before:inset-y-0 before:left-[19px] before:w-px before:bg-white/10 ml-2">
+            <div className="space-y-4 relative before:absolute before:inset-y-0 before:start-[19px] before:w-px before:bg-white/10 ms-2">
               {partner.crm_notes.map((note) => (
-                <div key={note.id} className="relative pl-12 group">
+                <div key={note.id} className="relative ps-12 group">
                   {/* Timeline node */}
-                  <div className="absolute left-[15px] top-4 h-[9px] w-[9px] rounded-full bg-[var(--color-electric-violet)] ring-4 ring-background z-10 group-hover:scale-125 transition-transform" />
+                  <div className="absolute start-[15px] top-4 h-[9px] w-[9px] rounded-full bg-[var(--color-electric-violet)] ring-4 ring-background z-10 group-hover:scale-125 transition-transform" />
                   
                   <div className="glass-panel overflow-hidden hover:bg-white/[0.03] transition-colors group-hover:border-white/20">
                     <div className="p-4 border-b border-white/5 bg-white/[0.02] flex flex-row items-center justify-between">

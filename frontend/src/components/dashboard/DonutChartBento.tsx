@@ -61,7 +61,7 @@ export function DonutChartBento({ title, subtitle, data, totalLabel = "Total" }:
   return (
     <div className="glass-panel p-6 h-full flex flex-col relative group overflow-hidden opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]">
       {/* Subtle Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[var(--color-electric-violet)]/5 blur-[60px] rounded-full pointer-events-none transition-all duration-700" />
+      <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[var(--color-electric-violet)]/5 blur-[60px] rounded-full pointer-events-none transition-all duration-700" />
 
       <div className="relative z-10 flex items-center justify-between mb-4 h-10">
         <AnimatePresence mode="wait">
@@ -141,7 +141,7 @@ export function DonutChartBento({ title, subtitle, data, totalLabel = "Total" }:
         </AnimatePresence>
 
         {/* Center Total Text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.div
               key={drillDownNode ? 'total-drill' : 'total-root'}
@@ -178,7 +178,7 @@ export function DonutChartBento({ title, subtitle, data, totalLabel = "Total" }:
               >
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="text-[9px] text-white/60 font-accent uppercase tracking-wider truncate">{item.name}</span>
-                <span className="ml-auto text-xs font-bold text-white shrink-0">{item.value}</span>
+                <span className="ms-auto text-xs font-bold text-white shrink-0">{item.value}</span>
               </div>
             ))}
           </motion.div>

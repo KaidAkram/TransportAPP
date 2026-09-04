@@ -235,13 +235,13 @@ export default function FinancesPage() {
       {/* Search & Filter */}
       <div className="flex flex-wrap justify-end gap-3">
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une facture..."
-            className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:bg-[var(--color-haiti)] transition-all"
+            className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:bg-[var(--color-haiti)] transition-all"
           />
         </div>
         <div className="w-full sm:w-48">
@@ -294,14 +294,14 @@ export default function FinancesPage() {
       ) : (
         <div className="glass-panel overflow-hidden p-0">
           <div className="overflow-hidden">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                 <tr>
                   <SortableHeader label="N° Facture" field="numero" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[13%]" />
                   <SortableHeader label="Client" field="client_nom" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[17%]" />
                   <SortableHeader label="Date" field="date_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
                   <SortableHeader label="Mois Réalis." field="mois_prestation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[11%]" />
-                  <SortableHeader label="Montant" field="montant_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-right w-[13%]" />
+                  <SortableHeader label="Montant" field="montant_facture" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-end w-[13%]" />
                   <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[10%]" />
                   <SortableHeader label="Mode Règl." field="mode_paiement" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="text-center w-[12%]" />
                   <th className="py-3 px-4 text-center w-[8%] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Actions</th>
@@ -333,7 +333,7 @@ export default function FinancesPage() {
                       </td>
                       <td className="py-3 px-4 text-white/60 font-mono">{f.date_facture}</td>
                       <td className="py-3 px-4 text-white/60">{f.mois_realisation}</td>
-                      <td className="py-3 px-4 text-right font-mono font-bold text-white">
+                      <td className="py-3 px-4 text-end font-mono font-bold text-white">
                         {f.montant_facture.toLocaleString("fr-FR")} <span className="text-[9px] font-sans text-white/40">DZD</span>
                       </td>
                       <td className="py-3 px-4 text-center">

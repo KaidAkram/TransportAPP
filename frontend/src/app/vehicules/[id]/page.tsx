@@ -190,7 +190,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
             href="/vehicules"
             className="flex items-center px-3 py-2 rounded-xl text-sm font-medium glass-panel border-white/10 hover:bg-white/10 text-white/70 hover:text-white transition-all"
           >
-            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            <ArrowLeft className="h-4 w-4 me-1.5" />
             Retour au parc
           </Link>
           <div>
@@ -215,21 +215,21 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
             }}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all"
           >
-            <Plus className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)]" />
+            <Plus className="h-3.5 w-3.5 me-1.5 text-[var(--color-electric-violet)]" />
             Ajouter Document
           </button>
           <button
             onClick={() => setIsInterventionModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all group"
           >
-            <Wrench className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)] group-hover:text-white transition-colors" />
+            <Wrench className="h-3.5 w-3.5 me-1.5 text-[var(--color-electric-violet)] group-hover:text-white transition-colors" />
             + Ordre de Travail
           </button>
           <button
             onClick={() => setIsConstatModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white hover:bg-rose-600 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all"
           >
-            <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+            <AlertTriangle className="h-3.5 w-3.5 me-1.5" />
             Déclarer Constat
           </button>
         </div>
@@ -440,7 +440,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                   {activeDoc ? (
                     <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 mb-4 flex-1">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="overflow-hidden pr-2">
+                        <div className="overflow-hidden pe-2">
                           <p className="text-xs font-bold text-white truncate">{activeDoc.nom}</p>
                           <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at || new Date()).toLocaleDateString("fr-FR")}</p>
                         </div>
@@ -506,7 +506,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                       <div className="p-3 pt-0 border-t border-white/5 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                         {historyDocs.map((hdoc) => (
                           <div key={hdoc.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => setPreviewFile({ url: `${API_BASE_URL}/documents/${hdoc.id}/view`, name: hdoc.nom, type: hdoc.type })}>
-                            <div className="overflow-hidden pr-2">
+                            <div className="overflow-hidden pe-2">
                               <p className="text-[10px] font-bold text-white/70 truncate">{hdoc.nom}</p>
                               <p className="text-[9px] font-mono text-white/40">Exp: {hdoc.date_expiration || "—"}</p>
                             </div>
@@ -596,7 +596,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
               onClick={() => setIsConstatModalOpen(true)}
               className="flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white hover:bg-rose-600 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all"
             >
-              <AlertTriangle className="h-3.5 w-3.5 mr-1" /> Nouvelle Déclaration
+              <AlertTriangle className="h-3.5 w-3.5 me-1" /> Nouvelle Déclaration
             </button>
           </div>
 
@@ -641,7 +641,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
                                   En attente
                                 </span>
                                 <div className="flex bg-white/5 rounded-lg border border-white/10 overflow-hidden">
-                                  <button onClick={() => setUpdateConstatModal({ isOpen: true, constatId: c.id, status: "Payée", pendingFiles: [] })} className="px-3 py-1.5 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 transition-colors border-r border-white/5">
+                                  <button onClick={() => setUpdateConstatModal({ isOpen: true, constatId: c.id, status: "Payée", pendingFiles: [] })} className="px-3 py-1.5 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 transition-colors border-e border-white/5">
                                     Marquer Payée
                                   </button>
                                   <button onClick={() => setUpdateConstatModal({ isOpen: true, constatId: c.id, status: "Refusée", pendingFiles: [] })} className="px-3 py-1.5 text-[10px] font-bold text-rose-400 hover:bg-rose-500/10 transition-colors">
@@ -761,7 +761,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
               onClick={() => setIsInterventionModalOpen(true)}
               className="flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[var(--color-electric-violet)]/90 hover:shadow-[0_0_20px_rgba(131,77,251,0.4)] transition-all"
             >
-              <Plus className="h-3.5 w-3.5 mr-1" /> Nouvel Ordre de Travail
+              <Plus className="h-3.5 w-3.5 me-1" /> Nouvel Ordre de Travail
             </button>
           </div>
 
@@ -778,7 +778,7 @@ export default function VehiculeDetailPage({ params }: { params: Promise<{ id: s
           ) : (
             <div className="glass-panel overflow-hidden">
               <div className="min-w-0">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-start border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.02]">
                       <th className="px-6 py-4 text-[10px] font-accent uppercase tracking-widest text-white/50">N° OT</th>

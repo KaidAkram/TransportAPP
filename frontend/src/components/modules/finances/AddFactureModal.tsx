@@ -126,7 +126,7 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
           transition={{ type: "spring", duration: 0.4 }}
           className="relative w-full max-w-lg glass-panel p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
         >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50" />
+          <div className="absolute top-0 start-0 end-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50" />
 
           <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
@@ -156,21 +156,21 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Numéro de Facture *</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Numéro de Facture *</label>
                 <div className="relative">
-                  <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Receipt className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     {...register("numero")}
                     placeholder="ex: INV-2026-001"
-                    className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm"
+                    className="w-full ps-10 pe-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm"
                   />
                 </div>
-                {errors.numero && <p className="text-xs text-red-400 ml-1">{errors.numero.message}</p>}
+                {errors.numero && <p className="text-xs text-red-400 ms-1">{errors.numero.message}</p>}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Client *</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Client *</label>
                 <Controller
                   name="client_id"
                   control={control}
@@ -183,25 +183,25 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                     />
                   )}
                 />
-                {errors.client_id && <p className="text-xs text-red-400 ml-1">{errors.client_id.message}</p>}
+                {errors.client_id && <p className="text-xs text-red-400 ms-1">{errors.client_id.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Date Facture *</label>
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Date Facture *</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <Calendar className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                     <input
                       type="date"
                       {...register("date_facture")}
-                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm [color-scheme:dark]"
+                      className="w-full ps-10 pe-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm [color-scheme:dark]"
                     />
                   </div>
-                  {errors.date_facture && <p className="text-xs text-red-400 ml-1">{errors.date_facture.message}</p>}
+                  {errors.date_facture && <p className="text-xs text-red-400 ms-1">{errors.date_facture.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Mois de Réalisation *</label>
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Mois de Réalisation *</label>
                   <Controller
                     name="mois_realisation"
                     control={control}
@@ -214,11 +214,11 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                       />
                     )}
                   />
-                  {errors.mois_realisation && <p className="text-xs text-red-400 ml-1">{errors.mois_realisation.message}</p>}
+                  {errors.mois_realisation && <p className="text-xs text-red-400 ms-1">{errors.mois_realisation.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Année de Réalisation *</label>
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Année de Réalisation *</label>
                   <Controller
                     name="annee_realisation"
                     control={control}
@@ -226,12 +226,12 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                       <GlassNumberInput {...field} min={2000} max={2100} step={1} placeholder={new Date().getFullYear().toString()} />
                     )}
                   />
-                  {errors.annee_realisation && <p className="text-xs text-red-400 ml-1">{errors.annee_realisation.message}</p>}
+                  {errors.annee_realisation && <p className="text-xs text-red-400 ms-1">{errors.annee_realisation.message}</p>}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Montant Facture (DZD) *</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Montant Facture (DZD) *</label>
                 <Controller
                   name="montant_facture"
                   control={control}
@@ -239,11 +239,11 @@ export function AddFactureModal({ isOpen, onClose, onSuccess }: AddFactureModalP
                     <GlassNumberInput {...field} min={0} step="any" customStep={1000} placeholder="0" />
                   )}
                 />
-                {errors.montant_facture && <p className="text-xs text-red-400 ml-1">{errors.montant_facture.message}</p>}
+                {errors.montant_facture && <p className="text-xs text-red-400 ms-1">{errors.montant_facture.message}</p>}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">Remarques</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">Remarques</label>
                 <textarea
                   {...register("remarques")}
                   placeholder="Notes ou remarques optionnelles..."

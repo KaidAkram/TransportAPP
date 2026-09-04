@@ -133,7 +133,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                 <span>
                   {isChauffeur ? "Chauffeur Grand Tourisme" : isMecanicien ? "Mécanicien d'Atelier" : "Administratif"}
                 </span>
-                {employe.telephone && <span className="text-white/50">· <Phone className="inline-block h-3 w-3 mr-1" />{employe.telephone}</span>}
+                {employe.telephone && <span className="text-white/50">· <Phone className="inline-block h-3 w-3 me-1" />{employe.telephone}</span>}
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
               onClick={() => setIsLicenseModalOpen(true)}
               className="inline-flex items-center px-4 py-2 text-xs font-semibold rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
             >
-              <Shield className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)]" />
+              <Shield className="h-3.5 w-3.5 me-1.5 text-[var(--color-electric-violet)]" />
               {employe.permis ? "Gérer le Permis" : "+ Ajouter Permis"}
             </button>
           </div>
@@ -244,7 +244,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
           <div className="absolute -right-12 -top-12 w-32 h-32 bg-[var(--color-electric-violet)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-electric-violet)]/10 transition-all duration-500 pointer-events-none"></div>
           <div>
             <p className="text-[10px] text-white/50 font-accent uppercase tracking-widest mb-3">Spécialité & Qualification</p>
-            <span className="text-sm font-bold font-heading text-white truncate pr-2 leading-tight">
+            <span className="text-sm font-bold font-heading text-white truncate pe-2 leading-tight">
               {isChauffeur
                 ? employe.fonction || "Chauffeur Transport"
                 : employe.specialite || "Maintenance Générale"}
@@ -293,25 +293,25 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Matricule RH</span>
-                  <span className="font-mono font-bold text-white text-right">{employe.matricule}</span>
+                  <span className="font-mono font-bold text-white text-end">{employe.matricule}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Nom & Prénom</span>
-                  <span className="font-medium text-white text-right">{employe.nom} {employe.prenom}</span>
+                  <span className="font-medium text-white text-end">{employe.nom} {employe.prenom}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Date de naissance</span>
-                  <span className="font-mono text-white/90 text-right">
+                  <span className="font-mono text-white/90 text-end">
                     {employe.date_naissance ? new Date(employe.date_naissance).toLocaleDateString("fr-FR") : "Non renseignée"}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Numéro de téléphone</span>
-                  <span className="font-mono font-medium text-white/90 text-right">{employe.telephone || "—"}</span>
+                  <span className="font-mono font-medium text-white/90 text-end">{employe.telephone || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Adresse de résidence</span>
-                  <span className="text-white/90 text-right">{employe.adresse || "Non renseignée"}</span>
+                  <span className="text-white/90 text-end">{employe.adresse || "Non renseignée"}</span>
                 </div>
               </div>
             </div>
@@ -326,22 +326,22 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
               <div className="divide-y divide-white/5">
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Corps de métier</span>
-                  <span className="text-[10px] font-bold font-accent uppercase tracking-wider text-white bg-[var(--color-electric-violet)] px-2 py-0.5 rounded-md w-fit justify-self-end text-right">{employe.type_employe}</span>
+                  <span className="text-[10px] font-bold font-accent uppercase tracking-wider text-white bg-[var(--color-electric-violet)] px-2 py-0.5 rounded-md w-fit justify-self-end text-end">{employe.type_employe}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Poste / Fonction</span>
-                  <span className="font-medium text-white justify-self-end text-right">{employe.fonction || "—"}</span>
+                  <span className="font-medium text-white justify-self-end text-end">{employe.fonction || "—"}</span>
                 </div>
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Date d&apos;embauche</span>
-                  <span className="font-mono text-white/90 justify-self-end text-right">
+                  <span className="font-mono text-white/90 justify-self-end text-end">
                     {employe.date_embauche ? new Date(employe.date_embauche).toLocaleDateString("fr-FR") : "—"}
                   </span>
                 </div>
                 {isChauffeur && (
                   <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                     <span className="text-white/40 font-medium">Assurance Professionnelle</span>
-                    <span className={`justify-self-end text-right ${employe.assurance ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}`}>
+                    <span className={`justify-self-end text-end ${employe.assurance ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}`}>
                       {employe.assurance ? "Active & Couverte" : "Non couverte"}
                     </span>
                   </div>
@@ -350,11 +350,11 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                   <>
                     <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                       <span className="text-white/40 font-medium">Spécialité Technique</span>
-                      <span className="font-medium text-white justify-self-end text-right">{employe.specialite || "—"}</span>
+                      <span className="font-medium text-white justify-self-end text-end">{employe.specialite || "—"}</span>
                     </div>
                     <div className="grid grid-cols-2 px-8 py-5 text-[13px] hover:bg-white/[0.02] transition-colors">
                       <span className="text-white/40 font-medium">Expérience / Responsabilité</span>
-                      <span className="font-medium text-[var(--color-electric-violet)] justify-self-end text-right">
+                      <span className="font-medium text-[var(--color-electric-violet)] justify-self-end text-end">
                         {employe.experience || "—"} {employe.est_responsable ? "· Chef d'Atelier" : ""}
                       </span>
                     </div>
@@ -362,7 +362,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                 )}
                 <div className="grid grid-cols-2 px-8 py-5 text-[13px] items-center hover:bg-white/[0.02] transition-colors">
                   <span className="text-white/40 font-medium">Statut RH</span>
-                  <span className="justify-self-end text-right"><StatusBadge status={employe.statut} /></span>
+                  <span className="justify-self-end text-end"><StatusBadge status={employe.statut} /></span>
                 </div>
               </div>
             </div>
@@ -381,7 +381,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
               onClick={() => setIsLicenseModalOpen(true)}
               className="inline-flex items-center px-4 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all"
             >
-              <Shield className="h-3.5 w-3.5 mr-2 text-[var(--color-electric-violet)]" />
+              <Shield className="h-3.5 w-3.5 me-2 text-[var(--color-electric-violet)]" />
               {employe.permis ? "Modifier le Permis" : "Enregistrer un Permis"}
             </button>
           </div>
@@ -541,7 +541,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
               onClick={() => setIsDocModalOpen(true)}
               className="inline-flex items-center shrink-0 px-4 py-2 text-xs font-bold rounded-xl bg-[var(--color-electric-violet)] text-white hover:bg-[var(--color-electric-violet)]/90 shadow-[0_0_15px_rgba(131,77,251,0.3)] transition-all"
             >
-              <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Document RH
+              <Plus className="h-3.5 w-3.5 me-1.5" /> Nouveau Document RH
             </button>
           </div>
 
@@ -604,7 +604,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                         {activeDoc ? (
                           <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 mb-4 flex-1">
                             <div className="flex items-start justify-between mb-3">
-                              <div className="overflow-hidden pr-2">
+                              <div className="overflow-hidden pe-2">
                                 <p className="text-xs font-bold text-white truncate">{activeDoc.nom}</p>
                                 <p className="text-[10px] text-white/40 font-mono mt-0.5">Ajouté le {new Date(activeDoc.created_at || new Date()).toLocaleDateString("fr-FR")}</p>
                               </div>
@@ -672,7 +672,7 @@ export default function EmployeDetailPage({ params }: { params: Promise<{ id: st
                             <div className="p-3 pt-0 border-t border-white/5 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                               {historyDocs.map((hdoc) => (
                                 <div key={hdoc.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                                  <div className="overflow-hidden pr-2">
+                                  <div className="overflow-hidden pe-2">
                                     <p className="text-[10px] font-bold text-white/70 truncate">{hdoc.nom}</p>
                                     <p className="text-[9px] font-mono text-white/40">Exp: {hdoc.date_expiration || "—"}</p>
                                   </div>

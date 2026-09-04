@@ -45,7 +45,7 @@ export const GlassNumberInput = forwardRef<HTMLInputElement, GlassNumberInputPro
         <input
           ref={inputRef}
           type="number"
-          className={`w-full rounded-xl bg-white/5 border px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all font-mono pr-12 ${
+          className={`w-full rounded-xl bg-white/5 border px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-white/10 transition-all font-mono pe-12 ${
             error ? 'border-red-500/50' : 'border-white/10'
           } ${className}`}
           {...props}
@@ -53,13 +53,13 @@ export const GlassNumberInput = forwardRef<HTMLInputElement, GlassNumberInputPro
         
         {/* Suffix (e.g. "km" or "DZD") */}
         {suffix && (
-          <span className="absolute right-12 text-white/30 text-xs font-bold pointer-events-none">
+          <span className="absolute end-12 text-white/30 text-xs font-bold pointer-events-none">
             {suffix}
           </span>
         )}
         
         {/* Custom Spin Buttons */}
-        <div className="absolute right-1.5 flex flex-col items-center justify-center h-[calc(100%-8px)] w-8 bg-black/20 rounded-lg border border-white/5 overflow-hidden">
+        <div className="absolute end-1.5 flex flex-col items-center justify-center h-[calc(100%-8px)] w-8 bg-black/20 rounded-lg border border-white/5 overflow-hidden">
           <button
             type="button"
             onClick={handleIncrement}

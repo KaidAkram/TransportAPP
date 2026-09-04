@@ -150,7 +150,7 @@ export default function ContratsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <FileText className="w-3 h-3" />
             Suivi Contractuel
           </p>
@@ -250,13 +250,13 @@ export default function ContratsPage() {
       {/* Filter & Search Bar */}
       <div className="relative z-20 flex flex-wrap justify-between gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une référence, un partenaire, un objet..."
-            className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+            className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
           />
         </div>
 
@@ -319,7 +319,7 @@ export default function ContratsPage() {
           </div>
         )}
         <div className="w-full min-w-0">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-start border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
                 <SortableHeader label="Réf. Contrat" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
@@ -328,7 +328,7 @@ export default function ContratsPage() {
                 <SortableHeader label="Montant" field="montant" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">Période</th>
                 <SortableHeader label="Statut / Échéance" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap">Actions</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -369,7 +369,7 @@ export default function ContratsPage() {
                           {c.reference}
                         </Link>
                         {isArchived && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-bold text-amber-400/70 uppercase">
+                          <span className="ms-2 inline-flex items-center gap-1 text-[9px] font-bold text-amber-400/70 uppercase">
                             <Archive className="h-2.5 w-2.5" /> archivé
                           </span>
                         )}
@@ -435,7 +435,7 @@ export default function ContratsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-5 text-right relative z-20">
+                      <td className="py-4 px-5 text-end relative z-20">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/contrats/${c.id}`}>
                             <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white transition-all">

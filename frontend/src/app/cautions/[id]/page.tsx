@@ -145,7 +145,7 @@ export default function CautionDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-6">
               {/* Quick Info Card */}
               <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5">
+                <div className="absolute top-0 end-0 p-4 opacity-5">
                   <Clock className="w-32 h-32 text-white" />
                 </div>
                 <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-4 flex items-center gap-2">

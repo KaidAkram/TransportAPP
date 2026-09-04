@@ -174,7 +174,7 @@ export function NotificationBell() {
     
     // Override border if urgent
     if (isUrgent && !style.border.includes("border-dashed")) {
-        style.border += " border-l-[3px]"; 
+        style.border += " border-s-[3px]"; 
     }
     
     return style;
@@ -192,7 +192,7 @@ export function NotificationBell() {
         <Bell className="h-5 w-5" />
         {totalActive > 0 && (
           <span
-            className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-[0_0_10px_rgba(255,0,0,0.5)] ${
+            className={`absolute end-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-[0_0_10px_rgba(255,0,0,0.5)] ${
               urgentCount > 0 ? "bg-red-500 animate-pulse" : "bg-orange-500"
             }`}
           >
@@ -203,7 +203,7 @@ export function NotificationBell() {
 
       {/* Popover Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-96 max-w-[90vw] rounded-2xl border border-white/10 bg-[var(--color-haiti)]/90 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute end-0 mt-3 w-96 max-w-[90vw] rounded-2xl border border-white/10 bg-[var(--color-haiti)]/90 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/20">
             <div className="flex items-center gap-3">

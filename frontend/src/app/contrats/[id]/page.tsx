@@ -83,9 +83,9 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
     <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 font-sans">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
-        <div className="flex flex-col gap-3 flex-1 min-w-0 mr-4">
+        <div className="flex flex-col gap-3 flex-1 min-w-0 me-4">
           <Link href="/contrats" className="inline-flex w-fit items-center text-[10px] font-accent uppercase tracking-widest text-white/50 hover:text-[var(--color-electric-violet)] transition-colors">
-            <ArrowLeft className="h-3 w-3 mr-1" />
+            <ArrowLeft className="h-3 w-3 me-1" />
             Retour aux contrats
           </Link>
 
@@ -139,21 +139,21 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
             onClick={() => setIsDocModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all shadow-sm"
           >
-            <FileText className="h-3.5 w-3.5 mr-1.5 text-[var(--color-electric-violet)]" />
+            <FileText className="h-3.5 w-3.5 me-1.5 text-[var(--color-electric-violet)]" />
             Document
           </button>
           <button
             onClick={() => setIsCautionModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all shadow-sm"
           >
-            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-[var(--color-turbo)]" />
+            <ShieldCheck className="h-3.5 w-3.5 me-1.5 text-[var(--color-turbo)]" />
             Caution
           </button>
           <button
             onClick={() => setIsAvenantModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-electric-violet)] text-white hover:bg-[#6A3DE8] hover:shadow-[0_0_20px_rgba(131,77,251,0.4)] transition-all"
           >
-            <FileEdit className="h-3.5 w-3.5 mr-1.5" />
+            <FileEdit className="h-3.5 w-3.5 me-1.5" />
             Nouvel Avenant
           </button>
         </div>
@@ -218,17 +218,17 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                     isActive ? "text-[var(--color-electric-violet)]" : "text-white/50 hover:text-white"
                   }`}
                 >
-                  <tab.icon className="hidden sm:block h-3.5 w-3.5 mr-1.5" />
+                  <tab.icon className="hidden sm:block h-3.5 w-3.5 me-1.5" />
                   {tab.label}
                   {tab.count !== undefined && (
-                    <span className={`ml-2 inline-flex h-5 items-center justify-center rounded-full px-1.5 text-[9px] font-mono ${
+                    <span className={`ms-2 inline-flex h-5 items-center justify-center rounded-full px-1.5 text-[9px] font-mono ${
                       isActive ? "bg-[var(--color-electric-violet)]/20 text-[var(--color-electric-violet)]" : "bg-white/5 text-white/50"
                     }`}>
                       {tab.count}
                     </span>
                   )}
                   {isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-electric-violet)] rounded-t-full shadow-[0_-2px_10px_rgba(131,77,251,0.5)]" />
+                    <div className="absolute bottom-0 start-0 end-0 h-0.5 bg-[var(--color-electric-violet)] rounded-t-full shadow-[0_-2px_10px_rgba(131,77,251,0.5)]" />
                   )}
                 </button>
               );
@@ -240,7 +240,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
             {activeTab === "infos" && (
               <div className="space-y-6">
                 <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <div className="absolute top-0 end-0 p-4 opacity-10">
                     <Building2 className="w-24 h-24 text-[var(--color-electric-violet)]" />
                   </div>
                   <h3 className="text-xs font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-5 flex items-center gap-2">
@@ -266,7 +266,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <div className="absolute top-0 end-0 p-4 opacity-10">
                     <FileText className="w-24 h-24 text-[var(--color-turbo)]" />
                   </div>
                   <h3 className="text-xs font-accent uppercase tracking-widest text-[var(--color-turbo)] font-bold mb-5 flex items-center gap-2">
@@ -310,7 +310,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                     onClick={() => setIsAvenantModalOpen(true)}
                     className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-electric-violet)]/10 text-[var(--color-electric-violet)] border border-[var(--color-electric-violet)]/30 hover:bg-[var(--color-electric-violet)]/20 transition-all"
                   >
-                    <Plus className="h-3 w-3 mr-1" /> Nouvel Avenant
+                    <Plus className="h-3 w-3 me-1" /> Nouvel Avenant
                   </button>
                 </div>
                 {contrat.avenants.length === 0 ? (
@@ -322,7 +322,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
                     <div className="min-w-0">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full text-start border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Avenant</th>
@@ -373,7 +373,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                     onClick={() => setIsCautionModalOpen(true)}
                     className="flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[var(--color-turbo)]/10 text-[var(--color-turbo)] border border-[var(--color-turbo)]/30 hover:bg-[var(--color-turbo)]/20 transition-all"
                   >
-                    <Plus className="h-3 w-3 mr-1" /> Nouvelle Caution
+                    <Plus className="h-3 w-3 me-1" /> Nouvelle Caution
                   </button>
                 </div>
                 {contrat.cautions.length === 0 ? (
@@ -385,7 +385,7 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
                 ) : (
                   <div className="glass-panel rounded-2xl overflow-hidden">
                     <div className="min-w-0">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full text-start border-collapse">
                         <thead>
                           <tr className="border-b border-white/10 bg-white/[0.02]">
                             <th className="py-3 px-4 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold">Réf. Caution</th>
@@ -438,14 +438,14 @@ export default function ContratDetailPage({ params }: { params: Promise<{ id: st
         {/* Right Column : 1/3 (Timeline & Alerts) */}
         <div className="space-y-6">
           <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
+            <div className="absolute top-0 end-0 p-4 opacity-5">
               <Clock className="w-32 h-32 text-white" />
             </div>
             <h3 className="text-xs font-accent uppercase tracking-widest text-white/50 font-bold mb-6 flex items-center gap-2">
               <Clock className="h-4 w-4" /> Durée de Vie
             </h3>
 
-            <div className="relative pl-6 border-l-2 border-white/10 space-y-6">
+            <div className="relative ps-6 border-s-2 border-white/10 space-y-6">
               <div className="relative">
                 <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-[1.65rem] top-1 shadow-[0_0_10px_rgba(52,211,153,0.5)] border border-emerald-900" />
                 <p className="text-[10px] font-accent uppercase tracking-widest text-emerald-400 font-bold">Début du contrat</p>

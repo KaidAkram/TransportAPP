@@ -85,7 +85,7 @@ export function ViewInterventionModal({ interventionId, isOpen, onClose }: ViewI
                       }`}>{intervention.statut}</span>
                     </div>
                     
-                    <div className="flex gap-6 text-right">
+                    <div className="flex gap-6 text-end">
                       <div>
                         <p className="text-[10px] uppercase font-bold text-white/40 tracking-wider mb-1">Main d'Œuvre</p>
                         <p className="text-base font-mono font-bold text-white/80">
@@ -98,7 +98,7 @@ export function ViewInterventionModal({ interventionId, isOpen, onClose }: ViewI
                           {(intervention.cout_pieces || 0).toLocaleString("fr-DZ")} <span className="text-xs">DZD</span>
                         </p>
                       </div>
-                      <div className="pl-4 border-l border-white/10">
+                      <div className="ps-4 border-s border-white/10">
                         <p className="text-[10px] uppercase font-bold text-[var(--color-electric-violet)]/70 tracking-wider mb-1">Coût Total</p>
                         <p className="text-xl font-mono font-bold text-[var(--color-electric-violet)]">
                           {(intervention.cout_total || 0).toLocaleString("fr-DZ")} <span className="text-xs text-[var(--color-electric-violet)]/70">DZD</span>
@@ -208,7 +208,7 @@ export function ViewInterventionModal({ interventionId, isOpen, onClose }: ViewI
                                 <p className="text-xs font-bold text-white">{p.designation}</p>
                                 <p className="text-[10px] font-mono text-white/50">{p.reference}</p>
                               </div>
-                              <div className="text-right">
+                              <div className="text-end">
                                 <div className="flex items-center justify-end gap-2">
                                   <span className="font-mono text-[10px] text-white/40">
                                     {p.prix_unitaire_applique ? `${p.prix_unitaire_applique.toLocaleString("fr-DZ")} DZD/u` : "-"}

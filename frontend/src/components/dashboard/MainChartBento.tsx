@@ -129,7 +129,7 @@ export function MainChartBento() {
               <div key={index} className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }} />
                 <span className="text-[11px] text-white/90 font-sans uppercase font-medium">{entry.name}</span>
-                <span className="ml-auto text-sm font-extrabold text-white">{(entry.value / 1000000).toFixed(1)}M DZD</span>
+                <span className="ms-auto text-sm font-extrabold text-white">{(entry.value / 1000000).toFixed(1)}M DZD</span>
               </div>
             ))}
           </div>

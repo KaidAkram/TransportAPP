@@ -6,6 +6,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { translations, SupportedLanguage } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 
 const ALL_SEARCH_OPTIONS = [
@@ -36,6 +38,10 @@ export function TopBar() {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  const { userPreferences } = useSettingsStore();
+  const currentLang = (userPreferences?.language as SupportedLanguage) || "fr";
+  const t = translations[currentLang] || translations.fr;
 
   // Filter options based on query
   const filteredOptions = query
@@ -139,7 +145,7 @@ export function TopBar() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 id="global-search-input"
-                placeholder="Recherche globale (Ctrl+K)"
+                placeholder={t.searchPlaceholder}
                 onFocus={() => setIsSearchOpen(true)}
                 className={`w-full rounded-xl bg-white/5 py-2 ps-9 pe-4 text-xs text-white placeholder:text-white/40 border transition-all relative z-10 focus:outline-none ${
                   isSearchOpen ? 'border-[var(--color-turbo)]/50 shadow-[0_0_15px_rgba(240,225,0,0.1)] bg-[var(--color-haiti)]' : 'border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-white/20'
@@ -155,16 +161,16 @@ export function TopBar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -5, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-[var(--color-haiti)]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden z-50"
+                  className="absolute top-full start-0 end-0 mt-2 bg-[var(--color-haiti)]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden z-50"
                 >
                   <div className="p-2">
                     <p className="px-3 py-2 text-[9px] font-accent uppercase tracking-widest text-white/40">
-                      {query ? "Résultats de recherche" : "Suggestions Rapides"}
+                      {query ? t.searchResults : t.quickSuggestions}
                     </p>
                     
                     {displayOptions.length === 0 ? (
                       <div className="px-3 py-6 text-center text-xs text-white/50">
-                        Aucun résultat pour "{query}"
+                        {t.noResults} "{query}"
                       </div>
                     ) : (
                       <ul className="flex flex-col gap-1">
@@ -219,20 +225,20 @@ export function TopBar() {
                   <div className="bg-black/20 px-4 py-2 border-t border-white/5 flex items-center justify-between text-[9px] text-white/40">
                     <div className="flex gap-4">
                       <span className="flex items-center gap-1.5">
-                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">↑↓</kbd> Naviguer
+                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">↑↓</kbd> {t.navigate}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Enter</kbd> Aller
+                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Enter</kbd> {t.goTo}
                       </span>
                     </div>
                     <div className="flex gap-4">
                       {ghostText && query && (
                         <span className="flex items-center gap-1.5">
-                          <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Tab</kbd> Autocompléter
+                          <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Tab</kbd> {t.autocomplete}
                         </span>
                       )}
                       <span className="flex items-center gap-1.5">
-                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Esc</kbd> Quitter
+                        <kbd className="px-1 py-0.5 rounded bg-white/10 border border-white/10 font-sans shadow-sm">Esc</kbd> {t.quit}
                       </span>
                     </div>
                   </div>
@@ -253,10 +259,10 @@ export function TopBar() {
               </div>
               <div className="hidden text-start md:block">
                 <p className="text-xs font-bold text-white tracking-wide">
-                  {user ? user.email : "Direction Générale"}
+                  {user ? user.email : t.dirGeneral}
                 </p>
                 <p className="text-[10px] text-[var(--color-turbo)] capitalize tracking-widest font-accent">
-                  {user ? user.role : "Super Administrateur"}
+                  {user ? user.role : t.superAdmin}
                 </p>
               </div>
               {user && (
@@ -265,7 +271,7 @@ export function TopBar() {
                     useAuthStore.getState().logout();
                     router.push("/login");
                   }}
-                  title="Déconnexion"
+                  title={t.navLogout}
                   className="ms-2 p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />

@@ -99,7 +99,7 @@ export function CreationFileUploader({
                   {getFileIcon(file.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-white truncate pr-2 group-hover/file:text-[var(--color-electric-violet)] transition-colors" title={file.name}>
+                  <p className="text-[11px] font-bold text-white truncate pe-2 group-hover/file:text-[var(--color-electric-violet)] transition-colors" title={file.name}>
                     {file.name}
                   </p>
                   <p className="text-[9px] font-accent uppercase tracking-widest text-white/40 mt-0.5">

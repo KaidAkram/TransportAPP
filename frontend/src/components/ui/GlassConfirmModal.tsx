@@ -91,7 +91,7 @@ export function GlassConfirmModal({
           className="relative w-full max-w-md glass-panel p-0 overflow-hidden shadow-2xl"
         >
           {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--color-electric-violet)] to-transparent opacity-50" />
+          <div className="absolute top-0 start-0 end-0 h-1 bg-gradient-to-r from-transparent via-[var(--color-electric-violet)] to-transparent opacity-50" />
 
           {/* Header */}
           <div className="flex items-start justify-between p-6 pb-2">

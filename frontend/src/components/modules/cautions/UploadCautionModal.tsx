@@ -108,7 +108,7 @@ export function UploadCautionModal({
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-md rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative max-h-[90vh] flex flex-col">
-        <div className="absolute top-0 right-0 w-48 h-48 blur-[80px] pointer-events-none rounded-full bg-[var(--color-turbo)]/10" />
+        <div className="absolute top-0 end-0 w-48 h-48 blur-[80px] pointer-events-none rounded-full bg-[var(--color-turbo)]/10" />
 
         {/* Header */}
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">

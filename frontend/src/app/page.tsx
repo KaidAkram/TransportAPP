@@ -174,7 +174,7 @@ export default function DashboardHomePage() {
       {/* Top Welcome Banner */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <Activity className="w-3 h-3" />
             Tableau de Bord Exécutif — {company.name}
           </p>
@@ -208,7 +208,7 @@ export default function DashboardHomePage() {
           onClick={fetchDashboardData}
           className="flex items-center px-4 py-2 rounded-xl text-sm font-medium glass-panel border-white/10 hover:bg-white/10 text-white transition-all group"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 text-[var(--color-turbo)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
+          <RefreshCw className={`h-4 w-4 me-2 text-[var(--color-turbo)] transition-transform ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
           Actualiser
         </button>
       </div>
@@ -218,24 +218,24 @@ export default function DashboardHomePage() {
         className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]"
         style={{ animationDelay: '0.1s' }}
       >
-        <span className="text-xs font-bold text-white/50 uppercase tracking-widest font-accent pl-2">
+        <span className="text-xs font-bold text-white/50 uppercase tracking-widest font-accent ps-2">
           Actions Rapides
         </span>
         <div className="flex flex-wrap gap-3 w-full md:w-auto">
           <button onClick={() => setIsVehicleModalOpen(true)} className="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-[var(--color-electric-violet)]/20 hover:border-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <Plus className="h-3 w-3 inline mr-1 text-[var(--color-electric-violet)]" /> Véhicule
+            <Plus className="h-3 w-3 inline me-1 text-[var(--color-electric-violet)]" /> Véhicule
           </button>
           <button onClick={() => setIsInterventionModalOpen(true)} className="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-[var(--color-electric-violet)]/20 hover:border-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <Wrench className="h-3 w-3 inline mr-1 text-[var(--color-electric-violet)]" /> Ordre Travail
+            <Wrench className="h-3 w-3 inline me-1 text-[var(--color-electric-violet)]" /> Ordre Travail
           </button>
           <button onClick={() => setIsStockEntryModalOpen(true)} className="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-[var(--color-turbo)]/20 hover:border-[var(--color-turbo)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <Package className="h-3 w-3 inline mr-1 text-[var(--color-turbo)]" /> Entrée Stock
+            <Package className="h-3 w-3 inline me-1 text-[var(--color-turbo)]" /> Entrée Stock
           </button>
           <button onClick={() => setIsCautionModalOpen(true)} className="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-[var(--color-electric-violet)]/20 hover:border-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <Shield className="h-3 w-3 inline mr-1 text-[var(--color-electric-violet)]" /> Caution
+            <Shield className="h-3 w-3 inline me-1 text-[var(--color-electric-violet)]" /> Caution
           </button>
           <button onClick={() => setIsContractModalOpen(true)} className="flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-[var(--color-electric-violet)]/20 hover:border-[var(--color-electric-violet)]/50 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <FileText className="h-3 w-3 inline mr-1 text-[var(--color-electric-violet)]" /> Contrat
+            <FileText className="h-3 w-3 inline me-1 text-[var(--color-electric-violet)]" /> Contrat
           </button>
         </div>
       </div>
@@ -357,12 +357,12 @@ export default function DashboardHomePage() {
               />
               {/* Faible Segment */}
               <div 
-                className="h-full bg-white/40 border-l border-[var(--color-haiti)]" 
+                className="h-full bg-white/40 border-s border-[var(--color-haiti)]" 
                 style={{ width: `${((kpi?.stock.stock_faible || 0) / Math.max(1, ((kpi?.stock.stock_rupture || 0) + (kpi?.stock.stock_faible || 0) + (kpi?.stock.stock_normal || 1)))) * 100}%` }}
               />
               {/* Normal Segment */}
               <div 
-                className="h-full bg-[var(--color-electric-violet)] border-l border-[var(--color-haiti)]" 
+                className="h-full bg-[var(--color-electric-violet)] border-s border-[var(--color-haiti)]" 
                 style={{ width: `${((kpi?.stock.stock_normal || 1) / Math.max(1, ((kpi?.stock.stock_rupture || 0) + (kpi?.stock.stock_faible || 0) + (kpi?.stock.stock_normal || 1)))) * 100}%` }}
               />
             </div>
@@ -378,7 +378,7 @@ export default function DashboardHomePage() {
               <p className="text-[10px] font-accent uppercase text-white/50 tracking-widest mb-0.5">Faible</p>
               <p className="text-lg font-heading font-bold text-white/80 leading-none">{kpi?.stock.stock_faible || 0}</p>
             </div>
-            <div className="text-right">
+            <div className="text-end">
               <p className="text-[10px] font-accent uppercase text-[var(--color-electric-violet)] tracking-widest mb-0.5">Normal</p>
               <p className="text-xl font-heading font-bold text-[var(--color-electric-violet)] leading-none">{kpi?.stock.stock_normal || 17}</p>
             </div>
@@ -423,7 +423,7 @@ export default function DashboardHomePage() {
                       href={al.link}
                       className="flex items-start justify-between p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all group"
                     >
-                      <div className="space-y-1.5 pr-4">
+                      <div className="space-y-1.5 pe-4">
                         <div className="flex items-center gap-2">
                           <span
                             className={`rounded-md border px-2 py-0.5 text-[9px] font-accent uppercase tracking-widest ${
@@ -472,7 +472,7 @@ export default function DashboardHomePage() {
                 <p className="text-xs text-white/40">Aucune activité récente.</p>
               </div>
             ) : (
-              <div className="space-y-2 relative before:absolute before:inset-y-4 before:left-6 before:w-px before:bg-gradient-to-b before:from-white/20 before:to-transparent">
+              <div className="space-y-2 relative before:absolute before:inset-y-4 before:start-6 before:w-px before:bg-gradient-to-b before:from-white/20 before:to-transparent">
                 {data.recent_activity.map((act) => (
                   <Link
                     key={act.id}

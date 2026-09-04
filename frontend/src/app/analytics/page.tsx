@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLOR_PRIMARY }} />
                 <p className="text-sm font-medium text-white">Chiffre d'Affaires:</p>
-                <p className="text-sm font-bold font-mono text-[var(--color-electric-violet)] ml-auto">
+                <p className="text-sm font-bold font-mono text-[var(--color-electric-violet)] ms-auto">
                   {formatDZD(entryData.chiffre_affaires_dzd)}
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
             <div key={index} className="flex items-center gap-3 py-1.5">
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
               <p className="text-sm font-medium text-white/80">{entry.name}:</p>
-              <p className="text-sm font-bold font-mono text-white ml-auto">
+              <p className="text-sm font-bold font-mono text-white ms-auto">
                 {typeof entry.value === 'number' ? formatDZD(entry.value) : entry.value}
               </p>
             </div>

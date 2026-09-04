@@ -181,7 +181,7 @@ export function AddStockEntryModal({
     return createPortal(
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
         <div className="w-full max-w-md rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-48 h-48 blur-[80px] pointer-events-none rounded-full bg-emerald-500/15" />
+          <div className="absolute top-0 end-0 w-48 h-48 blur-[80px] pointer-events-none rounded-full bg-emerald-500/15" />
           <div className="relative p-6 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30">
               <CheckCircle2 className="h-8 w-8 text-emerald-400" />
@@ -219,7 +219,7 @@ export function AddStockEntryModal({
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-3xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative max-h-[90vh] flex flex-col">
-        <div className="absolute top-0 right-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full bg-emerald-500/10" />
+        <div className="absolute top-0 end-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full bg-emerald-500/10" />
 
         {/* Header */}
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">
@@ -329,7 +329,7 @@ export function AddStockEntryModal({
                           <GlassNumberInput value={f.value} onChange={f.onChange} min={0} step="any" />
                         )} />
                       </div>
-                      <div className="w-24 text-right">
+                      <div className="w-24 text-end">
                         <label className="text-[10px] text-white/40 mb-1 block">Sous-total</label>
                         <p className="text-xs font-mono font-bold text-emerald-400 pt-2">
                           {sousTotal.toLocaleString("fr-FR")} DA

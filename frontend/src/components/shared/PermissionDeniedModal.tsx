@@ -28,7 +28,7 @@ export function PermissionDeniedModal() {
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-4 end-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
         >
           <X className="h-5 w-5" />
         </button>

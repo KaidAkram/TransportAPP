@@ -103,7 +103,7 @@ export function EncaisserModal({ facture, isOpen, onClose, onSuccess }: Encaisse
           transition={{ type: "spring", duration: 0.4 }}
           className="relative w-full max-w-xl glass-panel p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
         >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50" />
+          <div className="absolute top-0 start-0 end-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50" />
 
           <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export function EncaisserModal({ facture, isOpen, onClose, onSuccess }: Encaisse
                   <p className="text-sm font-medium text-white">{facture.client_nom || "Client"}</p>
                 </div>
                 <div className="h-8 w-px bg-white/10 mx-4" />
-                <div className="text-right">
+                <div className="text-end">
                   <p className="text-[10px] font-accent uppercase tracking-widest text-white/40 mb-1">Montant à Encaisser</p>
                   <p className="text-lg font-heading font-bold text-emerald-400">{facture.montant_facture.toLocaleString("fr-FR")} DZD</p>
                 </div>
@@ -148,7 +148,7 @@ export function EncaisserModal({ facture, isOpen, onClose, onSuccess }: Encaisse
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">
                     Mode de Règlement *
                   </label>
                   <Controller
@@ -168,27 +168,27 @@ export function EncaisserModal({ facture, isOpen, onClose, onSuccess }: Encaisse
                       />
                     )}
                   />
-                  {errors.mode_reglement && <p className="text-xs text-red-400 ml-1">{errors.mode_reglement.message}</p>}
+                  {errors.mode_reglement && <p className="text-xs text-red-400 ms-1">{errors.mode_reglement.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1">
+                  <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1">
                     Date de Règlement *
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <Calendar className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                     <input
                       type="date"
                       {...register("date_reglement")}
-                      className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm [color-scheme:dark]"
+                      className="w-full ps-10 pe-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors text-sm [color-scheme:dark]"
                     />
                   </div>
-                  {errors.date_reglement && <p className="text-xs text-red-400 ml-1">{errors.date_reglement.message}</p>}
+                  {errors.date_reglement && <p className="text-xs text-red-400 ms-1">{errors.date_reglement.message}</p>}
                 </div>
               </div>
 
               <div className="pt-2 border-t border-white/5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ml-1 mb-2 block">
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/40 ms-1 mb-2 block">
                   Document justificatif (Optionnel)
                 </label>
                 <CreationFileUploader

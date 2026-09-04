@@ -70,7 +70,7 @@ export default function UserSettingsPage() {
     <div className="w-full max-w-4xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[var(--color-turbo)] text-[#2B1B54] px-4 py-3 rounded-2xl shadow-xl shadow-[var(--color-turbo)]/20 border border-[var(--color-turbo)] flex items-center gap-2.5 text-sm font-bold animate-scale-in">
+        <div className="fixed bottom-6 end-6 z-50 bg-[var(--color-turbo)] text-[#2B1B54] px-4 py-3 rounded-2xl shadow-xl shadow-[var(--color-turbo)]/20 border border-[var(--color-turbo)] flex items-center gap-2.5 text-sm font-bold animate-scale-in">
           <CheckCircle2 className="h-5 w-5 shrink-0" />
           <span>{toastMessage}</span>
         </div>

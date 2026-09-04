@@ -152,7 +152,7 @@ export default function StockPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0s' }}>
         <div>
-          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-electric-violet)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <Package className="w-3 h-3" />
             Stock & Magasin
           </p>
@@ -253,7 +253,7 @@ export default function StockPage() {
       {/* Filter Bar */}
       <div className="relative z-20 flex flex-wrap gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
         <div className="relative w-full lg:w-auto lg:flex-1 min-w-[250px] group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
           </div>
           <input
@@ -261,7 +261,7 @@ export default function StockPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par réf, désignation, marque, emplacement..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
         
@@ -336,7 +336,7 @@ export default function StockPage() {
       {/* Table */}
       <div className="glass-panel rounded-2xl overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
         <div className="w-full min-w-0">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.02]">
                 <SortableHeader label="Référence" field="reference" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
@@ -346,7 +346,7 @@ export default function StockPage() {
                 <SortableHeader label="Stock Actuel" field="stock_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <SortableHeader label="Seuil Min" field="stock_minimum" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                 <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap">État Stock</th>
-                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-right whitespace-nowrap min-w-[130px] w-[130px]">Actions</th>
+                <th className="py-4 px-5 text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold text-end whitespace-nowrap min-w-[130px] w-[130px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -422,7 +422,7 @@ export default function StockPage() {
                           {p.statut_stock === "FAIBLE" && "Faible"}
                         </span>
                       </td>
-                      <td className="py-4 px-5 text-right">
+                      <td className="py-4 px-5 text-end">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleOpenEntry(p)}

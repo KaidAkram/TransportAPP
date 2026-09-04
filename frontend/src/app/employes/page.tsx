@@ -261,13 +261,13 @@ export default function EmployesPage() {
       {/* Filter & Search Bar */}
       <div className="relative z-20 flex flex-wrap items-stretch md:items-center justify-between gap-4 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.2s' }}>
         <div className="flex-1 max-w-md relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom, prénom, matricule ou téléphone..."
-            className="w-full !pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+            className="w-full !ps-10 pe-4 py-2.5 text-xs rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
           />
         </div>
 
@@ -332,7 +332,7 @@ export default function EmployesPage() {
       {/* Personnel Data Table */}
       <div className="glass-panel overflow-hidden p-0 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.25s' }}>
         <div className="overflow-hidden">
-          <table className="w-full text-left text-xs table-fixed">
+          <table className="w-full text-start text-xs table-fixed">
             <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
               <tr>
                 <SortableHeader label="Matricule" field="matricule" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
@@ -341,7 +341,7 @@ export default function EmployesPage() {
                 <th className="py-3 px-3 w-[22%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Spécialité / Fonction</th>
                 <SortableHeader label="Téléphone" field="telephone" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
                 <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[10%]" />
-                <th className="py-3 px-3 text-right w-[14%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Actions</th>
+                <th className="py-3 px-3 text-end w-[14%] text-[10px] font-accent uppercase tracking-widest text-white/50 font-bold whitespace-nowrap select-none">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -395,7 +395,7 @@ export default function EmployesPage() {
                             {e.dossier_complet === false && (
                               <div className="absolute -top-1.5 -right-1.5 group/tooltip flex items-center justify-center z-20">
                                 <AlertTriangle className="h-4 w-4 text-[var(--color-turbo)] fill-[var(--color-turbo)]/20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover/tooltip:block w-max bg-[var(--color-turbo)] text-black text-[10px] py-0.5 px-1.5 rounded font-bold shadow-lg z-50">
+                                <div className="absolute start-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover/tooltip:block w-max bg-[var(--color-turbo)] text-black text-[10px] py-0.5 px-1.5 rounded font-bold shadow-lg z-50">
                                   Dossier incomplet
                                 </div>
                               </div>
@@ -439,7 +439,7 @@ export default function EmployesPage() {
                       <td className="py-3 px-3">
                         <StatusBadge status={e.statut} />
                       </td>
-                      <td className="py-3 px-3 text-right relative z-20">
+                      <td className="py-3 px-3 text-end relative z-20">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/employes/${e.id}`}

@@ -137,7 +137,7 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative">
         {/* Subtle Background Glow inside Modal */}
-        <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full transition-colors duration-500 ${isConfirming ? 'bg-[var(--color-turbo)]/15' : 'bg-[var(--color-electric-violet)]/10'}`} />
+        <div className={`absolute top-0 end-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full transition-colors duration-500 ${isConfirming ? 'bg-[var(--color-turbo)]/15' : 'bg-[var(--color-electric-violet)]/10'}`} />
         
         {/* Header */}
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02]">
@@ -175,7 +175,7 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
           {isConfirming && formData ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div className="p-5 rounded-xl bg-white/5 border border-[var(--color-turbo)]/30 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-[var(--color-turbo)]" />
+                <div className="absolute top-0 start-0 w-1 h-full bg-[var(--color-turbo)]" />
                 <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                   Résumé du Véhicule
                 </h3>
@@ -404,7 +404,7 @@ export function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalP
                   className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[var(--color-electric-violet)] hover:bg-[#9d6cfc] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(131,77,251,0.4)] transition-all flex items-center gap-2"
                 >
                   Continuer
-                  <div className="w-1.5 h-1.5 rounded-full bg-white opacity-50 ml-1" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white opacity-50 ms-1" />
                   <div className="w-1.5 h-1.5 rounded-full bg-white opacity-70" />
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </button>

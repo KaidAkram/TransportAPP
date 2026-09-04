@@ -63,7 +63,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-sm font-medium animate-scale-in ${
+        <div className={`fixed bottom-6 end-6 z-50 px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-sm font-medium animate-scale-in ${
           toastMessage.type === 'success' 
             ? 'bg-[var(--color-electric-violet)] text-white shadow-[#7C3AED]/20 border-white/20' 
             : 'bg-red-500/90 text-white shadow-red-500/20 border-red-500/20'
@@ -156,100 +156,100 @@ export default function AdminSettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">Nom de l'entreprise</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">Nom de l'entreprise</label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Building2 className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="name"
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white font-medium focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm text-white font-medium focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">Adresse Complète</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">Adresse Complète</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <MapPin className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white font-medium focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm text-white font-medium focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">Registre Commerce (RC)</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">Registre Commerce (RC)</label>
                 <div className="relative">
-                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Hash className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="rc"
                     value={formData.rc}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">NIF</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">NIF</label>
                 <div className="relative">
-                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Hash className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="nif"
                     value={formData.nif}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">NIS</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">NIS</label>
                 <div className="relative">
-                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Hash className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="nis"
                     value={formData.nis}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">Article d'Imposition (AI)</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">Article d'Imposition (AI)</label>
                 <div className="relative">
-                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Hash className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="ai"
                     value={formData.ai}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 pl-1">Numéro de Téléphone</label>
+                <label className="text-[10px] font-accent uppercase tracking-widest text-white/50 ps-1">Numéro de Téléphone</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Phone className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <input
                     type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 ps-10 pe-4 text-sm font-mono text-white/80 focus:border-[var(--color-electric-violet)]/50 focus:bg-black/60 transition-all focus:outline-none"
                   />
                 </div>
               </div>

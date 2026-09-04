@@ -136,7 +136,7 @@ export default function VehiculesPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.1s' }}>
         <div>
-          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] font-bold mb-1 ml-0.5 flex items-center gap-2">
+          <p className="text-[10px] font-accent uppercase tracking-widest text-[var(--color-turbo)] font-bold mb-1 ms-0.5 flex items-center gap-2">
             <Bus className="w-3 h-3" />
             Flotte
           </p>
@@ -148,7 +148,7 @@ export default function VehiculesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex bg-black/40 p-1 rounded-xl backdrop-blur-md border border-white/10 mr-2">
+          <div className="flex bg-black/40 p-1 rounded-xl backdrop-blur-md border border-white/10 me-2">
             <button
               onClick={() => setViewMode("actifs")}
               className={`px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-wider uppercase transition-all ${
@@ -246,7 +246,7 @@ export default function VehiculesPage() {
       {/* Filter & Search Bar */}
       <div className="relative z-20 flex flex-wrap gap-3 opacity-0 animate-[stagger-up_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]" style={{ animationDelay: '0.3s' }}>
         <div className="relative w-full lg:w-auto lg:flex-1 min-w-[250px] group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-white/40 group-focus-within:text-[var(--color-electric-violet)] transition-colors" />
           </div>
           <input
@@ -254,7 +254,7 @@ export default function VehiculesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par immatriculation ou marque..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)] focus:bg-[var(--color-haiti)] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-medium"
           />
         </div>
         
@@ -328,16 +328,16 @@ export default function VehiculesPage() {
         ) : (
           <div className="glass-panel overflow-hidden p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs table-fixed">
+              <table className="w-full text-start text-xs table-fixed">
                 <thead className="bg-black/20 border-b border-white/10 text-white/40 font-accent uppercase tracking-widest">
                   <tr>
                     <SortableHeader label="Immatriculation" field="immatriculation" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[16%]" />
                     <SortableHeader label="Véhicule" field="marque" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[20%]" />
                     <SortableHeader label="Type" field="type" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%]" />
                     <SortableHeader label="Places" field="nombre_places" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[12%] text-center" />
-                    <SortableHeader label="Kilométrage" field="kilometrage_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-right" />
+                    <SortableHeader label="Kilométrage" field="kilometrage_actuel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-end" />
                     <SortableHeader label="Statut" field="statut" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[14%] text-center" />
-                    <th className="py-3 px-4 w-[12%] text-right font-accent uppercase tracking-widest text-white/50 text-[10px]">Actions</th>
+                    <th className="py-3 px-4 w-[12%] text-end font-accent uppercase tracking-widest text-white/50 text-[10px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -357,13 +357,13 @@ export default function VehiculesPage() {
                       <td className="py-3 px-4 text-center text-xs text-white/80 truncate">
                         {v.nombre_places} pl.
                       </td>
-                      <td className="py-3 px-4 text-right text-xs font-mono text-white truncate">
+                      <td className="py-3 px-4 text-end text-xs font-mono text-white truncate">
                         {v.kilometrage_actuel.toLocaleString()} <span className="text-[9px] font-sans text-white/40">km</span>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <StatusBadge status={v.statut} />
                       </td>
-                      <td className="py-3 px-4 text-right relative z-20">
+                      <td className="py-3 px-4 text-end relative z-20">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/vehicules/${v.id}`}
@@ -409,14 +409,14 @@ export default function VehiculesPage() {
           </h2>
           <div className="glass-panel overflow-hidden p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs table-fixed">
+              <table className="w-full text-start text-xs table-fixed">
                 <thead className="bg-rose-500/10 border-b border-rose-500/20 text-rose-300 font-accent uppercase tracking-widest">
                   <tr>
                     <th className="py-3 px-4 w-[15%]">Date</th>
                     <th className="py-3 px-4 w-[20%]">Immatriculation</th>
                     <th className="py-3 px-4 w-[20%]">Chauffeur</th>
                     <th className="py-3 px-4 w-[30%]">Lieu / Circonstances</th>
-                    <th className="py-3 px-4 w-[15%] text-right">Statut</th>
+                    <th className="py-3 px-4 w-[15%] text-end">Statut</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-rose-500/10">
@@ -435,7 +435,7 @@ export default function VehiculesPage() {
                         <div className="font-bold text-white/80">{c.lieu}</div>
                         {c.circonstances}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-end">
                         <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70">
                           {c.statut_assurance || "En attente"}
                         </span>

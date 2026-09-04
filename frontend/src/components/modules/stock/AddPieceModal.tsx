@@ -120,7 +120,7 @@ export function AddPieceModal({ isOpen, onClose, onSuccess }: AddPieceModalProps
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-haiti)]/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-2xl rounded-2xl glass-panel border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative max-h-[90vh] flex flex-col">
         {/* Subtle Background Glow inside Modal */}
-        <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full transition-colors duration-500 ${isConfirming ? 'bg-[var(--color-electric-violet)]/15' : 'bg-emerald-500/10'}`} />
+        <div className={`absolute top-0 end-0 w-64 h-64 blur-[80px] pointer-events-none rounded-full transition-colors duration-500 ${isConfirming ? 'bg-[var(--color-electric-violet)]/15' : 'bg-emerald-500/10'}`} />
         
         {/* Header */}
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02] shrink-0">

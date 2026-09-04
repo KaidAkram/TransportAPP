@@ -147,7 +147,7 @@ export default function AdminFeaturesPage() {
     <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-8 overflow-x-hidden animate-in fade-in duration-300">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[var(--color-electric-violet)] text-white px-4 py-3 rounded-2xl shadow-xl shadow-[#7C3AED]/20 border border-white/20 flex items-center gap-2.5 text-sm font-medium animate-scale-in">
+        <div className="fixed bottom-6 end-6 z-50 bg-[var(--color-electric-violet)] text-white px-4 py-3 rounded-2xl shadow-xl shadow-[#7C3AED]/20 border border-white/20 flex items-center gap-2.5 text-sm font-medium animate-scale-in">
           <Check className="h-5 w-5 text-emerald-300 shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -205,13 +205,13 @@ export default function AdminFeaturesPage() {
         </div>
 
         <div className="relative w-full md:w-80 shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filtrer une action..."
-            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 focus:border-[var(--color-electric-violet)]/50 transition-all"
+            className="w-full ps-10 pe-4 py-2.5 text-sm rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[var(--color-electric-violet)]/50 focus:border-[var(--color-electric-violet)]/50 transition-all"
           />
         </div>
       </div>

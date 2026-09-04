@@ -64,8 +64,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-hidden bg-[var(--theme-bg-deep,#1B102B)]">
       {/* Subtle Background Glows (Theme Aware) */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-[100px] pointer-events-none opacity-40 transition-colors duration-700" style={{ backgroundColor: 'var(--theme-orb-primary)' }} />
-      <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-30 transition-colors duration-700" style={{ backgroundColor: 'var(--theme-orb-secondary)' }} />
+      <div className="absolute top-1/4 start-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-[100px] pointer-events-none opacity-40 transition-colors duration-700" style={{ backgroundColor: 'var(--theme-orb-primary)' }} />
+      <div className="absolute bottom-10 end-10 w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-30 transition-colors duration-700" style={{ backgroundColor: 'var(--theme-orb-secondary)' }} />
 
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Brand Header */}
@@ -131,14 +131,14 @@ export default function LoginPage() {
                 Identifiant
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <User className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin ou gestionnaire"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-deep)]/50 text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] text-sm focus:outline-none focus:border-[var(--theme-accent-primary)] focus:ring-1 focus:ring-[var(--theme-accent-primary)] transition-all"
+                  className="w-full ps-10 pe-4 py-2.5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-deep)]/50 text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] text-sm focus:outline-none focus:border-[var(--theme-accent-primary)] focus:ring-1 focus:ring-[var(--theme-accent-primary)] transition-all"
                 />
               </div>
             </div>
@@ -148,14 +148,14 @@ export default function LoginPage() {
                 Mot de passe
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Lock className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-deep)]/50 text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] text-sm focus:outline-none focus:border-[var(--theme-accent-primary)] focus:ring-1 focus:ring-[var(--theme-accent-primary)] transition-all"
+                  className="w-full ps-10 pe-4 py-2.5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-deep)]/50 text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] text-sm focus:outline-none focus:border-[var(--theme-accent-primary)] focus:ring-1 focus:ring-[var(--theme-accent-primary)] transition-all"
                 />
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickLogin("admin")}
-                className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-left transition-all group"
+                className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-start transition-all group"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-white group-hover:text-primary-base">
                   <ShieldCheck className="h-4 w-4 text-primary-base" /> Admin
@@ -191,7 +191,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickLogin("gestionnaire")}
-                className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-left transition-all group"
+                className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-start transition-all group"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-white group-hover:text-emerald-400">
                   <UserCheck className="h-4 w-4 text-emerald-400" /> Gestionnaire

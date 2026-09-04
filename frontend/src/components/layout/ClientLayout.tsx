@@ -105,7 +105,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         />
         {/* Center Subtle Orb */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[150px] opacity-40 transition-all duration-700"
+          className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[150px] opacity-40 transition-all duration-700"
           style={{ background: 'var(--theme-orb-primary)' }}
         />
       </div>

@@ -32,7 +32,7 @@ export function TypographySwitcher() {
             <button
               key={vibe.id}
               onClick={() => handleSelect(vibe.id)}
-              className={`relative text-left p-4 rounded-2xl border transition-all duration-300 overflow-hidden group ${
+              className={`relative text-start p-4 rounded-2xl border transition-all duration-300 overflow-hidden group ${
                 isActive
                   ? "bg-[var(--theme-glass-hover)] border-[var(--theme-accent-primary)] shadow-[0_0_20px_var(--theme-orb-primary)]"
                   : "bg-[var(--theme-glass)] border-[var(--theme-border)] hover:bg-[var(--theme-glass-hover)] hover:border-white/20"
@@ -40,7 +40,7 @@ export function TypographySwitcher() {
             >
               {/* Active glow */}
               {isActive && (
-                <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--theme-accent-primary)]/20 blur-xl rounded-full translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute top-0 end-0 w-16 h-16 bg-[var(--theme-accent-primary)]/20 blur-xl rounded-full translate-x-1/2 -translate-y-1/2" />
               )}
 
               <div className="relative z-10 space-y-3">

@@ -170,7 +170,7 @@ export function GlassDocumentManager({
                     {getFileIcon(doc.mime_type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate pr-6" title={doc.nom}>
+                    <p className="text-xs font-bold text-white truncate pe-6" title={doc.nom}>
                       {doc.nom}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
@@ -183,7 +183,7 @@ export function GlassDocumentManager({
                     </div>
                   </div>
 
-                  <div className="absolute top-2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                  <div className="absolute top-2 end-2 flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
                     <a
                       href={API_BASE_URL.replace('/api/v1', '') + doc.download_url}
                       target="_blank"
